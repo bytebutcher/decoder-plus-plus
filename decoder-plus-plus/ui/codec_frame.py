@@ -18,13 +18,14 @@
 import qtawesome
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QHBoxLayout, QSizePolicy, QGroupBox, \
-    QRadioButton, QToolButton, QDialog, QLabel, QWidget
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy, QGroupBox, \
+    QRadioButton, QToolButton, QLabel
 
 from ui import Spacer
-from ui.view.code_view import CodeView
 from ui.combo_box_frame import ComboBoxFrame
-from ui.view.hex_view import QHexEdit
+from ui.view.plain_view import PlainView
+from ui.view.code_view import CodeView
+from ui.view.hex_view import HexView
 from ui.widget.status_widget import StatusWidget
 
 
@@ -102,13 +103,13 @@ class CodecFrame(QFrame):
 
         input_frame = QFrame()
         frame_layout = QVBoxLayout()
-        self._plain_view_widget = QPlainTextEdit(text)
+        self._plain_view_widget = PlainView(text)
         self._plain_view_widget.textChanged.connect(self._text_changed_event)
         self._plain_view_frame = self._create_view(_create_label("Input"), self._plain_view_widget)
         frame_layout.addWidget(self._plain_view_frame)
         frame_layout.setContentsMargins(0, 6, 6, 6)
 
-        self._hex_view_widget = QHexEdit(self, self._context, self._frame_id, self.getInputText())
+        self._hex_view_widget = HexView(self, self._context, self._frame_id, self.getInputText())
         self._hex_view_widget.textChanged.connect(self._hex_view_text_changed_event)
         self._hex_view_frame = self._create_view(_create_label("Hex"), self._hex_view_widget)
         self._hex_view_frame.setHidden(True)

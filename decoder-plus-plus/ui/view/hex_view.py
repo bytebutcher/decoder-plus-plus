@@ -30,12 +30,12 @@ class HexValidatorDelegate(QStyledItemDelegate):
         editor.setValidator(validator)
         return editor
 
-class QHexEdit(QTableView):
+class HexView(QTableView):
 
     textChanged = pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent, context, frame_id, input_text):
-        super(QHexEdit, self).__init__(parent)
+        super(HexView, self).__init__(parent)
         self._context = context
         self._frame_id = frame_id
         self._logger = context.logger()
@@ -195,4 +195,4 @@ class QHexEdit(QTableView):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.edit(self.selectionModel().currentIndex())
-        super(QHexEdit, self).keyPressEvent(event)
+        super(HexView, self).keyPressEvent(event)

@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         self._init_window_size()
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._log_dock)
         self.setWindowTitle("Decoder++")
-        self.setWindowIcon(QIcon('decoder_plusplus.png'))
+        self.setWindowIcon(QIcon('dpp.png'))
         self._main_window_widget = MainWindowWidget(self, self._context)
         self.setCentralWidget(self._main_window_widget)
         self._logger.info("Ready")
