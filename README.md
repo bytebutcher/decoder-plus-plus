@@ -1,4 +1,4 @@
-# Decoder++
+ # Decoder++
 
 ![Decoder++ Screenshot](dpp.png)
 
@@ -52,6 +52,6 @@ Decoder++ 0.90
 'e52d74c6d046c390345ae4343406b99587f2af0d'
 ```
 
-##Screenshots
+## Screenshots
 
 ![Decoder++ Screenshot](images/dpp-screenshot-001.png)
