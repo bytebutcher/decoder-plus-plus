@@ -70,7 +70,7 @@ def required_length(nmin,nmax):
 
 
 def get_input(context, args):
-    assert bool(args.file) != bool(args.text), "Either file or text should be used."
+    assert bool(args.file) != bool(args.input), "Either file or input should be used."
     if args.file:
         try:
             with open(args.file, "r") as f:
@@ -78,8 +78,8 @@ def get_input(context, args):
         except:
             context.logger().error("Error loading {file}. Aborting ...".format(file=args.file))
             sys.exit(1)
-    if args.text:
-        return args.text
+    if args.input:
+        return args.input
 
 
 def get_action_type(context, builder, name):
@@ -106,23 +106,29 @@ if __name__ == '__main__':
         init_builder(commands, Hasher, Command.Type.HASHER)
         init_builder(commands, Script, Command.Type.SCRIPT)
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('-t', '--text', action=SingleArgs,
-                            help="Specifies the input-text")
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument('-?', '--help', action='store_true',
+                            help="show this help message and exit")
+        parser.add_argument('input', nargs='?',
+                            help="specifies the input-text")
         parser.add_argument('-f', '--file', action=SingleArgs,
-                            help="Specifies the input-file")
+                            help="specifies the input-file")
         parser.add_argument('-i', '--interactive', action='store_true',
-                            help="Drops into an interactive python shell")
+                            help="drops into an interactive python shell")
         parser.add_argument('-e', '--encode', dest="encode", action=OrderedMultiArgs,
-                            help="Encodes the input using the specified codec(s).")
+                            help="encodes the input using the specified codec(s).")
         parser.add_argument('-d', '--decode', action=OrderedMultiArgs,
-                            help="Decodes the input using the specified codec(s)")
-        parser.add_argument('-a', '--hash', action=OrderedMultiArgs,
-                            help="Transforms the input using the specified hash-functions")
+                            help="decodes the input using the specified codec(s)")
+        parser.add_argument('-h', '--hash', action=OrderedMultiArgs,
+                            help="transforms the input using the specified hash-functions")
         parser.add_argument('-s', '--script', nargs='+', action=required_length(1, 2),
-                            help="Transforms the input using the specified script (optional arguments)")
+                            help="transforms the input using the specified script (optional arguments)")
 
         args = parser.parse_args()
+        if args.help:
+            parser.print_help()
+            sys.exit(0)
+
         if not args.encode and not args.decode and not args.script and not args.hash and not args.interactive:
             # Start GUI when no other parameters were used.
             try:
@@ -144,12 +150,12 @@ if __name__ == '__main__':
             context.logger().error("No action specified!")
             sys.exit(1)
 
-        if not args.file and not args.text:
+        if not args.file and not args.input:
             context.logger().error("No input specified!")
             sys.exit(1)
 
-        if args.file and args.text:
-            context.logger().error("Argument --file and --text can not be used in together.")
+        if args.file and args.input:
+            context.logger().error("Argument --file and input can not be used in together.")
             sys.exit(1)
 
         input = get_input(context, args)

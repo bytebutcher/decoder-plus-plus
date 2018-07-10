@@ -18,7 +18,7 @@ python3 dpp.py
 ### Command Line Interface
 
 ```bash
-python3 dpp.py -t "Hello, world!" -e base64 -a sha1
+python3 dpp.py -e base64 -h sha1 "Hello, world!"
 e52d74c6d046c390345ae4343406b99587f2af0d
 ```
 
@@ -65,22 +65,25 @@ pip3 install decoder-plus-plus
 
 ### Command Line Interface
 ```bash
-usage: dpp.py [-h] [-t TEXT] [-f FILE] [-i] [-e ENCODE] [-d DECODE] [-a HASH]
+usage: dpp.py [-?] [-f FILE] [-i] [-e ENCODE] [-d DECODE] [-h HASH]
               [-s SCRIPT [SCRIPT ...]]
+              [input]
+
+positional arguments:
+  input                 specifies the input-text
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -t TEXT, --text TEXT  Specifies the input-text
-  -f FILE, --file FILE  Specifies the input-file
-  -i, --interactive     Drops into an interactive python shell
+  -?, --help            show this help message and exit
+  -f FILE, --file FILE  specifies the input-file
+  -i, --interactive     drops into an interactive python shell
   -e ENCODE, --encode ENCODE
-                        Encodes the input using the specified codec(s).
+                        encodes the input using the specified codec(s).
   -d DECODE, --decode DECODE
-                        Decodes the input using the specified codec(s)
-  -a HASH, --hash HASH  Transforms the input using the specified hash-
+                        decodes the input using the specified codec(s)
+  -h HASH, --hash HASH  transforms the input using the specified hash-
                         functions
   -s SCRIPT [SCRIPT ...], --script SCRIPT [SCRIPT ...]
-                        Transforms the input using the specified script
+                        transforms the input using the specified script
                         (optional arguments)
 ```
 
