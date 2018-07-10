@@ -7,7 +7,7 @@ An extensible application for penetration testers and software developers to dec
 
 ## Usage
 
-Start the Decoder++ GUI:
+### Graphical User Interface
 
 ```bash
 python3 dpp.py
@@ -15,14 +15,14 @@ python3 dpp.py
 
 ![Decoder++ Screenshot](images/dpp-screenshot-001.png)
 
-Use the Decoder++ Command Line Interface:
+### Command Line Interface
 
 ```bash
 python3 dpp.py -t "Hello, world!" -e base64 -a sha1
 e52d74c6d046c390345ae4343406b99587f2af0d
 ```
 
-Drop into the Decoder++ Interactive Python Shell:
+### Interactive Python Shell
 
 ```bash
 python3 dpp.py -i
@@ -30,6 +30,22 @@ Decoder++ 0.90
 >>> DecoderPlusPlus("Hello, world!").encode().base64().hash().sha1().run()
 'e52d74c6d046c390345ae4343406b99587f2af0d'
 ```
+
+## Features
+
+* Preinstalled Scripts and Codecs:
+    * **Encode/Decode:** Base16, Base32, Base64, Hex, Html, Url, Url+
+    * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
+    * **Scripts:** Caesar, Search and Replace
+* Plugin System
+* Platforms:
+    * Windows
+    * Linux
+    * ?MAC?
+* Interfaces:
+    * Graphical User Interface
+    * Command Line Interface
+    * Interactive Python Console    
 
 ## Setup
 
@@ -45,17 +61,69 @@ pip3 install -r requirements
 pip3 install decoder-plus-plus
 ```
 
-## Features
+## Advanced Usage
 
-* Graphical User Interface
-* Command Line Interface
-* Interactive Python Console
-* Plugin System
-* Cross-Platform-Compatible
-* Preinstalled Scripts and Codecs:
-    * **Encode/Decode:** Base16, Base32, Base64, Hex, Html, Url, Url+
-    * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
-    * **Scripts:** Caesar, Search and Replace
+### Command Line Interface
+```bash
+usage: dpp.py [-h] [-t TEXT] [-f FILE] [-i] [-e ENCODE] [-d DECODE] [-a HASH]
+              [-s SCRIPT [SCRIPT ...]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TEXT, --text TEXT  Specifies the input-text
+  -f FILE, --file FILE  Specifies the input-file
+  -i, --interactive     Drops into an interactive python shell
+  -e ENCODE, --encode ENCODE
+                        Encodes the input using the specified codec(s).
+  -d DECODE, --decode DECODE
+                        Decodes the input using the specified codec(s)
+  -a HASH, --hash HASH  Transforms the input using the specified hash-
+                        functions
+  -s SCRIPT [SCRIPT ...], --script SCRIPT [SCRIPT ...]
+                        Transforms the input using the specified script
+                        (optional arguments)
+```
+
+### Interactive Python Console
+
+```bash
+# Encode / Decode Base64
+encoded = DecoderPlusPlus("Hello, world!").encode().base64().run()
+decoded = DecoderPlusPlus(encoded).decode().base64().run()
+DecoderPlusPlus("Hello, world!").encode().base64().decode().base64().run() == "Hello, world!"
+
+# Hashing
+DecoderPlusPlus("Hello, world!").hash().sha1().run()
+```
+
+### Plugin Development
+
+To add custom codecs just copy them into the $HOME/.config/dpp/plugins/ folder. 
+
+```bash
+from core.plugin.abstract_plugin import AbstractPlugin
+from core.command import Command
+
+class Plugin(AbstractPlugin):
+
+    def __init__(self, context):
+        plugin_name = "URL"
+        # plugin_type: Command.Type.DECODER / Command.Type.ENCODER / Command.Type.HASHER / Command.Type.SCRIPT 
+        plugin_type = Command.Type.DECODER
+        plugin_author = "Your Name"
+        plugin_requirements = ["urllib"] # Required Python Libraries
+        super().__init__(plugin_name, plugin_type, plugin_author, plugin_requirements)
+
+    def run(self, text):
+        # Load the required libraries here ...
+        import urllib.parse
+        # Run your action ...
+        return urllib.parse.unquote(text)
+```
+
+## Contribute
+
+Feel free to issue pull-requests for new features/plugins.
 
 ## Powered By
 
