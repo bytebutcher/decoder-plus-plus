@@ -41,7 +41,7 @@ Decoder++ 0.90
 * Platforms:
     * Windows
     * Linux
-    * ?MAC?
+    * MAC
 * Interfaces:
     * Graphical User Interface
     * Command Line Interface
@@ -86,7 +86,7 @@ optional arguments:
 
 ### Interactive Python Console
 
-```bash
+```python
 # Encode / Decode Base64
 encoded = DecoderPlusPlus("Hello, world!").encode().base64().run()
 decoded = DecoderPlusPlus(encoded).decode().base64().run()
@@ -100,7 +100,7 @@ DecoderPlusPlus("Hello, world!").hash().sha1().run()
 
 To add custom codecs just copy them into the $HOME/.config/dpp/plugins/ folder. 
 
-```bash
+```python
 from core.plugin.abstract_plugin import AbstractPlugin
 from core.command import Command
 
