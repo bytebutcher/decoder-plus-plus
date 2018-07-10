@@ -79,50 +79,31 @@ class CodecFrame(QFrame):
         # WORKAROUND: ???
         #self._logger = context.logger(log_format="%(module)s: %(frame_id)d: %(lineno)d: %(msg)s",log_fields={'frame_id': frame_id})
 
-    def _create_view(self, label, widget):
-        label.setVisible(False)
-        plain_view_frame = QFrame()
-        plain_view_layout = QHBoxLayout()
-        plain_view_layout.setContentsMargins(0,0,0,0)
-        plain_view_layout.addWidget(label)
-        plain_view_layout.addWidget(widget, 0, Qt.AlignTop)
-        plain_view_frame.setLayout(plain_view_layout)
-        return plain_view_frame
-
     def _init_status_widget(self):
         status_widget = StatusWidget(self, height=self.FRAME_HEIGHT-12)
         return status_widget
 
     def _init_input_frame(self, text):
-        def _create_label(text):
-            label = QLabel(text + " ", self)
-            label.setFixedWidth(30)
-            label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignCenter)
-            label.setContentsMargins(0, 0, 0, 0)
-            return label
-
         input_frame = QFrame()
         frame_layout = QVBoxLayout()
         self._plain_view_widget = PlainView(text)
         self._plain_view_widget.textChanged.connect(self._text_changed_event)
-        self._plain_view_frame = self._create_view(_create_label("Input"), self._plain_view_widget)
-        frame_layout.addWidget(self._plain_view_frame)
+        self._plain_view_widget = self._plain_view_widget
+        frame_layout.addWidget(self._plain_view_widget)
         frame_layout.setContentsMargins(0, 6, 6, 6)
 
         self._hex_view_widget = HexView(self, self._context, self._frame_id, self.getInputText())
         self._hex_view_widget.textChanged.connect(self._hex_view_text_changed_event)
-        self._hex_view_frame = self._create_view(_create_label("Hex"), self._hex_view_widget)
-        self._hex_view_frame.setHidden(True)
-        frame_layout.addWidget(self._hex_view_frame)
+        self._hex_view_widget.setHidden(True)
+        frame_layout.addWidget(self._hex_view_widget)
 
         self._code_view = CodeView(self, self._context)
         self._code_view.setText("def run(input):\n    return input")
         self._code_view.setContentsMargins(0, 0, 0, 0)
         self._code_view.runEvent.connect(self._run_event)
         self._code_view.textChanged.connect(self._code_view_text_changed_event)
-        self._code_view_frame = self._create_view(_create_label("Code"), self._code_view)
-        self._code_view_frame.setHidden(True)
-        frame_layout.addWidget(self._code_view_frame)
+        self._code_view.setHidden(True)
+        frame_layout.addWidget(self._code_view)
 
         input_frame.setLayout(frame_layout)
         return input_frame
@@ -184,8 +165,8 @@ class CodecFrame(QFrame):
         self.focusInputText()
 
     def _view_radio_button_toggle_event(self):
-        self._plain_view_frame.setVisible(self._plain_radio.isChecked())
-        self._hex_view_frame.setVisible(self._hex_radio.isChecked())
+        self._plain_view_widget.setVisible(self._plain_radio.isChecked())
+        self._hex_view_widget.setVisible(self._hex_radio.isChecked())
         # BUG: Performance Issue When Updating Multiple HexView-Frames During Input Text Changes
         # WORKAROUND: Do only update HexView when it's visible
         if self._hex_radio.isChecked():
@@ -195,7 +176,7 @@ class CodecFrame(QFrame):
             self._hex_view_widget.blockSignals(False)
 
     def _terminal_button_toggle_event(self):
-        self._code_view_frame.setVisible(self._editor_button.isChecked())
+        self._code_view.setVisible(self._editor_button.isChecked())
 
     def _two_way_sync_event(self):
         self._run_event()
