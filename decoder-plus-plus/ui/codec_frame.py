@@ -21,6 +21,7 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy, QGroupBox, \
     QRadioButton, QToolButton, QLabel
 
+from core import Context
 from ui import Spacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
@@ -39,6 +40,7 @@ class CodecFrame(QFrame):
     def __init__(self, parent, context, frame_id, codec_tab, commands, previous_frame, text):
         super(CodecFrame, self).__init__(parent)
         self._context = context
+        self._context.shortcutUpdated.connect(self._shortcut_updated_event)
         self._init_logger(context, frame_id)
         self._frame_id = frame_id
         self._codec_tab = codec_tab
@@ -154,7 +156,38 @@ class CodecFrame(QFrame):
         return radio_frame
 
     def _shortcut_updated_event(self, shortcut):
-        pass
+        id = shortcut.id()
+        tooltip = self._get_tooltip_by_shortcut(shortcut)
+        if id == Context.Shortcut.FOCUS_DECODER:
+            self._combo_box_frame.decoder().setToolTip(tooltip)
+        elif id == Context.Shortcut.FOCUS_ENCODER:
+            self._combo_box_frame.encoder().setToolTip(tooltip)
+        elif id == Context.Shortcut.FOCUS_HASHER:
+            self._combo_box_frame.hasher().setToolTip(tooltip)
+        elif id == Context.Shortcut.FOCUS_SCRIPT:
+            self._combo_box_frame.script().setToolTip(tooltip)
+        elif id == Context.Shortcut.SELECT_PLAIN_VIEW:
+            self._plain_radio.setToolTip(tooltip)
+        elif id == Context.Shortcut.SELECT_HEX_VIEW:
+            self._hex_radio.setToolTip(tooltip)
+        elif id == Context.Shortcut.TOGGLE_CODE_VIEW:
+            self._editor_button.setToolTip(tooltip)
+        elif id == Context.Shortcut.CODE_RUN:
+            self._run_button.setToolTip(tooltip)
+        else:
+            return
+        self._logger.debug("Updated tooltip within codec-frame for {id} to {tooltip}".format(id=id, tooltip=tooltip))
+
+    def _update_tooltip(self, the_widget, the_shortcut_id):
+        tooltip = self._get_tooltip_by_shortcut_id(the_shortcut_id)
+        the_widget.setToolTip(tooltip)
+
+    def _get_tooltip_by_shortcut_id(self, the_shortcut_id):
+        shortcut = self._context.getShortcutById(the_shortcut_id)
+        return self._get_tooltip_by_shortcut(shortcut)
+
+    def _get_tooltip_by_shortcut(self, shortcut):
+        return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
 
     def _combo_box_title_selected_event(self):
         self._run_button.setChecked(False)
@@ -281,6 +314,10 @@ class CodecFrame(QFrame):
 
     def toggleSearchField(self):
         self._plain_view_widget.toggleSearchField()
+
+    def runCode(self):
+        if self._run_button.isEnabled():
+            self._run_button.click()
 
     def hasNext(self):
         return self._next_frame is not None

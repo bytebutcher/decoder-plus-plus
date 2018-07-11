@@ -37,18 +37,18 @@ class ComboBoxFrame(QFrame):
         layout = QVBoxLayout()
         self._decoder_combo = self._init_combo_box("Decode as ...", Command.Type.DECODER)
         self._encoder_combo = self._init_combo_box("Encode as ...", Command.Type.ENCODER)
-        self._hashers_combo = self._init_combo_box("Hash ...", Command.Type.HASHER)
-        self._scripts_combo = self._init_combo_box("Script ...", Command.Type.SCRIPT)
+        self._hasher_combo = self._init_combo_box("Hash ...", Command.Type.HASHER)
+        self._script_combo = self._init_combo_box("Script ...", Command.Type.SCRIPT)
         self._combo_boxes = {
             Command.Type.DECODER: self._decoder_combo,
             Command.Type.ENCODER: self._encoder_combo,
-            Command.Type.HASHER: self._hashers_combo,
-            Command.Type.SCRIPT: self._scripts_combo
+            Command.Type.HASHER: self._hasher_combo,
+            Command.Type.SCRIPT: self._script_combo
         }
         layout.addWidget(self._decoder_combo)
         layout.addWidget(self._encoder_combo)
-        layout.addWidget(self._hashers_combo)
-        layout.addWidget(self._scripts_combo)
+        layout.addWidget(self._hasher_combo)
+        layout.addWidget(self._script_combo)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
@@ -146,4 +146,25 @@ class ComboBoxFrame(QFrame):
                 self.reset(self._combo_boxes[command_type])
 
     def resetAll(self):
-        self.reset(self._decoder_combo, self._encoder_combo, self._hashers_combo, self._scripts_combo)
+        self.reset(self._decoder_combo, self._encoder_combo, self._hasher_combo, self._script_combo)
+
+    def setToolTipByCommandType(self, command_type, tooltip):
+        # BUG: Tooltip is not setup as expected.
+        # WORKAROUND: Use the decoder/encoder/hasher/script method.
+        # TODO: Workaround breaks design. Combo-boxes should not leave this object.
+        if not command_type in self._combo_boxes.keys():
+            self._logger.error("Unknown command type '{}'. Can not set tooltip to {}.".format(command_type, tooltip))
+            return
+        self._combo_boxes[command_type].setToolTip(tooltip)
+
+    def decoder(self):
+        return self._decoder_combo
+
+    def encoder(self):
+        return self._encoder_combo
+
+    def hasher(self):
+        return self._hasher_combo
+
+    def script(self):
+        return self._script_combo

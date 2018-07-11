@@ -20,14 +20,14 @@ import os
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from core.command import Commands, Command
 from core.plugin.plugin_loader import PluginLoader
-from core.shortcut import Shortcut
+from core.shortcut import Shortcut, NullShortcut
 
 
-class Context(object):
+class Context(QObject):
 
     shortcutUpdated = pyqtSignal('PyQt_PyObject')
 
@@ -39,6 +39,7 @@ class Context(object):
         TAB_PREVIOUS = "tab_previous"
         TAB_CLOSE = "tab_close"
         COMMAND_RUN = "command_run"
+        CODE_RUN = "code_run"
         FOCUS_ENCODER = "focus_encoder"
         FOCUS_DECODER = "focus_decoder"
         FOCUS_HASHER = "focus_hasher"
@@ -52,6 +53,7 @@ class Context(object):
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
 
     def __init__(self):
+        super(__class__, self).__init__()
         self._logger = {}
         self._config = self._init_config()
         self._commands = None
@@ -120,9 +122,10 @@ class Context(object):
         shortcut = Shortcut(the_id, the_name, the_shortcut_key, the_callback, the_widget)
         self._shortcuts[the_id] = shortcut
         self._config.setShortcutKey(the_id, the_shortcut_key)
+        self.shortcutUpdated.emit(shortcut)
 
     def updateShortcutKey(self, the_id, the_shortcut_key):
-        if not the_id in self._shortcuts:
+        if the_id not in self._shortcuts:
             self.logger().error("Shortcut {} is not defined".format(the_id))
             return
 
@@ -134,6 +137,12 @@ class Context(object):
 
     def getShortcuts(self):
         return self._shortcuts.values()
+
+    def getShortcutById(self, the_id):
+        if the_id not in self._shortcuts:
+            self.logger().error("Shortcut {} is not defined".format(the_id))
+            return NullShortcut()
+        return self._shortcuts[the_id]
 
     def getUnresolvedDependencies(self):
         return self._plugin_loader.getUnresolvedDependencies()
