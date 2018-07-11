@@ -75,37 +75,37 @@ class MainWindowWidget(QWidget):
                                        self._run_code,
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER,
-                                       "Focus Decoder Combo Box",
+                                       "Select Decoder",
                                        "Alt+D",
                                        lambda: self._focus_combo_box(Command.Type.DECODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_ENCODER,
-                                       "Focus Encoder Combo Box",
+                                       "Select Encoder",
                                        "Alt+E",
                                        lambda: self._focus_combo_box(Command.Type.ENCODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_HASHER,
-                                       "Focus Hasher Combo Box",
+                                       "Select Hasher",
                                        "Alt+H",
                                        lambda: self._focus_combo_box(Command.Type.HASHER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_SCRIPT,
-                                       "Focus Script Combo Box",
+                                       "Select Script",
                                        "Alt+S",
                                        lambda: self._focus_combo_box(Command.Type.SCRIPT),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
-                                       "Focus Text Field",
+                                       "Select Text Field",
                                        "Alt+I",
                                        lambda: self._focus_input_text(),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
-                                       "Focus Next Text Field",
+                                       "Select Next Text Field",
                                        "Alt+Down",
                                        lambda: self._focus_input_text_next(),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS,
-                                       "Focus Previous Text Field",
+                                       "Select Previous Text Field",
                                        "Alt+Up",
                                        lambda: self._focus_input_text_previous(),
                                        self)
