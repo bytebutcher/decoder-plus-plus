@@ -67,7 +67,7 @@ class HiddenDialog(QDialog):
         shortcut_filter.setIcon(qtawesome.icon("fa.search"))
         frame_layout.addWidget(shortcut_filter)
         shortcut_table = ShortcutTable(self, self._context.getShortcuts())
-        shortcut_table.shortcutUpdated.connect(lambda key, shortcut: self._context.updateShortcut(key, shortcut))
+        shortcut_table.shortcutUpdated.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))
         shortcut_filter.textChanged.connect(shortcut_table.model().setFilterRegExp)
         frame_layout.addWidget(shortcut_table)
         frame.setLayout(frame_layout)

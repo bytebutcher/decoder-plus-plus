@@ -14,13 +14,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QShortcut
+
 
 class Shortcut(object):
 
-    def __init__(self, id, name, shortcut, callback):
+    def __init__(self, id, name, shortcut_key, callback, widget):
         self._id = id
         self._name = name
-        self._shortcut = shortcut
+        self._shortcut = QShortcut(QKeySequence(shortcut_key), widget)
+        self._shortcut.activated.connect(callback)
         self._callback = callback
 
     def id(self):
@@ -36,11 +40,14 @@ class Shortcut(object):
         return self._shortcut
 
     def key(self):
-        if self._shortcut:
-            return self._shortcut.key().toString()
+        return self._shortcut.key().toString()
+
+    def setKey(self, key):
+        self._shortcut.setKey(QKeySequence(key))
 
     def setShortcut(self, shortcut):
         self._shortcut = shortcut
 
     def callback(self):
         return self._callback
+

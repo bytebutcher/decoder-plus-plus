@@ -47,7 +47,7 @@ class ShortcutTable(QTableView):
 
     def _init_model(self, shortcuts):
         model = QStandardItemModel(len(shortcuts), 3)
-        model.setHorizontalHeaderLabels(["Key", "Name", "Shortcut"])
+        model.setHorizontalHeaderLabels(["Id", "Name", "Shortcut"])
         for index, shortcut in enumerate(shortcuts):
             name_item = QStandardItem(shortcut.name())
             name_item.setFlags(name_item.flags() ^ QtCore.Qt.ItemIsEditable)
@@ -69,9 +69,9 @@ class ShortcutTable(QTableView):
         self.setModel(filter_proxy_model)
 
     def _shortcut_changed_event(self, item):
-        key = self.model().sourceModel().item(item.row(), 0).text()
-        shortcut = self.model().sourceModel().item(item.row(), 2).text()
-        self.shortcutUpdated.emit(key, shortcut)
+        id = self.model().sourceModel().item(item.row(), 0).text()
+        shortcut_key = self.model().sourceModel().item(item.row(), 2).text()
+        self.shortcutUpdated.emit(id, shortcut_key)
 
     def keyPressEvent(self, event):
         # BUG: Using Enter-Key to go into Edit-Mode results an immediate closing of the selected cell.

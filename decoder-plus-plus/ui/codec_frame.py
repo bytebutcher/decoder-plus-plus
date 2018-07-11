@@ -153,6 +153,9 @@ class CodecFrame(QFrame):
         radio_frame.setLayout(radio_frame_layout)
         return radio_frame
 
+    def _shortcut_updated_event(self, shortcut):
+        pass
+
     def _combo_box_title_selected_event(self):
         self._run_button.setChecked(False)
         self._run_button.setEnabled(False)

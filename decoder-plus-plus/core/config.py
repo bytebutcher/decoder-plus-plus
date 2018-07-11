@@ -43,11 +43,11 @@ class Config(QSettings):
     def setPosition(self, position):
         self.setValue('position', position)
 
-    def setShortcut(self, key, shortcut):
-        self.setValue('shortcut.{}'.format(key), shortcut)
+    def setShortcutKey(self, id, shortcut_key):
+        self.setValue('shortcut.{}'.format(id), shortcut_key)
 
-    def getShortcut(self, key):
-        return self.value('shortcut.{}'.format(key))
+    def getShortcutKey(self, id):
+        return self.value('shortcut.{}'.format(id))
 
 
 

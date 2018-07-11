@@ -52,7 +52,7 @@ class MainWindowWidget(QWidget):
         self._context.registerShortcut("focus_input_text", "Focus Text Field", "Alt+I", lambda: self._focus_input_text(), self)
         self._context.registerShortcut("focus_input_text_next", "Focus Next Text Field", "Alt+Down", lambda: self._focus_input_text_next(), self)
         self._context.registerShortcut("focus_input_text_previous", "Focus Previous Text Field", "Alt+Up", lambda: self._focus_input_text_previous(), self)
-        self._context.registerShortcut("select_plain_view", "Select Plain View", "Ctrl+Shift+P", lambda: self._select_plain_view(), self)
+        self._context.registerShortcut("select_plain_view", "Select Plain View", "Alt+P", lambda: self._select_plain_view(), self)
         self._context.registerShortcut("select_hex_view", "Select Hex View", "Alt+X", lambda: self._select_hex_view(), self)
         self._context.registerShortcut("toggle_code_view", "Toggle Code View", "Alt+C", lambda: self._toggle_code_view(), self)
         self._context.registerShortcut("toggle_search_field", "Toggle Search Field", "Ctrl+F", lambda: self._toggle_search_field(), self)

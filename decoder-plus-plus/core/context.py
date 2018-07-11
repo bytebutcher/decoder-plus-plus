@@ -20,12 +20,16 @@ import os
 import sys
 from pathlib import Path
 
+from PyQt5.QtCore import pyqtSignal
+
 from core.command import Commands, Command
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut
 
 
 class Context(object):
+
+    shortcutUpdated = pyqtSignal('PyQt_PyObject')
 
     def __init__(self):
         self._logger = {}
@@ -88,28 +92,25 @@ class Context(object):
             self._commands = self._init_plugins()
         return self._commands
 
-    def registerShortcut(self, the_key, the_name, the_default_shortcut, the_callback, the_widget):
-        from PyQt5.QtGui import QKeySequence
-        from PyQt5.QtWidgets import QShortcut
-        the_shortcut = self._config.getShortcut(the_key)
-        if not the_shortcut:
-            the_shortcut = the_default_shortcut
-        self.logger().debug("Registering shortcut {} to {}".format(the_key, the_shortcut))
-        shortcut = QShortcut(QKeySequence(the_shortcut), the_widget)
-        shortcut.activated.connect(the_callback)
-        self._shortcuts[the_key] = Shortcut(the_key, the_name, shortcut, the_callback)
-        self._config.setShortcut(the_key, the_shortcut)
+    def registerShortcut(self, the_id, the_name, the_default_shortcut_key, the_callback, the_widget):
+        the_shortcut_key = self._config.getShortcutKey(the_id)
+        if not the_shortcut_key:
+            the_shortcut_key = the_default_shortcut_key
+        self.logger().debug("Registering shortcut {} to {}".format(the_id, the_shortcut_key))
+        shortcut = Shortcut(the_id, the_name, the_shortcut_key, the_callback, the_widget)
+        self._shortcuts[the_id] = shortcut
+        self._config.setShortcutKey(the_id, the_shortcut_key)
 
-    def updateShortcut(self, the_key, the_shortcut):
-        from PyQt5.QtGui import QKeySequence
-        if not the_key in self._shortcuts:
-            self.logger().error("Shortcut {} is not defined".format(the_key))
+    def updateShortcutKey(self, the_id, the_shortcut_key):
+        if not the_id in self._shortcuts:
+            self.logger().error("Shortcut {} is not defined".format(the_id))
             return
 
-        self.logger().debug("Updating shortcut {} to {}".format(the_key, the_shortcut))
-        shortcut = self._shortcuts[the_key]
-        shortcut.shortcut().setKey(QKeySequence(the_shortcut))
-        self._config.setShortcut(the_key, the_shortcut)
+        self.logger().debug("Updating shortcut {} to {}".format(the_id, the_shortcut_key))
+        shortcut = self._shortcuts[the_id]
+        shortcut.setKey(the_shortcut_key)
+        self._config.setShortcutKey(the_id, the_shortcut_key)
+        self.shortcutUpdated.emit(shortcut)
 
     def getShortcuts(self):
         return self._shortcuts.values()
