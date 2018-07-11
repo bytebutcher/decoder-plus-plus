@@ -55,6 +55,7 @@ class MainWindowWidget(QWidget):
         self._context.registerShortcut("select_plain_view", "Select Plain View", "Ctrl+Shift+P", lambda: self._select_plain_view(), self)
         self._context.registerShortcut("select_hex_view", "Select Hex View", "Alt+X", lambda: self._select_hex_view(), self)
         self._context.registerShortcut("toggle_code_view", "Toggle Code View", "Alt+C", lambda: self._toggle_code_view(), self)
+        self._context.registerShortcut("toggle_search_field", "Toggle Search Field", "Ctrl+F", lambda: self._toggle_search_field(), self)
 
     def _call_focussed_frame(self, callback):
         focussed_frame = self._get_focussed_frame()
@@ -98,6 +99,9 @@ class MainWindowWidget(QWidget):
 
     def _toggle_code_view(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleCodeView())
+
+    def _toggle_search_field(self):
+        self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())
 
     def _show_command_run_dialog(self):
         def _do_command_run(command):

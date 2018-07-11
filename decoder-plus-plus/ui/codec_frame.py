@@ -50,7 +50,7 @@ class CodecFrame(QFrame):
         self._flash_event = None
 
         self._layout = QHBoxLayout(self)
-        self._status_widget = self._init_status_widget()
+        self._status_widget = StatusWidget(self, height=self.FRAME_HEIGHT-12)
         input_frame = self._init_input_frame(text)
         button_frame = self._init_button_frame()
         button_frame.setFixedHeight(self.FRAME_HEIGHT)
@@ -78,10 +78,6 @@ class CodecFrame(QFrame):
         # BUG: Using logging with custom field frame_id does not work correctly.
         # WORKAROUND: ???
         #self._logger = context.logger(log_format="%(module)s: %(frame_id)d: %(lineno)d: %(msg)s",log_fields={'frame_id': frame_id})
-
-    def _init_status_widget(self):
-        status_widget = StatusWidget(self, height=self.FRAME_HEIGHT-12)
-        return status_widget
 
     def _init_input_frame(self, text):
         input_frame = QFrame()
@@ -279,6 +275,9 @@ class CodecFrame(QFrame):
 
     def toggleCodeView(self):
         self._editor_button.click()
+
+    def toggleSearchField(self):
+        self._plain_view_widget.toggleSearchField()
 
     def hasNext(self):
         return self._next_frame is not None
