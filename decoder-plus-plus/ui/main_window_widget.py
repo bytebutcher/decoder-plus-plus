@@ -17,6 +17,7 @@
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QToolButton, QLabel
 
+from core import Context
 from core.command import Command
 from ui import *
 
@@ -39,23 +40,23 @@ class MainWindowWidget(QWidget):
 
 
     def _init_shortcuts(self):
-        self._context.registerShortcut("tab_new", "New Tab", "Ctrl+T", self._tab_new, self)
-        self._context.registerShortcut("tab_rename", "Rename Tab", "Alt+Shift+R", self._tabs.tabBar().renameTab, self)
-        self._context.registerShortcut("tab_next", "Next Tab", "Ctrl+Tab", self._tab_next, self)
-        self._context.registerShortcut("tab_previous", "Previous Tab", "Ctrl+Shift+Tab", self._tab_previous, self)
-        self._context.registerShortcut("tab_close", "Close Tab", "Ctrl+W", self._tab_close, self)
-        self._context.registerShortcut("command_run", "Run Command", "Ctrl+R", self._show_command_run_dialog, self)
-        self._context.registerShortcut("focus_encoder", "Focus Encoder Combo Box", "Alt+E", lambda: self._focus_combo_box(Command.Type.ENCODER), self)
-        self._context.registerShortcut("focus_decoder", "Focus Decoder Combo Box", "Alt+D", lambda: self._focus_combo_box(Command.Type.DECODER), self)
-        self._context.registerShortcut("focus_hasher", "Focus Hasher Combo Box", "Alt+H", lambda: self._focus_combo_box(Command.Type.HASHER), self)
-        self._context.registerShortcut("focus_script", "Focus Script Combo Box", "Alt+S", lambda: self._focus_combo_box(Command.Type.SCRIPT), self)
-        self._context.registerShortcut("focus_input_text", "Focus Text Field", "Alt+I", lambda: self._focus_input_text(), self)
-        self._context.registerShortcut("focus_input_text_next", "Focus Next Text Field", "Alt+Down", lambda: self._focus_input_text_next(), self)
-        self._context.registerShortcut("focus_input_text_previous", "Focus Previous Text Field", "Alt+Up", lambda: self._focus_input_text_previous(), self)
-        self._context.registerShortcut("select_plain_view", "Select Plain View", "Alt+P", lambda: self._select_plain_view(), self)
-        self._context.registerShortcut("select_hex_view", "Select Hex View", "Alt+X", lambda: self._select_hex_view(), self)
-        self._context.registerShortcut("toggle_code_view", "Toggle Code View", "Alt+C", lambda: self._toggle_code_view(), self)
-        self._context.registerShortcut("toggle_search_field", "Toggle Search Field", "Ctrl+F", lambda: self._toggle_search_field(), self)
+        self._context.registerShortcut(Context.Shortcut.TAB_NEW, "New Tab", "Ctrl+T", self._tab_new, self)
+        self._context.registerShortcut(Context.Shortcut.TAB_RENAME, "Rename Tab", "Alt+Shift+R", self._tabs.tabBar().renameTab, self)
+        self._context.registerShortcut(Context.Shortcut.TAB_NEXT, "Next Tab", "Ctrl+Tab", self._tab_next, self)
+        self._context.registerShortcut(Context.Shortcut.TAB_PREVIOUS, "Previous Tab", "Ctrl+Shift+Tab", self._tab_previous, self)
+        self._context.registerShortcut(Context.Shortcut.TAB_CLOSE, "Close Tab", "Ctrl+W", self._tab_close, self)
+        self._context.registerShortcut(Context.Shortcut.COMMAND_RUN, "Run Command", "Ctrl+R", self._show_command_run_dialog, self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER, "Focus Decoder Combo Box", "Alt+D", lambda: self._focus_combo_box(Command.Type.DECODER), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_ENCODER, "Focus Encoder Combo Box", "Alt+E", lambda: self._focus_combo_box(Command.Type.ENCODER), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_HASHER, "Focus Hasher Combo Box", "Alt+H", lambda: self._focus_combo_box(Command.Type.HASHER), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_SCRIPT, "Focus Script Combo Box", "Alt+S", lambda: self._focus_combo_box(Command.Type.SCRIPT), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT, "Focus Text Field", "Alt+I", lambda: self._focus_input_text(), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT, "Focus Next Text Field", "Alt+Down", lambda: self._focus_input_text_next(), self)
+        self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS, "Focus Previous Text Field", "Alt+Up", lambda: self._focus_input_text_previous(), self)
+        self._context.registerShortcut(Context.Shortcut.SELECT_PLAIN_VIEW, "Select Plain View", "Alt+P", lambda: self._select_plain_view(), self)
+        self._context.registerShortcut(Context.Shortcut.SELECT_HEX_VIEW, "Select Hex View", "Alt+X", lambda: self._select_hex_view(), self)
+        self._context.registerShortcut(Context.Shortcut.TOGGLE_CODE_VIEW, "Toggle Code View", "Alt+C", lambda: self._toggle_code_view(), self)
+        self._context.registerShortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD, "Toggle Search Field", "Ctrl+F", lambda: self._toggle_search_field(), self)
 
     def _call_focussed_frame(self, callback):
         focussed_frame = self._get_focussed_frame()
