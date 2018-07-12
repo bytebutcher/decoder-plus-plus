@@ -16,12 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy, QGroupBox, \
-    QRadioButton, QToolButton, QLabel
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy, QGroupBox, QRadioButton, QToolButton
 
 from core import Context
+from core.exception import AbortedException
 from ui import Spacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
@@ -259,16 +258,14 @@ class CodecFrame(QFrame):
 
     def _execute_code(self):
         if self.isRunButtonPressed():
-            error = ""
             input = self.getInputText()
             output = ""
             try:
                 output = self._code_view.run(input)
                 self._codec_tab.newFrame(output, "Interactive Mode", self, status=StatusWidget.SUCCESS)
             except Exception as e:
-                error = str(e)
                 self._logger.error(str(e))
-                self._codec_tab.newFrame(output, "Interactive Mode", self, status=StatusWidget.ERROR, msg=error)
+                self._codec_tab.newFrame(output, "Interactive Mode", self, status=StatusWidget.ERROR, msg=(str(e)))
 
     def _execute_command_run(self, command):
         if self.isRunButtonPressed():
@@ -284,15 +281,17 @@ class CodecFrame(QFrame):
                 self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
 
     def _execute_command_select(self, command):
-        error = ""
         output = ""
         try:
             input = self.getInputText()
             output = command.select(input)
             self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.SUCCESS)
+        except AbortedException as e:
+            # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
+            self._logger.debug(str(e))
         except Exception as e:
-            self._logger.error('{} {}: {}'.format(command.name(), command.type(), str(e)))
             error = str(e)
+            self._logger.error('{} {}: {}'.format(command.name(), command.type(), error))
             self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
 
     def flashStatus(self, status, message):

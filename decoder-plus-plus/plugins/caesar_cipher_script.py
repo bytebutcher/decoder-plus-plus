@@ -6,6 +6,7 @@ from PyQt5.QtGui import QKeySequence, QIntValidator
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, QShortcut, \
     QSlider, QHBoxLayout
 
+from core.exception import AbortedException
 from core.plugin.abstract_plugin import AbstractPlugin
 from core.command import Command
 
@@ -22,8 +23,9 @@ class Plugin(AbstractPlugin):
             self._shift = dialog.getShift()
             return self.run(text)
         else:
+            # User clicked the Cancel-Button.
             self._shift = None
-            raise Exception("Aborted")
+            raise AbortedException("Aborted")
 
     def title(self):
         return "{} shift {}".format("Caesar Cipher", self._shift)
