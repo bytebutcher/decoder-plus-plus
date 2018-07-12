@@ -16,11 +16,13 @@ class Plugin(AbstractPlugin):
         # Name, Type, Author, Dependencies
         super().__init__('Caesar Cipher', Command.Type.SCRIPT, "Thomas Engel", )
         self._shift = None
+        self._dialog = None
 
     def select(self, text):
-        dialog = CaesarCipherDialog(text, self._do_caesar)
-        if dialog.exec_() == QDialog.Accepted:
-            self._shift = dialog.getShift()
+        if not self._dialog:
+            self._dialog = CaesarCipherDialog(text, self._do_caesar)
+        if self._dialog.exec_() == QDialog.Accepted:
+            self._shift = self._dialog.getShift()
             return self.run(text)
         else:
             # User clicked the Cancel-Button.

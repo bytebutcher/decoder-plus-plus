@@ -18,7 +18,8 @@ class Plugin(AbstractPlugin):
         self._dialog_return_code = None
 
     def select(self, text):
-        self._dialog = SearchAndReplaceDialog()
+        if not self._dialog:
+            self._dialog = SearchAndReplaceDialog()
         self._dialog_return_code = self._dialog.exec_()
         return self.run(text)
 

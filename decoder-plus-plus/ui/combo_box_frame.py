@@ -34,6 +34,7 @@ class ComboBoxFrame(QFrame):
         self._context = context
         self._commands = context.commands()
         self._logger = context.logger()
+        self._command_history = {}
         layout = QVBoxLayout()
         self._decoder_combo = self._init_combo_box("Decode as ...", Command.Type.DECODER)
         self._encoder_combo = self._init_combo_box("Encode as ...", Command.Type.ENCODER)
@@ -84,6 +85,12 @@ class ComboBoxFrame(QFrame):
             return
 
         command = self.getCommandByTypeAndIndex(type, index)
+        if command in self._command_history:
+            self._logger.debug("Command in history ...")
+            command = self._command_history[command]
+        else:
+            self._logger.debug("Command added to history ...")
+            self._command_history[command] = command
         self.commandSelected.emit(command)
 
         # BUG: Item gets deselected when running dialogs.
