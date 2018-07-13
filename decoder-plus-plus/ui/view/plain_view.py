@@ -42,9 +42,9 @@ class PlainView(QFrame):
 
     def _do_highlight_text(self):
 
-        def highlight_text(self, text, format):
+        def highlight_text(text, format):
             cursor = self._plain_text.textCursor()
-            regex = QRegExp(text)
+            regex = QRegExp(QRegExp.escape(text))
 
             # Process the displayed document
             pos = 0
@@ -58,7 +58,7 @@ class PlainView(QFrame):
                 pos = index + regex.matchedLength()
                 index = regex.indexIn(self.toPlainText(), pos)
 
-        def clear_highlighting(self):
+        def clear_highlighting():
             format = QTextCharFormat()
             format.setForeground(QBrush(QColor("black")))
             cursor = self._plain_text.textCursor()
