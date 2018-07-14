@@ -2,9 +2,8 @@ import sys
 
 import qtawesome
 from PyQt5.QtCore import pyqtSignal, QRegExp, Qt
-from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QFont, QSyntaxHighlighter
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QHBoxLayout, QLineEdit, QMainWindow, QApplication, \
-    QLabel
+from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit
 
 from ui import SearchField
 

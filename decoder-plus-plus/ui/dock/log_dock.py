@@ -18,11 +18,10 @@
 import qtawesome
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QPalette
-from PyQt5.QtWidgets import QTableView, QHBoxLayout, QDockWidget, QToolButton, QVBoxLayout, QFrame, QSizePolicy, \
-    QHeaderView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QTableView, QHBoxLayout, QDockWidget, QToolButton, QVBoxLayout, QFrame
 
-from ui import Spacer
+from ui.widget.spacer import VSpacer
 
 
 class LogDock(QDockWidget):
@@ -105,7 +104,7 @@ class LogDock(QDockWidget):
         button_layout.addWidget(self._button_filter_error)
         button_layout.addWidget(self._button_filter_debug)
         button_layout.addWidget(self._button_entries_clear)
-        button_layout.addWidget(Spacer(self, QSizePolicy.Fixed, QSizePolicy.Expanding))
+        button_layout.addWidget(VSpacer(self))
         self._button_frame.setLayout(button_layout)
 
     def _init_tool_button(self, icon, tool_tip, checkable, checked, callback):

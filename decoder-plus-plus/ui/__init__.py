@@ -19,6 +19,8 @@ from ui.widget.search_field import SearchField
 from ui.dialog.command_run_dialog import CommandRunDialog
 from .shortcut_table import ShortcutTable
 from ui.widget.spacer import Spacer
+from ui.widget.spacer import VSpacer
+from ui.widget.spacer import HSpacer
 from .tab_bar import TabBar
 from ui.widget.icon_label import IconLabel
 from .codec_frame import CodecFrame

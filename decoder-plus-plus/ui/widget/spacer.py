@@ -20,7 +20,23 @@ from PyQt5.QtWidgets import QWidget, QSizePolicy
 
 class Spacer(QWidget):
 
-    def __init__(self, parent=None, width_policy=QSizePolicy.Fixed, height_policy=QSizePolicy.Expanding):
+    def __init__(self, parent=None, width_policy=QSizePolicy.Expanding, height_policy=QSizePolicy.Expanding):
         super(Spacer, self).__init__(parent)
         self.setSizePolicy(width_policy, height_policy)
+        self.setVisible(True)
+
+
+class VSpacer(QWidget):
+
+    def __init__(self, parent=None):
+        super(__class__, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        self.setVisible(True)
+
+
+class HSpacer(QWidget):
+
+    def __init__(self, parent=None):
+        super(__class__, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setVisible(True)
