@@ -17,14 +17,13 @@
 
 import qtawesome
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton, QToolButton, QLayout
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton
 
 from core import Context
 from core.exception import AbortedException
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.view.hex_view import HexView
-from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
 
 
