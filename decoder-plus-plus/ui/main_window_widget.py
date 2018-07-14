@@ -69,11 +69,6 @@ class MainWindowWidget(QWidget):
                                        "Ctrl+R",
                                        self._show_command_run_dialog,
                                        self)
-        self._context.registerShortcut(Context.Shortcut.CODE_RUN,
-                                       "Run Code",
-                                       "Alt+R",
-                                       self._run_code,
-                                       self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER,
                                        "Select Decoder",
                                        "Alt+D",
@@ -118,11 +113,6 @@ class MainWindowWidget(QWidget):
                                        "Select Hex View",
                                        "Alt+X",
                                        lambda: self._select_hex_view(),
-                                       self)
-        self._context.registerShortcut(Context.Shortcut.TOGGLE_CODE_VIEW,
-                                       "Toggle Code View",
-                                       "Alt+C",
-                                       lambda: self._toggle_code_view(),
                                        self)
         self._context.registerShortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                        "Toggle Search Field",
@@ -170,14 +160,8 @@ class MainWindowWidget(QWidget):
     def _select_hex_view(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.selectHexView())
 
-    def _toggle_code_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleCodeView())
-
     def _toggle_search_field(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())
-
-    def _run_code(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.runCode())
 
     def _show_command_run_dialog(self):
         def _do_command_run(command):

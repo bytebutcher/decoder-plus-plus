@@ -39,7 +39,6 @@ class Context(QObject):
         TAB_PREVIOUS = "tab_previous"
         TAB_CLOSE = "tab_close"
         COMMAND_RUN = "command_run"
-        CODE_RUN = "code_run"
         FOCUS_ENCODER = "focus_encoder"
         FOCUS_DECODER = "focus_decoder"
         FOCUS_HASHER = "focus_hasher"
@@ -49,7 +48,6 @@ class Context(QObject):
         FOCUS_INPUT_TEXT_PREVIOUS = "focus_input_text_previous"
         SELECT_PLAIN_VIEW = "select_plain_view"
         SELECT_HEX_VIEW = "select_hex_view"
-        TOGGLE_CODE_VIEW = "toggle_code_view"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
 
     def __init__(self):

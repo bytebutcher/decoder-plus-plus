@@ -23,7 +23,6 @@ from core import Context
 from core.exception import AbortedException
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
-from ui.view.code_view import CodeView
 from ui.view.hex_view import HexView
 from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
@@ -49,13 +48,11 @@ class CodecFrame(QFrame):
         self._status_widget = StatusWidget(self)
         input_frame = self._init_input_frame(text)
         button_frame = self._init_button_frame()
-        input_button_frame = self._init_input_button_frame()
 
         self._group_box = QGroupBox()
         group_box_layout = QHBoxLayout()
         group_box_layout.addWidget(self._status_widget)
         group_box_layout.addWidget(input_frame)
-        group_box_layout.addWidget(input_button_frame)
         group_box_layout.addWidget(button_frame, 0, Qt.AlignTop)
         self._group_box.setLayout(group_box_layout)
 
@@ -85,48 +82,15 @@ class CodecFrame(QFrame):
         self._hex_view_widget.textChanged.connect(self._hex_view_text_changed_event)
         self._hex_view_widget.setHidden(True)
         frame_layout.addWidget(self._hex_view_widget)
-
-        self._code_view = CodeView(self, self._context)
-        self._code_view.setText("def run(input):\n    return input")
-        self._code_view.setContentsMargins(0, 0, 0, 0)
-        self._code_view.runEvent.connect(self._run_event)
-        self._code_view.textChanged.connect(self._code_view_text_changed_event)
-        self._code_view.setHidden(True)
-        frame_layout.addWidget(self._code_view)
-
         input_frame.setLayout(frame_layout)
         return input_frame
-
-    def _init_input_button_frame(self):
-        button_frame = QFrame()
-        button_layout = QVBoxLayout()
-        # BUG: Dynamically setting contents margin for top/bottom fails, since they are set to '0' at this point.
-        # WORKAROUND: Manually set top/bottom to 9.
-        button_layout.setContentsMargins(0, 9, 0, 9)
-
-        self._run_button = QToolButton()
-        self._run_button.setCheckable(True)
-        self._run_button.setEnabled(False)
-        self._run_button.setIcon(qtawesome.icon("fa.play"))
-        self._run_button.clicked.connect(self._run_button_pressed_event)
-        button_layout.addWidget(self._run_button)
-
-        self._editor_button = QToolButton()
-        self._editor_button.setCheckable(True)
-        self._editor_button.setIcon(qtawesome.icon("fa.terminal"))
-        self._editor_button.clicked.connect(self._terminal_button_toggle_event)
-        button_layout.addWidget(self._editor_button)
-
-        button_layout.addWidget(VSpacer(self))
-        button_frame.setLayout(button_layout)
-        return button_frame
 
     def _init_button_frame(self):
         button_frame = QFrame()
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
-        self._combo_box_frame.commandSelected.connect(self._combo_box_command_selected_event)
+        self._combo_box_frame.commandSelected.connect(self._execute_command_select)
         button_frame_layout.addWidget(self._combo_box_frame)
         button_frame_layout.addWidget(self._init_radio_frame())
         button_frame.setLayout(button_frame_layout)
@@ -160,10 +124,6 @@ class CodecFrame(QFrame):
             self._plain_radio.setToolTip(tooltip)
         elif id == Context.Shortcut.SELECT_HEX_VIEW:
             self._hex_radio.setToolTip(tooltip)
-        elif id == Context.Shortcut.TOGGLE_CODE_VIEW:
-            self._editor_button.setToolTip(tooltip)
-        elif id == Context.Shortcut.CODE_RUN:
-            self._run_button.setToolTip(tooltip)
         else:
             return
         self._logger.debug("Updated tooltip within codec-frame for {id} to {tooltip}".format(id=id, tooltip=tooltip))
@@ -180,9 +140,6 @@ class CodecFrame(QFrame):
         return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
 
     def _combo_box_title_selected_event(self):
-        self._run_button.setChecked(False)
-        self._run_button.setEnabled(False)
-        self._code_view.setText("")
         self._codec_tab.removeFrames(self._next_frame)
         self.focusInputText()
 
@@ -196,25 +153,6 @@ class CodecFrame(QFrame):
             self._hex_view_widget.blockSignals(True)
             self._hex_view_widget.setData(input)
             self._hex_view_widget.blockSignals(False)
-
-    def _terminal_button_toggle_event(self):
-        self._code_view.setVisible(self._editor_button.isChecked())
-
-    def _two_way_sync_event(self):
-        self._run_event()
-
-    def _combo_box_command_selected_event(self, command):
-        self._code_view.setTextByCommand(command)
-        self._run_button.setEnabled(True)
-        self.setRunButtonPressed(True)
-        self._execute_command_select(command)
-
-    def _run_event(self):
-        self._run_button.setChecked(True)
-        self._execute()
-
-    def _run_button_pressed_event(self):
-        self._execute()
 
     def _text_changed_event(self):
         # BUG: Performance Issue When Updating Multiple HexView-Frames When Input Text Changes
@@ -235,41 +173,21 @@ class CodecFrame(QFrame):
         self._status_widget.setStatus("DEFAULT")
         self._execute()
 
-    def _code_view_text_changed_event(self):
-        self.setRunButtonPressed(False)
-        self._run_button.setEnabled(True)
-        self._combo_box_frame.resetAll()
-
     def _execute(self):
-        if self._code_view.hasTextChanged():
-            self._execute_code()
-        else:
-            command = self._combo_box_frame.selectedCommand()
+        command = self._combo_box_frame.selectedCommand()
+        if command:
             self._execute_command_run(command)
 
-    def _execute_code(self):
-        if self.isRunButtonPressed():
-            input = self.getInputText()
-            output = ""
-            try:
-                output = self._code_view.run(input)
-                self._codec_tab.newFrame(output, "Interactive Mode", self, status=StatusWidget.SUCCESS)
-            except Exception as e:
-                self._logger.error(str(e))
-                self._codec_tab.newFrame(output, "Interactive Mode", self, status=StatusWidget.ERROR, msg=(str(e)))
-
     def _execute_command_run(self, command):
-        if self.isRunButtonPressed():
-            error = ""
-            input = self.getInputText()
-            output = ""
-            try:
-                output = command.run(input)
-                self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.SUCCESS)
-            except Exception as e:
-                error = str(e)
-                self._logger.error('{} {}: {}'.format(command.name(), command.type(), str(e)))
-                self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
+        input = self.getInputText()
+        output = ""
+        try:
+            output = command.run(input)
+            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.SUCCESS)
+        except Exception as e:
+            error = str(e)
+            self._logger.error('{} {}: {}'.format(command.name(), command.type(), str(e)))
+            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
 
     def _execute_command_select(self, command):
         output = ""
@@ -290,7 +208,6 @@ class CodecFrame(QFrame):
 
     def selectComboBoxEntryByCommand(self, command):
         self._combo_box_frame.selectItem(command.type(), command.name(), block_signals=True)
-        self.setRunButtonPressed(True)
         self._execute_command_run(command)
 
     def selectPlainView(self):
@@ -299,15 +216,8 @@ class CodecFrame(QFrame):
     def selectHexView(self):
         self._hex_radio.setChecked(True)
 
-    def toggleCodeView(self):
-        self._editor_button.click()
-
     def toggleSearchField(self):
         self._plain_view_widget.toggleSearchField()
-
-    def runCode(self):
-        if self._run_button.isEnabled():
-            self._run_button.click()
 
     def hasNext(self):
         return self._next_frame is not None
@@ -346,10 +256,3 @@ class CodecFrame(QFrame):
 
     def focusComboBox(self, type):
         self._combo_box_frame.focusType(type)
-
-    def isRunButtonPressed(self):
-        return self._run_button.isChecked()
-
-    def setRunButtonPressed(self, status):
-        self._run_button.setEnabled(self._run_button.isEnabled() or status)
-        self._run_button.setChecked(status)
