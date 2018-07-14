@@ -1,20 +1,15 @@
-import string
-
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtGui import QKeySequence, QIntValidator
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, QShortcut, \
-    QSlider, QHBoxLayout
+from PyQt5.Qsci import QsciScintilla, QsciLexerPython
+from PyQt5.QtGui import QFontMetrics, QColor, QFont
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
 from core.exception import AbortedException
 from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
 
-from PyQt5.QtCore import pyqtSignal, QSize
+from PyQt5.QtCore import pyqtSignal, QSize, Qt
 from PyQt5.QtWidgets import QHBoxLayout, QFrame
 
 from core.command import Command
-from ui.code_editor import CodeEditor
 
 # Import DecoderPlusPlus required for Interactive Mode.
 # from core.decoder_plus_plus import DecoderPlusPlus
@@ -48,7 +43,7 @@ class Plugin(AbstractPlugin):
             exec(self._dialog.getCode(), globals(), locals())
             return eval("run")(text)
         except Exception as e:
-            raise Exception("Interactive Mode: {}".format(e))
+            raise Exception("{}".format(e))
 
 
 
@@ -59,6 +54,8 @@ class InteractivePythonScriptDialog(QDialog):
         layout = QVBoxLayout()
         self._code_view = CodeView()
         self._code_view.setCode(code)
+        self._code_view.controlReturnKeyPressedEvent.connect(self.accept)
+        self._code_view.escapeKeyPressedEvent.connect(self.reject)
         layout.addWidget(self._code_view)
         layout.addWidget(self._init_button_box())
         self.setLayout(layout)
@@ -81,20 +78,10 @@ class InteractivePythonScriptDialog(QDialog):
 class CodeView(QFrame):
 
     controlReturnKeyPressedEvent = pyqtSignal()
+    escapeKeyPressedEvent = pyqtSignal()
 
     def __init__(self, parent=None):
         super(CodeView, self).__init__(parent)
-        self._type_to_method = {
-            Command.Type.DECODER: "decode",
-            Command.Type.ENCODER: "encode",
-            Command.Type.HASHER: "hash",
-            Command.Type.SCRIPT: "script"
-        }
-        self._text_changed = False
-
-        # BUG: Blocking text-change-events within code-editor will have nasty side-effects.
-        # WORKAROUND: Implement custom text-change-event-blocker.
-        self._block_text_changed_event = False
         python_view_layout = QHBoxLayout()
         python_view_layout.setContentsMargins(0, 0, 0, 0)
         python_view_layout.addWidget(self._init_editor_frame())
@@ -107,21 +94,74 @@ class CodeView(QFrame):
         editor_layout.setContentsMargins(0, 0, 0, 0)
         self._editor = CodeEditor()
         self._editor.controlReturnKeyPressed.connect(self.controlReturnKeyPressedEvent.emit)
+        self._editor.escapeKeyPressed.connect(self.escapeKeyPressedEvent.emit)
         editor_layout.addWidget(self._editor)
         editor_frame.setLayout(editor_layout)
         return editor_frame
 
-    def setTextByCommand(self, command):
-        self._block_text_changed_event = True
-        self.setCode("def run(input):\n\treturn DecoderPlusPlus(input).{type}().{name}().run()".format(
-            type=self._type_to_method[command.type()], name=command.name(safe_name=True)))
-        self._block_text_changed_event = False
-
     def setCode(self, text):
-        self._text_changed = False
-        self._block_text_changed_event = True
         self._editor.setText(text)
-        self._block_text_changed_event = False
 
     def code(self):
         return self._editor.text()
+
+
+class CodeEditor(QsciScintilla):
+    ARROW_MARKER_NUM = 8
+
+    controlReturnKeyPressed = pyqtSignal()
+    escapeKeyPressed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(CodeEditor, self).__init__(parent)
+
+        # Set the default font
+        font = QFont()
+        font.setFamily('Courier')
+        font.setFixedPitch(True)
+        font.setPointSize(10)
+        self.setFont(font)
+        self.setMarginsFont(font)
+        self.setTabWidth(4)
+
+        # Margin 0 is used for line numbers
+        fontmetrics = QFontMetrics(font)
+        self.setMarginsFont(font)
+        self.setMarginWidth(0, fontmetrics.width("00000") + 6)
+        self.setMarginLineNumbers(0, True)
+        self.setMarginsBackgroundColor(QColor("#90FF90"))
+
+        # Clickable margin 1 for showing markers
+        self.setMarginSensitivity(1, True)
+        self.marginClicked.connect(self.on_margin_clicked)
+
+        # Brace matching: enable for a brace immediately before or after the current position
+        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+
+        # Set Python lexer
+        # Set style for Python comments (style number 1) to a fixed-width courier.
+        lexer = QsciLexerPython()
+        lexer.setDefaultFont(font)
+        self.setLexer(lexer)
+
+        text = bytearray(str.encode("Arial"))
+        # 32, "Courier New"
+        self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, 1, text)
+
+        # Don't want to see the horizontal scrollbar at all
+        self.SendScintilla(QsciScintilla.SCI_SETHSCROLLBAR, 0)
+
+    def on_margin_clicked(self, nmargin, nline, modifiers):
+        # Toggle marker for the line the margin was clicked on
+        if self.markersAtLine(nline) != 0:
+            self.markerDelete(nline, self.ARROW_MARKER_NUM)
+        else:
+            self.markerAdd(nline, self.ARROW_MARKER_NUM)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return and event.modifiers() == Qt.ControlModifier:
+            self.controlReturnKeyPressed.emit()
+        if event.key() == Qt.Key_Escape:
+            self.escapeKeyPressed.emit()
+        super(CodeEditor, self).keyPressEvent(event)
+
