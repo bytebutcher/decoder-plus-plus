@@ -17,24 +17,19 @@
 
 import qtawesome
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy, QGroupBox, QRadioButton, QToolButton
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton, QToolButton, QLayout
 
 from core import Context
 from core.exception import AbortedException
-from ui import Spacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.view.code_view import CodeView
 from ui.view.hex_view import HexView
+from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
 
 
 class CodecFrame(QFrame):
-
-    # BUG: codec_frame should have height 156 but has 480.
-    # WORKAROUND: manually set height to 156 height.
-    # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
-    FRAME_HEIGHT = 156
 
     def __init__(self, parent, context, frame_id, codec_tab, commands, previous_frame, text):
         super(CodecFrame, self).__init__(parent)
@@ -51,24 +46,21 @@ class CodecFrame(QFrame):
         self._flash_event = None
 
         self._layout = QHBoxLayout(self)
-        self._status_widget = StatusWidget(self, height=self.FRAME_HEIGHT-12)
+        self._status_widget = StatusWidget(self)
         input_frame = self._init_input_frame(text)
         button_frame = self._init_button_frame()
-        button_frame.setFixedHeight(self.FRAME_HEIGHT)
-        input_frame.setFixedHeight(button_frame.height())
         input_button_frame = self._init_input_button_frame()
 
         self._group_box = QGroupBox()
         group_box_layout = QHBoxLayout()
-        group_box_layout.addWidget(self._status_widget, 0, Qt.AlignTop)
-        group_box_layout.addWidget(input_frame, 0, Qt.AlignTop)
-        group_box_layout.addWidget(input_button_frame, 0, Qt.AlignTop)
+        group_box_layout.addWidget(self._status_widget)
+        group_box_layout.addWidget(input_frame)
+        group_box_layout.addWidget(input_button_frame)
         group_box_layout.addWidget(button_frame, 0, Qt.AlignTop)
         self._group_box.setLayout(group_box_layout)
 
         _, top, _, bottom = self._layout.getContentsMargins()
         self._layout.addWidget(self._group_box)
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed))
         self.setLayout(self._layout)
 
     """
@@ -125,8 +117,7 @@ class CodecFrame(QFrame):
         self._editor_button.clicked.connect(self._terminal_button_toggle_event)
         button_layout.addWidget(self._editor_button)
 
-        spacer = Spacer(self, QSizePolicy.Fixed, QSizePolicy.Expanding)
-        button_layout.addWidget(spacer)
+        button_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_layout)
         return button_frame
 

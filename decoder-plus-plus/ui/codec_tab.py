@@ -14,15 +14,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
-from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout
-
-from ui import Spacer
 from ui import CodecFrame
+from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
 
 
 class CodecTab(QScrollArea):
+
+    # BUG: codec_frame should have height 176 but has 480.
+    # WORKAROUND: manually set height to 176 height.
+    # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
+    FRAME_HEIGHT = 176
 
     def __init__(self, parent, context, commands):
         super(QWidget, self).__init__(parent)
@@ -31,20 +36,19 @@ class CodecTab(QScrollArea):
         self._commands = commands
 
         self._next_frame_id = 1
-        self._frames = QFrame(self)
-        self._frames_layout = QVBoxLayout()
-        self._frames_layout.setSpacing(0)
-        self._frames.setLayout(self._frames_layout)
-        self._frames_layout.setContentsMargins(0,0,0,0)
+        self._frames = QSplitter(Qt.Vertical)
+        self._frames.setChildrenCollapsible(False)
+        self._frames.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
+        self._frames.setContentsMargins(0, 0, 0, 0)
 
         self._main_frame = QFrame(self)
         self._main_frame_layout = QVBoxLayout()
         self._main_frame_layout.addWidget(self._frames)
-        self._main_frame_layout.addWidget(Spacer(self))
+        self._main_frame_layout.addWidget(VSpacer(self))
         self._main_frame.setLayout(self._main_frame_layout)
-
         self.newFrame("", "")
 
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setWidgetResizable(True)
         self.setWidget(self._main_frame)
 
@@ -74,12 +78,19 @@ class CodecTab(QScrollArea):
             else:
                 new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._commands, previous_frame, text)
                 self._next_frame_id += 1
-                if self._frames_layout.count() > 0:
+                if self._frames.count() > 0:
                     new_frame.flashStatus(status, msg)
                 new_frame.setTitle(title)
                 new_frame.setContentsMargins(0, 0, 0, 0)
                 new_frame.layout().setContentsMargins(0, 0, 0, 0)
-                self._frames_layout.addWidget(new_frame)
+                self._frames.addWidget(new_frame)
+
+                # BUG: QSplitter does not allow frames to be wider than the surrounding area (here: QScrollArea).
+                # WORKAROUND: Set a fixed size for codec frames and disable handles which prevents users from
+                #             trying to resize the codec frames.
+                new_frame.setFixedHeight(self.FRAME_HEIGHT)
+                self._frames.handle(self._frames.count() - 1).setEnabled(False)
+
                 if previous_frame:
                     previous_frame.focusInputText()
                 else:
@@ -97,7 +108,7 @@ class CodecTab(QScrollArea):
                 frames_to_remove.append(frame.next())
                 frame = frame.next()
             for frame_to_remove in reversed(frames_to_remove):
-                self._frames_layout.removeWidget(frame_to_remove)
+                self._frames.removeWidget(frame_to_remove)
                 frame_to_remove.deleteLater()
 
     def getFocussedFrame(self):
@@ -106,4 +117,4 @@ class CodecTab(QScrollArea):
             if isinstance(widget, CodecFrame):
                 return widget
             widget = widget.parent()
-        return self._frames_layout.itemAt(0).widget()
+        return self._frames.itemAt(0).widget()
