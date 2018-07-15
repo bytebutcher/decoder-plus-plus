@@ -92,10 +92,14 @@ class Context(QObject):
 
     def _load_default_plugins(self):
         try:
-            return list(self._plugin_loader.load("plugins/").values())
+            return list(self._plugin_loader.load(os.path.join(self.getAppPath(), "plugins")).values())
         except Exception as e:
             self.logger().error("Error loading default plugins: {}".format(str(e)))
             return []
+
+    def getAppPath(self):
+        pathname = os.path.dirname(sys.argv[0])
+        return pathname
 
     def config(self):
         return self._config

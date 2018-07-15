@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import os
 
 import qtawesome
 from PyQt5 import QtCore
@@ -47,7 +48,7 @@ class MainWindow(QMainWindow):
         self._init_window_size()
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._log_dock)
         self.setWindowTitle("Decoder++")
-        self.setWindowIcon(QIcon('dpp.png'))
+        self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
         self._main_window_widget = MainWindowWidget(self, self._context)
         self.setCentralWidget(self._main_window_widget)
         self._logger.info("Ready")
@@ -115,7 +116,7 @@ class MainWindow(QMainWindow):
         return message_frame
 
     def _init_about_widget(self):
-        about_label = QLabel("π")
+        about_label = IconLabel(self, QIcon(os.path.join(self._context.getAppPath(), 'images', 'hidden.png')))
         about_label.mousePressEvent = lambda e: self._show_hidden_dialog()
         return about_label
 

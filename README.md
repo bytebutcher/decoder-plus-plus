@@ -1,6 +1,6 @@
  # Decoder++
 
-![Decoder++ Logo](decoder-plus-plus/dpp.png)
+![Decoder++ Logo](decoder-plus-plus/images/dpp.png)
 
 An extensible application for penetration testers and software developers to decode/encode data into various formats.  
 

@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
 
 import qtawesome
 from PyQt5 import QtCore
@@ -41,7 +42,8 @@ class HiddenDialog(QDialog):
         tab = QWidget(self)
         base_layout = QHBoxLayout()
         base_layout.setAlignment(QtCore.Qt.AlignCenter)
-        icon_label = IconLabel(self, QIcon("dpp.png"))
+        logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
+        icon_label = IconLabel(self, QIcon(logo))
         icon_label.setFixedSize(QSize(180, 180))
         base_layout.addWidget(icon_label)
         form_frame = QFrame(self)

@@ -24,10 +24,10 @@ from ui.widget.status_widget import StatusWidget
 
 class CodecTab(QScrollArea):
 
-    # BUG: codec_frame should have height 176 but has 480.
-    # WORKAROUND: manually set height to 176 height.
+    # BUG: codec_frame should have height 210 but has 480.
+    # WORKAROUND: manually set height to 210 height.
     # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
-    FRAME_HEIGHT = 176
+    FRAME_HEIGHT = 210
 
     def __init__(self, parent, context, commands):
         super(QWidget, self).__init__(parent)
