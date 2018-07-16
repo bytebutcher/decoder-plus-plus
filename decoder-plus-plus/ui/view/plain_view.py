@@ -104,9 +104,9 @@ class PlainView(QFrame):
         self._search_field.setFocus()
 
     def _doCloseSearchField(self):
-        self._search_field.setVisible(False)
         self._do_highlight_clear()
         self._plain_text.setFocus()
+        self._search_field.setVisible(False)
 
     def toPlainText(self):
         return self._plain_text.toPlainText()
