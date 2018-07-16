@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import qtawesome
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QTimer
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QLineEdit
@@ -62,7 +62,7 @@ class SearchField(QLineEdit):
             return False
 
         p = event.pos()
-        if p.x() > (self.width() - 20):
+        if p.x() > (self.width() - self.height() - 5):
             self.setCursor(Qt.ArrowCursor)
             if event.type() == QEvent.MouseButtonPress:
                 self.setVisible(False)
@@ -106,6 +106,8 @@ class SearchField(QLineEdit):
                 pxm = self._icon.pixmap(self.height() - 10, self.height() - 10)
                 painter.drawPixmap(5, 5, pxm)
             if self.isClosable():
-                right = 20
-                painter.drawText(self.width() - 15, 15, "X")
+                right = self.height()
+                close_icon = qtawesome.icon("fa.times")
+                pxm = close_icon.pixmap(self.height() - 10, self.height() - 10)
+                painter.drawPixmap(self.width() - self.height(), 5, pxm)
             self.setTextMargins(left, top, right, bottom)
