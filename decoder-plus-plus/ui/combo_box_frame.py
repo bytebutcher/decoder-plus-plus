@@ -86,10 +86,8 @@ class ComboBoxFrame(QFrame):
 
         command = self.getCommandByTypeAndIndex(type, index)
         if command in self._command_history:
-            self._logger.debug("Command in history ...")
             command = self._command_history[command]
         else:
-            self._logger.debug("Command added to history ...")
             self._command_history[command] = command
         self.commandSelected.emit(command)
 
