@@ -13,7 +13,7 @@ An extensible application for penetration testers and software developers to dec
 python3 dpp.py
 ```
 
-![Decoder++ Screenshot](images/dpp-screenshot-001.png)
+![Decoder++ Screenshot](images/dpp-screencast-001.gif)
 
 ### Command Line Interface
 
