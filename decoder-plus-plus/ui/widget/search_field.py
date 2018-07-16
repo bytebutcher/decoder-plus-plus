@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QTimer
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QLineEdit
 
@@ -78,6 +78,13 @@ class SearchField(QLineEdit):
     def isClosable(self):
         """ Returns whether the search field has a close button. """
         return self._closable
+
+    def flashBackgroundColor(self, color):
+        self.setStyleSheet('QLineEdit { background-color: ' + color + ' }')
+        QTimer.singleShot(200, self._resetStyleSheet)
+
+    def _resetStyleSheet(self):
+        self.setStyleSheet("")
 
     def setIcon(self, icon):
         """ Sets the specified icon in front of the text. """
