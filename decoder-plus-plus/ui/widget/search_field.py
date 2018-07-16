@@ -26,6 +26,7 @@ class SearchField(QLineEdit):
     enterPressed = pyqtSignal()
     escapePressed = pyqtSignal()
     arrowPressed = pyqtSignal()
+    closeEvent = pyqtSignal()
 
     def __init__(self, parent=None):
         super(__class__, self).__init__(parent)
@@ -65,7 +66,7 @@ class SearchField(QLineEdit):
         if p.x() > (self.width() - self.height() - 5):
             self.setCursor(Qt.ArrowCursor)
             if event.type() == QEvent.MouseButtonPress:
-                self.setVisible(False)
+                self.closeEvent.emit()
         else:
             self.setCursor(Qt.IBeamCursor)
 

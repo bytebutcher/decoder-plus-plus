@@ -31,41 +31,38 @@ class PlainView(QFrame):
         super(PlainView, self).__init__()
         layout = QVBoxLayout()
         self._plain_text = QPlainTextEdit(text)
-        self._plain_text.textChanged.connect(self._onPlainTextChangedEvent)
+        self._plain_text.textChanged.connect(self._on_plain_text_changed_event)
         self._search_field = SearchField()
         self._search_field.setClosable(True)
         self._search_field.setIcon(qtawesome.icon("fa.search"))
         self._search_field.setPlaceholderText("Search text")
-        self._search_field.escapePressed.connect(self._onEscapePressedEvent)
-        self._search_field.textChanged.connect(self._onSearchFieldChangedEvent)
+        self._search_field.escapePressed.connect(self._on_search_field_escape_pressed_event)
+        self._search_field.textChanged.connect(self._do_highlight_text)
+        self._search_field.closeEvent.connect(self._do_close_search_field)
         self._search_field.setVisible(False)
         layout.addWidget(self._plain_text)
         layout.addWidget(self._search_field)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-    def _onPlainTextChangedEvent(self):
+    def _on_plain_text_changed_event(self):
         self.textChanged.emit()
         if self._search_field.isVisible():
-            self._onSearchFieldChangedEvent()
+            self._do_highlight_text()
 
-    def _onEscapePressedEvent(self):
+    def _on_search_field_escape_pressed_event(self):
         if self._search_field.hasFocus() and self._search_field.isVisible():
-            self._doCloseSearchField()
-
-    def _onSearchFieldChangedEvent(self):
-        self._plain_text.blockSignals(True)
-        self._do_highlight_text()
-        self._plain_text.blockSignals(False)
-        return False
+            self._do_close_search_field()
 
     def _do_highlight_clear(self):
+        self._plain_text.blockSignals(True)
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor("black")))
         cursor = self._plain_text.textCursor()
         cursor.setPosition(0)
         cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor, 1)
         cursor.mergeCharFormat(format)
+        self._plain_text.blockSignals(False)
 
     def _do_highlight_text(self):
 
@@ -86,27 +83,29 @@ class PlainView(QFrame):
                 index = regex.indexIn(self.toPlainText(), pos)
 
         self._do_highlight_clear()
+        self._plain_text.blockSignals(True)
         searchString = self._search_field.text()
         if searchString:
             format = QTextCharFormat()
             format.setForeground(QBrush(QColor("red")))
             highlight_text(searchString, format)
+        self._plain_text.blockSignals(False)
 
-    def toggleSearchField(self):
-        if self._search_field.hasFocus() and self._search_field.isVisible():
-            self._doCloseSearchField()
-        else:
-            self._doOpenSearchField()
-
-    def _doOpenSearchField(self):
+    def _do_open_search_field(self):
         self._search_field.setVisible(True)
         self._do_highlight_text()
         self._search_field.setFocus()
 
-    def _doCloseSearchField(self):
+    def _do_close_search_field(self):
         self._do_highlight_clear()
         self._plain_text.setFocus()
         self._search_field.setVisible(False)
+
+    def toggleSearchField(self):
+        if self._search_field.hasFocus() and self._search_field.isVisible():
+            self._do_close_search_field()
+        else:
+            self._do_open_search_field()
 
     def toPlainText(self):
         return self._plain_text.toPlainText()
