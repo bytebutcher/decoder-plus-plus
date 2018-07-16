@@ -21,6 +21,7 @@ class PlainView(QFrame):
         self._search_field.setClosable(True)
         self._search_field.setIcon(qtawesome.icon("fa.search"))
         self._search_field.setPlaceholderText("Search text")
+        self._search_field.escapePressed.connect(self._onEscapePressedEvent)
         self._search_field.textChanged.connect(self._onSearchFieldChangedEvent)
         self._search_field.setVisible(False)
         layout.addWidget(self._plain_text)
@@ -33,12 +34,15 @@ class PlainView(QFrame):
         if self._search_field.isVisible():
             self._onSearchFieldChangedEvent()
 
+    def _onEscapePressedEvent(self):
+        if self._search_field.hasFocus() and self._search_field.isVisible():
+            self._doCloseSearchField()
+
     def _onSearchFieldChangedEvent(self):
         self._plain_text.blockSignals(True)
         self._do_highlight_text()
         self._plain_text.blockSignals(False)
         return False
-
 
     def _do_highlight_clear(self):
         format = QTextCharFormat()
@@ -75,13 +79,19 @@ class PlainView(QFrame):
 
     def toggleSearchField(self):
         if self._search_field.hasFocus() and self._search_field.isVisible():
-            self._search_field.setVisible(False)
-            self._do_highlight_clear()
-            self._plain_text.setFocus()
+            self._doCloseSearchField()
         else:
-            self._search_field.setVisible(True)
-            self._do_highlight_text()
-            self._search_field.setFocus()
+            self._doOpenSearchField()
+
+    def _doOpenSearchField(self):
+        self._search_field.setVisible(True)
+        self._do_highlight_text()
+        self._search_field.setFocus()
+
+    def _doCloseSearchField(self):
+        self._search_field.setVisible(False)
+        self._do_highlight_clear()
+        self._plain_text.setFocus()
 
     def toPlainText(self):
         return self._plain_text.toPlainText()
