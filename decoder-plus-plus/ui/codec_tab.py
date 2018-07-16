@@ -108,7 +108,6 @@ class CodecTab(QScrollArea):
                 frames_to_remove.append(frame.next())
                 frame = frame.next()
             for frame_to_remove in reversed(frames_to_remove):
-                self._frames.removeWidget(frame_to_remove)
                 frame_to_remove.deleteLater()
 
     def getFocussedFrame(self):
