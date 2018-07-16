@@ -39,6 +39,15 @@ class PlainView(QFrame):
         self._plain_text.blockSignals(False)
         return False
 
+
+    def _do_highlight_clear(self):
+        format = QTextCharFormat()
+        format.setForeground(QBrush(QColor("black")))
+        cursor = self._plain_text.textCursor()
+        cursor.setPosition(0)
+        cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor, 1)
+        cursor.mergeCharFormat(format)
+
     def _do_highlight_text(self):
 
         def highlight_text(text, format):
@@ -57,15 +66,7 @@ class PlainView(QFrame):
                 pos = index + regex.matchedLength()
                 index = regex.indexIn(self.toPlainText(), pos)
 
-        def clear_highlighting():
-            format = QTextCharFormat()
-            format.setForeground(QBrush(QColor("black")))
-            cursor = self._plain_text.textCursor()
-            cursor.setPosition(0)
-            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor, 1)
-            cursor.mergeCharFormat(format)
-
-        clear_highlighting()
+        self._do_highlight_clear()
         searchString = self._search_field.text()
         if searchString:
             format = QTextCharFormat()
@@ -74,10 +75,12 @@ class PlainView(QFrame):
 
     def toggleSearchField(self):
         if self._search_field.hasFocus() and self._search_field.isVisible():
-            self._search_field.setHidden(True)
+            self._search_field.setVisible(False)
+            self._do_highlight_clear()
             self._plain_text.setFocus()
         else:
             self._search_field.setVisible(True)
+            self._do_highlight_text()
             self._search_field.setFocus()
 
     def toPlainText(self):
