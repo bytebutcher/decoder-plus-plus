@@ -128,6 +128,7 @@ class ComboBoxFrame(QFrame):
             return self.getCommandByTypeAndIndex(selected_command_type, selected_index)
 
     def selectItem(self, type, command_name, block_signals=False):
+        self.resetExceptType(type)
         combo_box = self._combo_boxes[type]
         for i in range(combo_box.count()):
             if combo_box.itemText(i) == command_name:
