@@ -34,7 +34,15 @@ class ShortcutTable(QTableView):
         self._init_headers()
         self._init_proxy_model()
         self._editing_started = False
-        self._init_item_delegate()
+        # BUG: Catching the tab-key in shortcut-table does not work correctly. Instead another column gets selected.
+        # WORKAROUND: Disabling feature of assigning keyboard-shortcut by key-press as long as there is no permanent fix for this.
+        # TODO: Catch tab-key in ShortcutTableItemDelegate (or in QTableView) when in edit-mode.
+        # NOTES:
+        # - installed event-filters in ShortcutTableItemDelegate and QTableView. Both didn't catch the tab-key ...
+        # - checked the keyPressEvent / keyReleaseEvent / event in ShortcutTableItemDelegate and QTableView
+        #       * only ShortcutTable got an TAB-key in the keyReleaseEvent but at this point the other cell was
+        #         already selected and there was/is no easy way to know which cell was selected before.
+        #self._init_item_delegate()
 
     def _init_item_delegate(self):
         self.setItemDelegate(ShortcutTableItemDelegate(self))
