@@ -21,10 +21,15 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QLineEdit
 
 class ShortcutTableItemDelegate(QStyledItemDelegate):
 
+    def __init__(self, parent):
+        super(__class__, self).__init__(parent)
+        self._parent = parent
+
     class LineEdit(QLineEdit):
 
-        def __init__(self, parent=None):
+        def __init__(self, parent, widget):
             QLineEdit.__init__(self, parent)
+            self._widget = widget
             self._text = None
 
         def keyPressEvent(self, event):
@@ -37,6 +42,12 @@ class ShortcutTableItemDelegate(QStyledItemDelegate):
                 pass
 
         def keyReleaseEvent(self, *args, **kwargs):
+            # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
+            # WORKAROUND: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
+            #             variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
+            if self._widget.hasEditingStarted():
+                self._widget.setEditingEnded()
+                return
             # Only allow complete key-sequences (e.g. 'A', 'Ctrl+A').
             if len(self.text()) == 0 or self.text().endswith("+"):
                 # Remove incomplete key-sequences (e.g. 'Ctrl+') when releasing keys.
@@ -45,4 +56,4 @@ class ShortcutTableItemDelegate(QStyledItemDelegate):
             self.close()
 
     def createEditor(self, parent, option, proxyModelIndex):
-        return ShortcutTableItemDelegate.LineEdit(parent)
+        return ShortcutTableItemDelegate.LineEdit(parent, self._parent)

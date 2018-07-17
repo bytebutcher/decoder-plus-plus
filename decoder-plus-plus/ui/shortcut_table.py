@@ -33,6 +33,7 @@ class ShortcutTable(QTableView):
         self._init_model(shortcuts)
         self._init_headers()
         self._init_proxy_model()
+        self._editing_started = False
         self._init_item_delegate()
 
     def _init_item_delegate(self):
@@ -54,9 +55,6 @@ class ShortcutTable(QTableView):
             model.setItem(index, 0, QStandardItem(shortcut.id()))
             model.setItem(index, 1, name_item)
             model.setItem(index, 2, QStandardItem(shortcut.key()))
-        # BUG: Cell changes to row below when editing cell is finished.
-        # REQUIREMENT: The cell-selection should not change.
-        # WORKAROUND: ???
         model.itemChanged.connect(self._shortcut_changed_event)
         self.setModel(model)
         self.setColumnHidden(0, True)
@@ -69,14 +67,32 @@ class ShortcutTable(QTableView):
         self.setModel(filter_proxy_model)
 
     def _shortcut_changed_event(self, item):
+        # BUG: Cell changes to row below when editing cell is finished.
+        # REQUIREMENT: The cell-selection should not change.
+        # WORKAROUND: ???
         id = self.model().sourceModel().item(item.row(), 0).text()
         shortcut_key = self.model().sourceModel().item(item.row(), 2).text()
         self.shortcutUpdated.emit(id, shortcut_key)
 
+    def setEditingStarted(self):
+        self._editing_started = True
+
+    def setEditingEnded(self):
+        self._editing_started = False
+
+    def hasEditingStarted(self):
+        return self._editing_started
+
     def keyPressEvent(self, event):
-        # BUG: Using Enter-Key to go into Edit-Mode results an immediate closing of the selected cell.
-        # WORKAROUND: ???
-        # NOTE: Currently going into Edit-Mode by pressing the Enter-Key is disabled.
-        #if event.key() == QtCore.Qt.Key_Return:
-        #    self.edit(self.selectionModel().currentIndex())
+        # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
+        # WORKAROUND: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
+        #             variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
+        if event.key() == QtCore.Qt.Key_Return:
+            self.edit(self.selectionModel().currentIndex())
+            self.setEditingStarted()
+            return
         super(__class__, self).keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        self.setEditingEnded()
+        super(__class__, self).keyReleaseEvent(event)
