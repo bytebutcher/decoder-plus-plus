@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import EncoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(EncoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('ROT13', Command.Type.ENCODER, "Robin Krumnow", ["codecs"])
+        # Name, Author, Dependencies
+        super().__init__('ROT13', "Robin Krumnow", ["codecs"])
 
     def run(self, text):
         import codecs

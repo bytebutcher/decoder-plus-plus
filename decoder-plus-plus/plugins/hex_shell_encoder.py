@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import EncoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(EncoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('HEX (shell)', Command.Type.ENCODER, "Thomas Engel", ["codecs"])
+        # Name, Author, Dependencies
+        super().__init__('HEX (shell)', "Thomas Engel", ["codecs"])
 
     def run(self, text):
         if text:

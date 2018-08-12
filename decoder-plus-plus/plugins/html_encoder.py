@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import EncoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(EncoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('HTML', Command.Type.ENCODER, "Thomas Engel", ["html"])
+        # Name, Author, Dependencies
+        super().__init__('HTML', "Thomas Engel", ["html"])
 
     def run(self, text):
         import html
