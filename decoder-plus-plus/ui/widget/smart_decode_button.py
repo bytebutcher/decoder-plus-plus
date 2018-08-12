@@ -49,6 +49,6 @@ class SmartDecodeButton(QFrame):
         """ Returns a list of possible decoders for the specified input. """
         possible_decoders = []
         for plugin in self._plugins:
-            if plugin.can_be_decoded(input):
+            if plugin.can_decode_input(input):
                 possible_decoders.append(plugin)
         return possible_decoders

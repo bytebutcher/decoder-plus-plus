@@ -22,7 +22,7 @@ class Plugin(DecoderPlugin):
     def run(self, text):
         return bytes.fromhex(text).decode('ascii')
 
-    def can_be_decoded(self, input):
+    def can_decode_input(self, input):
         if len(input) % 2 == 0:
             hex = re.search(r'^[a-fA-F0-9]+$', input)
             if hex:

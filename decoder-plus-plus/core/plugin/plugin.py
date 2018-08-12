@@ -122,7 +122,7 @@ class DecoderPlugin(AbstractPlugin):
         """
         super(__class__, self).__init__(name, PluginType.DECODER, author, dependencies)
 
-    def can_be_decoded(self, input) -> bool:
+    def can_decode_input(self, input) -> bool:
         """
         Returns whether it might be possible to decode the specified input with this plugin.
         This methods needs to be implemented by a decoder-plugin to be able to be used with the "Smart decode"

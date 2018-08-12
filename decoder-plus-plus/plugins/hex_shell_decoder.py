@@ -36,7 +36,7 @@ class Plugin(DecoderPlugin):
         else:
             return ""
 
-    def can_be_decoded(self, input):
+    def can_decode_input(self, input):
         if len(input) % 4 == 0:
             hex = re.search(r'^(\\x|\\X)[a-fA-F0-9]+$', input)
             if hex:

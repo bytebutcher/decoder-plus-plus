@@ -21,7 +21,7 @@ class Plugin(DecoderPlugin):
     def run(self, text):
         return self._run_lines(text, lambda text_part: str(int(text_part, 16)))
 
-    def can_be_decoded(self, input):
+    def can_decode_input(self, input):
         if len(input) % 2 == 0:
             hex = re.search(r'^(0x|0X)[a-fA-F0-9]+$', input)
             if hex:

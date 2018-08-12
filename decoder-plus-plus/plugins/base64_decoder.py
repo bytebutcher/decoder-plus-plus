@@ -23,7 +23,7 @@ class Plugin(DecoderPlugin):
         import base64
         return base64.b64decode(text.encode('utf-8')).decode('utf-8')
 
-    def can_be_decoded(self, input):
+    def can_decode_input(self, input):
         if len(input) % 4 == 0:
             if re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$', input):
                 return True
