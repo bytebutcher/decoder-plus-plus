@@ -20,4 +20,4 @@
 
 from core.plugin.plugins import Plugins
 from core.context import Context
-from core.plugin.abstract_plugin import AbstractPlugin
+from core.plugin.plugin import AbstractPlugin

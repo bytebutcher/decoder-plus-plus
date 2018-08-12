@@ -22,9 +22,9 @@ from PyQt5.QtWidgets import QApplication
 
 from core.argparse.ordered_multi_args import OrderedMultiArgs
 from core.argparse.single_args import SingleArgs
-from core.command import Command
 from core.context import Context
 from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
+from core.plugin.plugin import Plugin
 from ui import MainWindow
 
 
@@ -100,11 +100,11 @@ if __name__ == '__main__':
         context = Context()
 
         # Builders can be used in interactive shell or within the ui's code-view.
-        commands = context.commands()
-        init_builder(commands, Decoder, Command.Type.DECODER)
-        init_builder(commands, Encoder, Command.Type.ENCODER)
-        init_builder(commands, Hasher, Command.Type.HASHER)
-        init_builder(commands, Script, Command.Type.SCRIPT)
+        commands = context.plugins()
+        init_builder(commands, Decoder, Plugin.Type.DECODER)
+        init_builder(commands, Encoder, Plugin.Type.ENCODER)
+        init_builder(commands, Hasher, Plugin.Type.HASHER)
+        init_builder(commands, Script, Plugin.Type.SCRIPT)
 
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument('-?', '--help', action='store_true',

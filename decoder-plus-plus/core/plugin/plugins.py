@@ -18,13 +18,13 @@
 import collections
 from typing import List
 
-from core.command import Command
+from core.plugin.plugin import Plugin
 
 
 class Plugins(object):
     """ Defines a list of commands and additional helper methods for working with them. """
 
-    def __init__(self, context: 'core.context.Context', command_list: List[Command]):
+    def __init__(self, context: 'core.context.Context', command_list: List[Plugin]):
         self._context = context
         self._logger = context.logger()
         self._command_list = command_list
@@ -47,9 +47,9 @@ class Plugins(object):
 
     def types(self) -> List[str]:
         """ Returns all possible command types in a list. """
-        return [Command.Type.DECODER, Command.Type.ENCODER, Command.Type.HASHER, Command.Type.SCRIPT]
+        return [Plugin.Type.DECODER, Plugin.Type.ENCODER, Plugin.Type.HASHER, Plugin.Type.SCRIPT]
 
-    def command(self, name: str, type: str) -> Command:
+    def command(self, name: str, type: str) -> Plugin:
         """
         Returns the command matching name and type. Does not match cases. There can only be one.
         :param name: The name of the command (e.g. SHA1/sha1).
@@ -67,7 +67,7 @@ class Plugins(object):
         authors = [command.author() for command in self._command_list if command.author()]
         return [author for author, _ in collections.Counter(authors).most_common()]
 
-    def filter(self, name: str=None, type:str =None) -> List[Command]:
+    def filter(self, name: str=None, type:str =None) -> List[Plugin]:
         """
         Returns the commands matching name and/or type. Does not match cases.
         :param name: The name of the command (e.g. SHA1/sha1).

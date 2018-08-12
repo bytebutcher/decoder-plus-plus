@@ -19,8 +19,8 @@ from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
-from core.command import Command
-from core.command.command import NullCommand
+from core.plugin.plugin import NullPlugin
+from core.plugin.plugin import Plugin
 from ui.widget.combo_box import ComboBox
 
 
@@ -32,19 +32,19 @@ class ComboBoxFrame(QFrame):
     def __init__(self, parent, context):
         super(ComboBoxFrame, self).__init__(parent)
         self._context = context
-        self._commands = context.commands()
+        self._commands = context.plugins()
         self._logger = context.logger()
         self._command_history = {}
         layout = QVBoxLayout()
-        self._decoder_combo = self._init_combo_box("Decode as ...", Command.Type.DECODER)
-        self._encoder_combo = self._init_combo_box("Encode as ...", Command.Type.ENCODER)
-        self._hasher_combo = self._init_combo_box("Hash ...", Command.Type.HASHER)
-        self._script_combo = self._init_combo_box("Script ...", Command.Type.SCRIPT)
+        self._decoder_combo = self._init_combo_box("Decode as ...", Plugin.Type.DECODER)
+        self._encoder_combo = self._init_combo_box("Encode as ...", Plugin.Type.ENCODER)
+        self._hasher_combo = self._init_combo_box("Hash ...", Plugin.Type.HASHER)
+        self._script_combo = self._init_combo_box("Script ...", Plugin.Type.SCRIPT)
         self._combo_boxes = {
-            Command.Type.DECODER: self._decoder_combo,
-            Command.Type.ENCODER: self._encoder_combo,
-            Command.Type.HASHER: self._hasher_combo,
-            Command.Type.SCRIPT: self._script_combo
+            Plugin.Type.DECODER: self._decoder_combo,
+            Plugin.Type.ENCODER: self._encoder_combo,
+            Plugin.Type.HASHER: self._hasher_combo,
+            Plugin.Type.SCRIPT: self._script_combo
         }
         layout.addWidget(self._decoder_combo)
         layout.addWidget(self._encoder_combo)
@@ -109,7 +109,7 @@ class ComboBoxFrame(QFrame):
             return command
         except Exception as e:
             self._logger.error("Unexpected error. {}".format(e))
-            return NullCommand()
+            return NullPlugin()
 
     def selectedCommand(self):
         selected_command_types = [command_type for command_type in self._combo_boxes.keys() if self._combo_boxes[command_type].currentIndex() != 0]

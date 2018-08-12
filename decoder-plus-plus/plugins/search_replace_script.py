@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout,
     QCheckBox, QToolTip
 
 from core.exception import AbortedException
-from core.plugin.abstract_plugin import ScriptPlugin
+from core.plugin.plugin import ScriptPlugin
 
 class Plugin(ScriptPlugin):
 

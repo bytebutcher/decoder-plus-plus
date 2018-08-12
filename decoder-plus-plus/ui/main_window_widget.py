@@ -18,7 +18,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QToolButton, QLabel
 
 from core import Context
-from core.command import Command
 from ui import *
 
 class MainWindowWidget(QWidget):
@@ -27,7 +26,7 @@ class MainWindowWidget(QWidget):
         super(QWidget, self).__init__(parent)
 
         self._context = context
-        self._commands = context.commands()
+        self._commands = context.plugins()
         self._main_window = parent
 
         self.layout = QVBoxLayout(self)
@@ -67,22 +66,22 @@ class MainWindowWidget(QWidget):
         self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER,
                                        "Select Decoder",
                                        "Alt+D",
-                                       lambda: self._focus_combo_box(Command.Type.DECODER),
+                                       lambda: self._focus_combo_box(Plugin.Type.DECODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_ENCODER,
                                        "Select Encoder",
                                        "Alt+E",
-                                       lambda: self._focus_combo_box(Command.Type.ENCODER),
+                                       lambda: self._focus_combo_box(Plugin.Type.ENCODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_HASHER,
                                        "Select Hasher",
                                        "Alt+H",
-                                       lambda: self._focus_combo_box(Command.Type.HASHER),
+                                       lambda: self._focus_combo_box(Plugin.Type.HASHER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_SCRIPT,
                                        "Select Script",
                                        "Alt+S",
-                                       lambda: self._focus_combo_box(Command.Type.SCRIPT),
+                                       lambda: self._focus_combo_box(Plugin.Type.SCRIPT),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
                                        "Select Text Field",

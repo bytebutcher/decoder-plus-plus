@@ -19,7 +19,7 @@ import os
 import sys
 from typing import List
 
-from core.plugin.abstract_plugin import AbstractPlugin
+from core.plugin.plugin import AbstractPlugin
 
 
 class PluginLoader():

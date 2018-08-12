@@ -1,4 +1,4 @@
-from core.plugin.abstract_plugin import DecoderPlugin
+from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
 

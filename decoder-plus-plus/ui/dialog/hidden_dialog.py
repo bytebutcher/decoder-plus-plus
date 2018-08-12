@@ -52,10 +52,10 @@ class HiddenDialog(QDialog):
         form_layout.addRow(QLabel("Core-Development: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("Thomas Engel"))
         form_layout.addRow(QLabel("Plugin-Development: "), QLabel(""))
-        plugin_authors = self._context.commands().authors()
+        plugin_authors = self._context.plugins().authors()
         for plugin_author in plugin_authors:
             plugin_author_label = QLabel(plugin_author)
-            plugin_author_label.setToolTip(", ".join(sorted(set(self._context.commands().names(author=plugin_author)))))
+            plugin_author_label.setToolTip(", ".join(sorted(set(self._context.plugins().names(author=plugin_author)))))
             form_layout.addRow(QLabel(""), plugin_author_label)
         form_frame.setLayout(form_layout)
         base_layout.addWidget(form_frame)

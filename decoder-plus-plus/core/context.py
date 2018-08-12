@@ -23,7 +23,7 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from core.command import Command, Plugins
+from core.plugin.plugins import Plugins
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
 
@@ -60,7 +60,7 @@ class Context(QObject):
         super(__class__, self).__init__()
         self._logger = {}
         self._config = self._init_config()
-        self._commands = None
+        self._plugins = None
         self._plugin_loader = PluginLoader(self)
         self._shortcuts = {}
 
@@ -83,11 +83,7 @@ class Context(QObject):
 
     def _init_plugins(self):
         """ Returns standard and user plugins which could be loaded successfully. """
-        plugins = self._load_default_plugins() + self._load_user_plugins()
-        commands = []
-        for plugin in plugins:
-            commands.append(plugin)
-        return Plugins(self, commands)
+        return Plugins(self, self._load_default_plugins() + self._load_user_plugins())
 
     def _load_user_plugins(self):
         """ Returns all user plugins located at ${HOME}/.config/dpp/plugins which could be loaded successfully. """
@@ -125,11 +121,11 @@ class Context(QObject):
             return logging.LoggerAdapter(self._logger[log_format], log_fields)
         return self._logger[log_format]
 
-    def commands(self):
+    def plugins(self):
         """ Returns all plugins which could be loaded successfully. """
-        if not self._commands:
-            self._commands = self._init_plugins()
-        return self._commands
+        if not self._plugins:
+            self._plugins = self._init_plugins()
+        return self._plugins
 
     def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget):
         """

@@ -1,4 +1,4 @@
-from core.plugin.abstract_plugin import EncoderPlugin
+from core.plugin.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
 

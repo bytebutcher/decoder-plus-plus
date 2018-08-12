@@ -1,4 +1,4 @@
-from core.plugin.abstract_plugin import HasherPlugin
+from core.plugin.plugin import HasherPlugin
 
 class Plugin(HasherPlugin):
 
