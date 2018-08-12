@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import qtawesome
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton
 
@@ -24,6 +23,7 @@ from core.exception import AbortedException
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.view.hex_view import HexView
+from ui.widget.smart_decode_button import SmartDecodeButton
 from ui.widget.status_widget import StatusWidget
 
 
@@ -91,6 +91,8 @@ class CodecFrame(QFrame):
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
         self._combo_box_frame.commandSelected.connect(self._execute_command_select)
         button_frame_layout.addWidget(self._combo_box_frame)
+        self._smart_decode_button = SmartDecodeButton()
+        button_frame_layout.addWidget(self._smart_decode_button)
         button_frame_layout.addWidget(self._init_radio_frame())
         button_frame.setLayout(button_frame_layout)
         return button_frame

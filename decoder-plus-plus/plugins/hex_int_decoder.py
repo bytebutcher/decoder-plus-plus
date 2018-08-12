@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import DecoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(DecoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('HEX (int)', Command.Type.DECODER, "Thomas Engel", [])
+        # Name, Author, Dependencies
+        super().__init__('HEX (int)', "Thomas Engel", [])
 
     def run(self, text):
         return self._run_lines(text, lambda text_part: str(int(text_part, 16)))

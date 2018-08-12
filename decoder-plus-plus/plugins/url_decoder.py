@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import DecoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(DecoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('URL', Command.Type.DECODER, "Thomas Engel", ["urllib"])
+        # Name, Author, Dependencies
+        super().__init__('URL', "Thomas Engel", ["urllib"])
 
     def run(self, text):
         import urllib.parse

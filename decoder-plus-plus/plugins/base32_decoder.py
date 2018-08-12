@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import DecoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(DecoderPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('BASE32', Command.Type.DECODER, "Thomas Engel", ["base64"])
+        # Name, Author, Dependencies
+        super().__init__('BASE32', "Thomas Engel", ["base64"])
 
     def run(self, text):
         import base64
