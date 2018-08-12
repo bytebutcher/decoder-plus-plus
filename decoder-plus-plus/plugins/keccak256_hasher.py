@@ -1,11 +1,10 @@
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import HasherPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Type, Author, Dependencies
-        super().__init__('KECCAK_256', Command.Type.HASHER, "Tim Menapace", ["sha3"])
+        super().__init__('KECCAK_256', "Tim Menapace", ["sha3"])
 
     def run(self, text):
         import sha3
