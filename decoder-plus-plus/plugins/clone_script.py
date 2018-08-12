@@ -1,11 +1,11 @@
-from core.plugin.abstract_plugin import AbstractPlugin
+from core.plugin.abstract_plugin import ScriptPlugin
 from core.command import Command
 
-class Plugin(AbstractPlugin):
+class Plugin(ScriptPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('Clone', Command.Type.SCRIPT, "Thomas Engel", [])
+        # Name, Author, Dependencies
+        super().__init__('Clone', "Thomas Engel", [])
 
     def run(self, text):
         return text

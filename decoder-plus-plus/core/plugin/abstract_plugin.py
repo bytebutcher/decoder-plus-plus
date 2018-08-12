@@ -23,7 +23,7 @@ from core.command.command import Command
 
 
 class AbstractPlugin(object):
-    """ Base-class to all plugins. """
+    """ Base-class to all plugins. Should not be used directly. Instead use one of its abstract implementations. """
 
     def __init__(self, name: str, type: str, author: str, dependencies: List[str]=None):
         """

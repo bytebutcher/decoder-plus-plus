@@ -104,18 +104,20 @@ DecoderPlusPlus("Hello, world!").hash().sha1().run()
 To add custom codecs just copy them into the $HOME/.config/dpp/plugins/ folder. 
 
 ```python
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import DecoderPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(DecoderPlugin):
+    """
+    Possible plugins are DecoderPlugin, EncoderPlugin, HasherPlugin or ScriptPlugin.
+    See AbstractPlugin or their implementations for more information.
+    """ 
 
     def __init__(self, context):
         plugin_name = "URL"
-        # plugin_type: Command.Type.DECODER / Command.Type.ENCODER / Command.Type.HASHER / Command.Type.SCRIPT 
-        plugin_type = Command.Type.DECODER
         plugin_author = "Your Name"
-        plugin_requirements = ["urllib"] # Required Python Libraries
-        super().__init__(plugin_name, plugin_type, plugin_author, plugin_requirements)
+        # Python Libraries which are required to be able to execute the run method of this plugin.
+        plugin_requirements = ["urllib"]
+        super().__init__(plugin_name, plugin_author, plugin_requirements)
 
     def run(self, text):
         # Load the required libraries here ...

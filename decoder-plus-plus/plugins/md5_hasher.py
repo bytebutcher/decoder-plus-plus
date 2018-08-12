@@ -3,7 +3,7 @@ from core.plugin.abstract_plugin import HasherPlugin
 class Plugin(HasherPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
+        # Name, Author, Dependencies
         super().__init__('MD5', "Thomas Engel", ["hashlib"])
 
     def run(self, text):
