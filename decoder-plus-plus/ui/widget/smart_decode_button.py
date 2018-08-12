@@ -14,17 +14,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from typing import List
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton
 
+from core.plugin.plugin import DecoderPlugin
+
 
 class SmartDecodeButton(QFrame):
+    """ A button which provides a smart-decode functionality. """
 
     clicked = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, plugins: List[DecoderPlugin], parent=None):
         super(__class__, self).__init__(parent)
-        #self._commands = commands
+        self._plugins = plugins
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 6, 0, 0)
         self._button = self._init_button()
@@ -40,6 +45,10 @@ class SmartDecodeButton(QFrame):
         """ Forwards the "Smart decode" button click event. """
         self.clicked.emit()
 
-    def smart_decode(self, input):
-        """ Should return the decoder object or None when it was not possible to determine codec. """
-        pass
+    def smart_decode(self, input) -> List[DecoderPlugin]:
+        """ Returns a list of possible decoders for the specified input. """
+        possible_decoders = []
+        for plugin in self._plugins:
+            if plugin.can_be_decoded(input):
+                possible_decoders.append(plugin)
+        return possible_decoders

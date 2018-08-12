@@ -19,6 +19,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton
 
 from core import Context
+from core.plugin.plugin import PluginType
+from core.plugin.plugins import Plugins
 from core.exception import AbortedException
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
@@ -29,7 +31,7 @@ from ui.widget.status_widget import StatusWidget
 
 class CodecFrame(QFrame):
 
-    def __init__(self, parent, context, frame_id, codec_tab, plugins, previous_frame, text):
+    def __init__(self, parent, context: Context, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
         super(CodecFrame, self).__init__(parent)
         self._context = context
         self._context.shortcutUpdated.connect(self._shortcut_updated_event)
@@ -91,7 +93,8 @@ class CodecFrame(QFrame):
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
         self._combo_box_frame.pluginSelected.connect(self._execute_plugin_select)
         button_frame_layout.addWidget(self._combo_box_frame)
-        self._smart_decode_button = SmartDecodeButton()
+        self._smart_decode_button = SmartDecodeButton(self._plugins.filter(type=PluginType.DECODER))
+        self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
         button_frame_layout.addWidget(self._smart_decode_button)
         button_frame_layout.addWidget(self._init_radio_frame())
         button_frame.setLayout(button_frame_layout)
@@ -139,6 +142,40 @@ class CodecFrame(QFrame):
 
     def _get_tooltip_by_shortcut(self, shortcut):
         return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
+
+    def _smart_decode_button_click_event(self):
+        input = self._plain_view_widget.toPlainText()
+        possible_decoders = self._smart_decode_button.smart_decode(input)
+        if not possible_decoders:
+            self._logger.info("No matching decoders detected.")
+            return
+
+        if len(possible_decoders) > 1:
+            decoder_titles = [decoder.title() for decoder in possible_decoders]
+            self._logger.info("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
+            decoders_without_error = []
+            self._logger.info("Trying to match decoders based on errors...")
+            for decoder in possible_decoders:
+                try:
+                    decoder.select(input)
+                    decoders_without_error.append(decoder)
+                except:
+                    pass
+
+            if not decoders_without_error:
+                self._logger.info("No matching decoders without errors detected.")
+                return
+
+            if len(decoders_without_error) > 1:
+                decoder_titles = [decoder.title() for decoder in decoders_without_error]
+                self._logger.info("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
+                return
+
+            possible_decoders = decoders_without_error
+
+        decoder = possible_decoders[0]
+        self._logger.info("Possible match: {}".format(decoder.title()))
+        self.selectComboBoxEntryByPlugin(decoder)
 
     def _combo_box_title_selected_event(self):
         self._codec_tab.removeFrames(self._next_frame)

@@ -32,7 +32,7 @@ class Config(QSettings):
 
     def getVersion(self) -> str:
         """ Returns the version of the application. """
-        return "0.90"
+        return "0.91"
 
     def getSize(self) -> QSize:
         """

@@ -81,7 +81,7 @@ class Context(QObject):
         logger.addHandler(hdlr)
         return logger
 
-    def _init_plugins(self):
+    def _init_plugins(self) -> Plugins:
         """ Returns standard and user plugins which could be loaded successfully. """
         return Plugins(self, self._load_default_plugins() + self._load_user_plugins())
 
@@ -121,7 +121,7 @@ class Context(QObject):
             return logging.LoggerAdapter(self._logger[log_format], log_fields)
         return self._logger[log_format]
 
-    def plugins(self):
+    def plugins(self) -> Plugins:
         """ Returns all plugins which could be loaded successfully. """
         if not self._plugins:
             self._plugins = self._init_plugins()

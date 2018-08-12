@@ -17,6 +17,8 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
+from core import Context
+from core.plugin.plugins import Plugins
 from ui import CodecFrame
 from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
@@ -29,7 +31,7 @@ class CodecTab(QScrollArea):
     # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
     FRAME_HEIGHT = 210
 
-    def __init__(self, parent, context, plugins):
+    def __init__(self, parent, context: Context, plugins: Plugins):
         super(QWidget, self).__init__(parent)
         self._context = context
         self._logger = context.logger()
