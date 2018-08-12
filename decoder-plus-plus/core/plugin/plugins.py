@@ -21,7 +21,7 @@ from typing import List
 from core.command import Command
 
 
-class Commands(object):
+class Plugins(object):
     """ Defines a list of commands and additional helper methods for working with them. """
 
     def __init__(self, context: 'core.context.Context', command_list: List[Command]):

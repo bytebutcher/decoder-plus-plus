@@ -23,7 +23,7 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from core.command import Command, Commands
+from core.command import Command, Plugins
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
 
@@ -87,7 +87,7 @@ class Context(QObject):
         commands = []
         for plugin in plugins:
             commands.append(plugin)
-        return Commands(self, commands)
+        return Plugins(self, commands)
 
     def _load_user_plugins(self):
         """ Returns all user plugins located at ${HOME}/.config/dpp/plugins which could be loaded successfully. """

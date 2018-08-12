@@ -16,4 +16,3 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from core.command.command import Command
-from core.command.commands import Commands
