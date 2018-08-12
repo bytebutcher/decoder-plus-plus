@@ -35,16 +35,16 @@ def get_safe_name(name):
     return name
 
 
-def init_builder(commands, clazz, type):
-    for command in commands.filter(type=type):
-        if not command.name():
+def init_builder(plugins, clazz, type):
+    for plugin in plugins.filter(type=type):
+        if not plugin.name():
             continue
-        def runner(command):
+        def runner(plugin):
             def _runner(self):
-                self._input = command.run(self._input)
+                self._input = plugin.run(self._input)
                 return self
             return _runner
-        setattr(clazz, get_safe_name(command.name()), runner(command))
+        setattr(clazz, get_safe_name(plugin.name()), runner(plugin))
 
 
 def setup_syntax_completion():
@@ -86,7 +86,7 @@ def get_action_type(context, builder, name):
     return getattr(builder, name)
 
 
-def get_action_command(context, action_type_name, action_type_method, method_name):
+def get_plugin_action(context, action_type_name, action_type_method, method_name):
     try:
         return getattr(action_type_method(), method_name)
     except Exception as e:
@@ -100,11 +100,11 @@ if __name__ == '__main__':
         context = Context()
 
         # Builders can be used in interactive shell or within the ui's code-view.
-        commands = context.plugins()
-        init_builder(commands, Decoder, Plugin.Type.DECODER)
-        init_builder(commands, Encoder, Plugin.Type.ENCODER)
-        init_builder(commands, Hasher, Plugin.Type.HASHER)
-        init_builder(commands, Script, Plugin.Type.SCRIPT)
+        plugins = context.plugins()
+        init_builder(plugins, Decoder, Plugin.Type.DECODER)
+        init_builder(plugins, Encoder, Plugin.Type.ENCODER)
+        init_builder(plugins, Hasher, Plugin.Type.HASHER)
+        init_builder(plugins, Script, Plugin.Type.SCRIPT)
 
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument('-?', '--help', action='store_true',
@@ -164,8 +164,8 @@ if __name__ == '__main__':
         for name, values in args.ordered_args:
             method_name = values.pop()
             action_type = get_action_type(context, builder, name)
-            action_command = get_action_command(context, name, action_type, method_name)
-            builder = action_command(*values)
+            plugin_action = get_plugin_action(context, name, action_type, method_name)
+            builder = plugin_action(*values)
 
         print(builder.run())
     except Exception as e:

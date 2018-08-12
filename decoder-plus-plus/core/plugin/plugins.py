@@ -22,70 +22,70 @@ from core.plugin.plugin import Plugin
 
 
 class Plugins(object):
-    """ Defines a list of commands and additional helper methods for working with them. """
+    """ Defines a list of plugins and additional helper methods for working with them. """
 
-    def __init__(self, context: 'core.context.Context', command_list: List[Plugin]):
+    def __init__(self, context: 'core.context.Context', plugin_list: List[Plugin]):
         self._context = context
         self._logger = context.logger()
-        self._command_list = command_list
+        self._plugin_list = plugin_list
         self._index = 0
 
     def names(self, type: str=None, author: str=None) -> List[str]:
         """
-        Returns the command names in a list. Does match cases.
-        :param type: Filter command names by type (e.g. Command.Type.DECODER, ...)
-        :param author: Filter command names by author (e.g. Thomas Engel, ...)
+        Returns the plugin names in a list. Does match cases.
+        :param type: Filter plugin names by type (e.g. Plugin.Type.DECODER, ...)
+        :param author: Filter plugin names by author (e.g. Thomas Engel, ...)
         """
         if type and author:
-            return [command.name() for command in self._command_list if command.type() == type and command.author() == author]
+            return [plugin.name() for plugin in self._plugin_list if plugin.type() == type and plugin.author() == author]
         elif type:
-            return [command.name() for command in self._command_list if command.type() == type]
+            return [plugin.name() for plugin in self._plugin_list if plugin.type() == type]
         elif author:
-            return [command.name() for command in self._command_list if command.author() == author]
+            return [plugin.name() for plugin in self._plugin_list if plugin.author() == author]
         else:
-            return [command.name() for command in self._command_list]
+            return [plugin.name() for plugin in self._plugin_list]
 
     def types(self) -> List[str]:
-        """ Returns all possible command types in a list. """
+        """ Returns all possible plugin types in a list. """
         return [Plugin.Type.DECODER, Plugin.Type.ENCODER, Plugin.Type.HASHER, Plugin.Type.SCRIPT]
 
-    def command(self, name: str, type: str) -> Plugin:
+    def plugin(self, name: str, type: str) -> Plugin:
         """
-        Returns the command matching name and type. Does not match cases. There can only be one.
-        :param name: The name of the command (e.g. SHA1/sha1).
-        :param type: The type of the command (e.g. DECODER/decoder).
+        Returns the plugin matching name and type. Does not match cases. There can only be one.
+        :param name: The name of the plugin (e.g. SHA1/sha1).
+        :param type: The type of the plugin (e.g. DECODER/decoder).
         """
         the_type = type.lower()
-        the_command_name = name.lower()
-        for command in self._command_list:
-            if command.type().lower() == the_type and command.name().lower() == the_command_name:
-                return command
-        raise Exception("Undefined command '{}::{}'!".format(name, type))
+        the_plugin_name = name.lower()
+        for plugin in self._plugin_list:
+            if plugin.type().lower() == the_type and plugin.name().lower() == the_plugin_name:
+                return plugin
+        raise Exception("Undefined plugin '{}::{}'!".format(name, type))
 
     def authors(self) -> List[str]:
         """ Returns all authors in a list. """
-        authors = [command.author() for command in self._command_list if command.author()]
+        authors = [plugin.author() for plugin in self._plugin_list if plugin.author()]
         return [author for author, _ in collections.Counter(authors).most_common()]
 
     def filter(self, name: str=None, type:str =None) -> List[Plugin]:
         """
-        Returns the commands matching name and/or type. Does not match cases.
-        :param name: The name of the command (e.g. SHA1/sha1).
-        :param type: The type of the command (e.g. DECODER/decoder).
+        Returns the plugins matching name and/or type. Does not match cases.
+        :param name: The name of the plugin (e.g. SHA1/sha1).
+        :param type: The type of the plugin (e.g. DECODER/decoder).
         :raise Exception when neither name nor type is specified.
         """
         if name and type:
             try:
-                return [self.command(name, type)]
+                return [self.plugin(name, type)]
             except:
                 return []
         if name:
-            the_command_name = name.lower()
-            return [command for command in self._command_list if command.name().lower() == the_command_name]
+            the_plugin_name = name.lower()
+            return [plugin for plugin in self._plugin_list if plugin.name().lower() == the_plugin_name]
         if type:
             the_type_name = type.lower()
-            return [command for command in self._command_list if command.type().lower() == the_type_name]
+            return [plugin for plugin in self._plugin_list if plugin.type().lower() == the_type_name]
         raise Exception("Unknown Error '{}::{}'!".format(name, type))
 
     def __len__(self):
-        return len(self._command_list)
+        return len(self._plugin_list)

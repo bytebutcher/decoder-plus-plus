@@ -26,7 +26,7 @@ class MainWindowWidget(QWidget):
         super(QWidget, self).__init__(parent)
 
         self._context = context
-        self._commands = context.plugins()
+        self._plugins = context.plugins()
         self._main_window = parent
 
         self.layout = QVBoxLayout(self)
@@ -178,7 +178,7 @@ class MainWindowWidget(QWidget):
         return tabs
 
     def _tab_new(self):
-        self._tabs.insertTab(self._tabs.count() - 1, CodecTab(self, self._context, self._commands), "Tab")
+        self._tabs.insertTab(self._tabs.count() - 1, CodecTab(self, self._context, self._plugins), "Tab")
         self._tabs.setCurrentIndex(self._tabs.count() - 2)
 
     def _tab_close(self, index=None):

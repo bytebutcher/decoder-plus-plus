@@ -29,11 +29,11 @@ class CodecTab(QScrollArea):
     # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
     FRAME_HEIGHT = 210
 
-    def __init__(self, parent, context, commands):
+    def __init__(self, parent, context, plugins):
         super(QWidget, self).__init__(parent)
         self._context = context
         self._logger = context.logger()
-        self._commands = commands
+        self._plugins = plugins
 
         self._next_frame_id = 1
         self._frames = QSplitter(Qt.Vertical)
@@ -79,7 +79,7 @@ class CodecTab(QScrollArea):
                     self._logger.error("Error Resetting Codec Frame: {}".format(str(e)))
             else:
                 try:
-                    new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._commands, previous_frame, text)
+                    new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._plugins, previous_frame, text)
                     self._next_frame_id += 1
                     if self._frames.count() > 0:
                         new_frame.flashStatus(status, msg)

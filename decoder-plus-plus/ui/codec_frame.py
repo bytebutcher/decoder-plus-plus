@@ -29,7 +29,7 @@ from ui.widget.status_widget import StatusWidget
 
 class CodecFrame(QFrame):
 
-    def __init__(self, parent, context, frame_id, codec_tab, commands, previous_frame, text):
+    def __init__(self, parent, context, frame_id, codec_tab, plugins, previous_frame, text):
         super(CodecFrame, self).__init__(parent)
         self._context = context
         self._context.shortcutUpdated.connect(self._shortcut_updated_event)
@@ -40,7 +40,7 @@ class CodecFrame(QFrame):
         if previous_frame:
             previous_frame.setNext(self)
         self._next_frame = None
-        self._commands = commands
+        self._plugins = plugins
         self._flash_event = None
 
         self._layout = QHBoxLayout(self)
@@ -89,7 +89,7 @@ class CodecFrame(QFrame):
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
-        self._combo_box_frame.commandSelected.connect(self._execute_command_select)
+        self._combo_box_frame.pluginSelected.connect(self._execute_plugin_select)
         button_frame_layout.addWidget(self._combo_box_frame)
         self._smart_decode_button = SmartDecodeButton()
         button_frame_layout.addWidget(self._smart_decode_button)
@@ -175,41 +175,41 @@ class CodecFrame(QFrame):
         self._execute()
 
     def _execute(self):
-        command = self._combo_box_frame.selectedCommand()
-        if command:
-            self._execute_command_run(command)
+        plugin = self._combo_box_frame.selectedPlugin()
+        if plugin:
+            self._execute_plugin_run(plugin)
 
-    def _execute_command_run(self, command):
+    def _execute_plugin_run(self, plugin):
         input = self.getInputText()
         output = ""
         try:
-            output = command.run(input)
-            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.SUCCESS)
+            output = plugin.run(input)
+            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.SUCCESS)
         except Exception as e:
             error = str(e)
-            self._logger.error('{} {}: {}'.format(command.name(), command.type(), str(e)))
-            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
+            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), str(e)))
+            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.ERROR, msg=error)
 
-    def _execute_command_select(self, command):
+    def _execute_plugin_select(self, plugin):
         output = ""
         try:
             input = self.getInputText()
-            output = command.select(input)
-            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.SUCCESS)
+            output = plugin.select(input)
+            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.SUCCESS)
         except AbortedException as e:
             # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
             self._logger.debug(str(e))
         except Exception as e:
             error = str(e)
-            self._logger.error('{} {}: {}'.format(command.name(), command.type(), error))
-            self._codec_tab.newFrame(output, command.title(), self, status=StatusWidget.ERROR, msg=error)
+            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
+            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.ERROR, msg=error)
 
     def flashStatus(self, status, message):
         self._status_widget.setStatus(status, message)
 
-    def selectComboBoxEntryByCommand(self, command):
-        self._combo_box_frame.selectItem(command.type(), command.name(), block_signals=True)
-        self._execute_command_run(command)
+    def selectComboBoxEntryByPlugin(self, plugin):
+        self._combo_box_frame.selectItem(plugin.type(), plugin.name(), block_signals=True)
+        self._execute_plugin_run(plugin)
 
     def selectPlainView(self):
         self._plain_radio.setChecked(True)

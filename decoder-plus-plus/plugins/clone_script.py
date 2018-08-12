@@ -1,5 +1,5 @@
 from core.plugin.plugin import ScriptPlugin
-from core.command import Plugin
+
 
 class Plugin(ScriptPlugin):
 
