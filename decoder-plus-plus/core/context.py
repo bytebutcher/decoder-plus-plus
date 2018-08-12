@@ -86,7 +86,7 @@ class Context(QObject):
         plugins = self._load_default_plugins() + self._load_user_plugins()
         commands = []
         for plugin in plugins:
-            commands.append(Command.Builder().name(plugin.name()).type(plugin.type()).author(plugin.author()).title(plugin.title).run(plugin.run).select(plugin.select).build())
+            commands.append(plugin)
         return Commands(self, commands)
 
     def _load_user_plugins(self):

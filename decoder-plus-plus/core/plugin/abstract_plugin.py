@@ -94,3 +94,67 @@ class AbstractPlugin(object):
         parameters (e.g. by displaying dialogs).
         """
         return self.run(*args)
+
+    def __key(self):
+        return (self._name, self._type)
+
+    def __eq__(x, y):
+        return x.__key() == y.__key()
+
+    def __hash__(self):
+        return hash(self.__key())
+
+
+class DecoderPlugin(AbstractPlugin):
+
+    def __init__(self, name: str, author: str, dependencies: List[str]=None):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        """
+        super(__class__, self).__init__(name, Command.Type.DECODER, author, dependencies)
+
+    def can_be_decoded(self, input) -> bool:
+        """
+        Returns whether it might be possible to decode the specified input with this plugin.
+        This methods needs to be implemented by a decoder-plugin to be able to be used with the "Smart decode"
+        functionality.
+        """
+        return False
+
+class EncoderPlugin(AbstractPlugin):
+
+    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        """
+        super(__class__, self).__init__(name, Command.Type.ENCODER, author, dependencies)
+
+
+class HasherPlugin(AbstractPlugin):
+
+    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        """
+        super(__class__, self).__init__(name, Command.Type.HASHER, author, dependencies)
+
+
+class ScriptPlugin(AbstractPlugin):
+
+    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        """
+        super(__class__, self).__init__(name, Command.Type.SCRIPT, author, dependencies)

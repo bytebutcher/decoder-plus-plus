@@ -88,55 +88,6 @@ class Command(object):
     def __hash__(self):
         return hash(self.__key())
 
-    class Builder(object):
-
-        def __init__(self):
-            self._name = None
-            self._type = None
-            self._author = None
-            self._run_method = None
-            self._select_method = None
-            self._title_method = None
-
-        def name(self, name: str) -> 'Command.Builder':
-            self._name = name
-            return self
-
-        def type(self, type: str) -> 'Command.Builder':
-            self._type = type
-            return self
-
-        def author(self, author: str) -> 'Command.Builder':
-            self._author = author
-            return self
-
-        def title(self, title_method: Callable) -> 'Command.Builder':
-            self._title_method = title_method
-            return self
-
-        def run(self, run_method: Callable) -> 'Command.Builder':
-            self._run_method = run_method
-            return self
-
-        def select(self, select_method: Callable) -> 'Command.Builder':
-            self._select_method = select_method
-            return self
-
-        def build(self) -> 'Command':
-            assert self._name is not None and len(self._name) > 0, \
-                "Name is required and should not be None or Empty."
-            assert self._type is not None, \
-                "Type is required and should not be None."
-            assert self._run_method is not None, \
-                "Run method or run source is required and should not be None."
-            def _select_method(*args, **kwargs):
-                self._run_method(*args)
-            if self._select_method is None:
-                self._select_method = _select_method
-            if self._title_method is None:
-                self._title_method = lambda: "{} {}".format(self._name, self._type.capitalize())
-            return Command(self._name, self._type, self._author, self._title_method, self._run_method, self._select_method)
-
 
 class NullCommand(Command):
     """ Implements a command which may be used as a Null-Object. """
