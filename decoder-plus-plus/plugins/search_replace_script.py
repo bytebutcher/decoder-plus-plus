@@ -6,14 +6,13 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout,
     QCheckBox, QToolTip
 
 from core.exception import AbortedException
-from core.plugin.abstract_plugin import AbstractPlugin
-from core.command import Command
+from core.plugin.abstract_plugin import ScriptPlugin
 
-class Plugin(AbstractPlugin):
+class Plugin(ScriptPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('Search & Replace', Command.Type.SCRIPT, "Thomas Engel", )
+        # Name, Author, Dependencies
+        super().__init__('Search & Replace', "Thomas Engel", )
         self._dialog = None
         self._dialog_return_code = None
 

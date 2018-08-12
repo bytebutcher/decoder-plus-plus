@@ -4,23 +4,21 @@ from PyQt5.QtGui import QFontMetrics, QColor, QFont
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
 from core.exception import AbortedException
-from core.plugin.abstract_plugin import AbstractPlugin
+from core.plugin.abstract_plugin import ScriptPlugin
 
 from PyQt5.QtCore import pyqtSignal, QSize, Qt
 from PyQt5.QtWidgets import QHBoxLayout, QFrame
 
-from core.command import Command
-
-# Import DecoderPlusPlus required for Interactive Mode.
+# WARNING: Do not delete the following import of DecoderPlusPlus since it is required for Interactive Mode.
 # from core.decoder_plus_plus import DecoderPlusPlus
 from core.decoder_plus_plus import DecoderPlusPlus
 
 
-class Plugin(AbstractPlugin):
+class Plugin(ScriptPlugin):
 
     def __init__(self, context):
-        # Name, Type, Author, Dependencies
-        super().__init__('Interactive Python', Command.Type.SCRIPT, "Thomas Engel", )
+        # Name, Author, Dependencies
+        super().__init__('Interactive Python', "Thomas Engel", )
         self._code = None
         self._dialog = None
 
