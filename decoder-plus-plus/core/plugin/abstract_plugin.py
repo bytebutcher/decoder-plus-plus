@@ -17,13 +17,22 @@
 
 import importlib
 import os
+from typing import List
 
 from core.command.command import Command
 
 
 class AbstractPlugin(object):
+    """ Base-class to all plugins. """
 
-    def __init__(self, name, type, author, dependencies=None):
+    def __init__(self, name: str, type: str, author: str, dependencies: List[str]=None):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param type: the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT).
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        """
         assert(name is not None and len(name) > 0), "Name is required and should not be None or Empty"
         assert(type in [Command.Type.DECODER, Command.Type.ENCODER, Command.Type.HASHER, Command.Type.SCRIPT]), \
             "Type is required and should be either 'DECODER', 'ENCODER', 'HASHER' or 'SCRIPT'"
@@ -33,19 +42,27 @@ class AbstractPlugin(object):
         self._author = author
         self._dependencies = dependencies
 
-    def name(self):
+    def name(self) -> str:
+        """ Returns the name of the plugin. """
         return self._name
 
-    def type(self):
+    def type(self) -> str:
+        """ Returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
         return self._type
 
-    def title(self):
+    def title(self) -> str:
+        """ Returns the title of the plugin which is usually displayed to the user. """
         return "{} {}".format(self._name, self._type.capitalize())
 
-    def author(self):
+    def author(self) -> str:
+        """ Returns the author of the plugin. """
         return self._author
 
-    def check_dependencies(self):
+    def check_dependencies(self) -> List[str]:
+        """
+        Checks whether all specified dependencies can be loaded.
+        :return: a list of unresolved dependencies, or an empty list if all dependencies could be resolved.
+        """
         unresolved_dependencies = []
         if self._dependencies:
             for dependency in self._dependencies:
@@ -55,10 +72,12 @@ class AbstractPlugin(object):
                     unresolved_dependencies.append(dependency)
         return unresolved_dependencies
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> str:
+        """ The main method of the plugin which must be implemented by the plugin. """
         raise NotImplementedError("Method must be implemented from upper class")
 
-    def _run_lines(self, text, callback):
+    def _run_lines(self, text: str, callback):
+        """ Helper method which executes a callback for each line of text. """
         lines = []
         for text_line in text.splitlines():
             result = []
@@ -68,5 +87,10 @@ class AbstractPlugin(object):
             lines.append(' '.join(result))
         return os.linesep.join(lines)
 
-    def select(self, *args, **kwargs):
+    def select(self, *args, **kwargs) -> str:
+        """
+        This method is usually called when the plugin gets selected for execution.
+        In its simplest form it may just call the run method. But it can also be used to ask the user for additional
+        parameters (e.g. by displaying dialogs).
+        """
         return self.run(*args)

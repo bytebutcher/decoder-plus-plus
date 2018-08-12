@@ -17,10 +17,11 @@
 
 import datetime
 import os
+from typing import List
 
 import qtawesome
 from PyQt5 import QtCore
-from PyQt5.QtCore import QTimer, Qt, QRect
+from PyQt5.QtCore import QTimer, Qt, QRect, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QMainWindow
 
@@ -33,7 +34,7 @@ from ui.dock.log_dock import LogDock
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, context):
+    def __init__(self, context: 'core.context.Context'):
         super().__init__()
         self._context = context
         self._logger = context.logger()
@@ -57,7 +58,7 @@ class MainWindow(QMainWindow):
     """
     Show unresolved dependencies of plugins in LogDock.
     """
-    def _log_plugins_unresolved_dependencies(self, context):
+    def _log_plugins_unresolved_dependencies(self, context: 'core.context.Context'):
         try:
             for plugin_name in context.getUnresolvedDependencies():
                 unresolved_dependencies = context.getUnresolvedDependencies()[plugin_name]
@@ -99,10 +100,10 @@ class MainWindow(QMainWindow):
         message_layout.addWidget(self._log_error_count_icon_label)
         message_layout.addWidget(self._log_error_count_label)
 
-        line = QFrame(self);
-        line.setGeometry(QRect(320, 150, 118, 3));
-        line.setFrameShape(QFrame.VLine);
-        line.setFrameShadow(QFrame.Sunken);
+        line = QFrame(self)
+        line.setGeometry(QRect(320, 150, 118, 3))
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
         message_layout.addWidget(line, 0, Qt.AlignLeft)
 
         self._log_message_icon_label = IconLabel(self, qtawesome.icon("fa.check"))
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow):
         about_label.mousePressEvent = lambda e: self._show_hidden_dialog()
         return about_label
 
-    def _log_message(self, type, message):
+    def _log_message(self, type: str, message: str):
         now = datetime.datetime.now().time()
         log_entry = LogEntry(
             "{hour:02d}:{minute:02d}:{second:02d}".format(hour=now.hour, minute=now.minute, second=now.second), type,
@@ -133,7 +134,7 @@ class MainWindow(QMainWindow):
         about_dialog = HiddenDialog(self, self._context)
         about_dialog.exec_()
 
-    def _show_log_dock(self, *filters, **kwargs):
+    def _show_log_dock(self, *filters: List[str], **kwargs):
         self._log_dock.setVisible(self._log_dock.isHidden())
         if self._log_dock.isVisible():
             for filter in self._log_dock.getFilters():
@@ -143,26 +144,26 @@ class MainWindow(QMainWindow):
         self._log_info_count_label.setText("0")
         self._log_error_count_label.setText("0")
 
-    def showDebug(self, message):
+    def showDebug(self, message: str):
         self._log_message("DEBUG", message)
 
-    def showInfo(self, message):
+    def showInfo(self, message: str):
         self._log_message("INFO", message)
         count = int(self._log_info_count_label.text())
         self._log_info_count_label.setText(str(count + 1))
         self.showMessage(message)
 
-    def showError(self, message):
+    def showError(self, message: str):
         self._log_message("ERROR", message)
         count = int(self._log_error_count_label.text())
         self._log_error_count_label.setText(str(count + 1))
         self.showMessage(message)
 
-    def showMessage(self, message):
+    def showMessage(self, message: str):
         self._log_message_text_label.setText(message)
         QTimer.singleShot(5000, lambda: self._log_message_text_label.setText("Ready."))
 
-    def closeEvent(self, e):
+    def closeEvent(self, e: QEvent):
         self._context.config().setSize(self.size())
         self._context.config().setPosition(self.pos())
         e.accept()

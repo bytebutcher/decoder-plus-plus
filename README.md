@@ -53,7 +53,7 @@ Decoder++ 0.90
 ```bash
 git clone https://github.com/bytebutcher/decoder-plus-plus
 cd decoder-plus-plus
-pip3 install -r requirements
+pip3 install -r requirements.txt
 ```
 
 ### Automatic Installation
@@ -127,6 +127,26 @@ class Plugin(AbstractPlugin):
 ## Contribute
 
 Feel free to issue pull-requests for new features/plugins.
+
+
+## Troubleshooting
+
+### Signals are not working on Mac OS
+
+When starting Decoder++ in Mac OS signals are not working.
+
+This might happen when PyQt5 is installed using homebrew. To fix this issue it is recommended to install the libdbus-1
+library. See http://doc.qt.io/qt-5/osx-issues.html#d-bus-and-macos for more information regarding this issue.  
+
+### Can not start Decoder++ in Windows using CygWin
+
+When starting Decoder++ in CygWin an error occurs:
+```
+  ModuleNotFoundError: No module named 'PyQt5'
+```
+
+This happens although PyQt5 is installed using pip. Currently there is no fix for that. Instead it is recommended
+to start Decoder++ using the Windows Commandline.
 
 ## Powered By
 

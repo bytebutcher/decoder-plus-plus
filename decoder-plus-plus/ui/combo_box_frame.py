@@ -111,14 +111,6 @@ class ComboBoxFrame(QFrame):
             self._logger.error("Unexpected error. {}".format(e))
             return NullCommand()
 
-    def addCommand(self, command, block_signals=False):
-        combo_box = self._combo_boxes[command.type()]
-        combo_box.blockSignals(block_signals)
-        model = combo_box.model()
-        model.setItem(model.rowCount(), 0, QStandardItem(command.name()))
-        combo_box.blockSignals(False)
-        self._commands.add(command)
-
     def selectedCommand(self):
         selected_command_types = [command_type for command_type in self._combo_boxes.keys() if self._combo_boxes[command_type].currentIndex() != 0]
         if len(selected_command_types) == 1:

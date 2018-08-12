@@ -19,6 +19,20 @@ import argparse
 
 
 class OrderedMultiArgs(argparse.Action):
+    """
+    Defines an Argparse-Action which allows to specify an argument multiple times while order is preserved.
+
+    Example:
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--test1', action=CustomAction)
+        parser.add_argument('--test2', action=CustomAction)
+
+        parser.parse_args(['--test2', '2', '--test1', '1', '--test2', '3'])
+        Namespace(ordered_args=[('test2', ['2']), ('test1', ['1']), ('test2', ['3'])], test1=True, test2=True)
+
+    """
+
     def __call__(self, parser, args, values, option_string=None):
         if not 'ordered_args' in args:
             setattr(args, 'ordered_args', [])
@@ -28,5 +42,3 @@ class OrderedMultiArgs(argparse.Action):
         previous.append((self.dest, values))
         setattr(args, 'ordered_args', previous)
         setattr(args, self.dest, True)
-
-

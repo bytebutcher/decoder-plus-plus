@@ -141,9 +141,9 @@ if __name__ == '__main__':
 
         if args.interactive:
             setup_syntax_completion()
-            from ptpython.repl import embed
-            print("{app_name} {app_version}".format(app_name=context.config().getName(), app_version=context.config().getVersion()))
-            embed(globals=globals(), locals=locals())
+            import code
+            print("Loading {app_name} ({app_version})".format(app_name=context.config().getName(), app_version=context.config().getVersion()))
+            code.InteractiveConsole(locals=globals()).interact()
             sys.exit(0)
 
         if not args.encode and not args.decode and not args.script and not args.hash:

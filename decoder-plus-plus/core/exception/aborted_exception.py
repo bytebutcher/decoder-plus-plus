@@ -17,4 +17,5 @@
 
 
 class AbortedException(Exception):
+    """ Should be raised when a process is aborted by the user. """
     pass

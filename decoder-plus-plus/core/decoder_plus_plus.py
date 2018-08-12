@@ -16,23 +16,33 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class DecoderPlusPlus(object):
+    """ The interface of DecoderPlusPlus which is used within the python interactive console. """
 
-    def __init__(self, input):
+    def __init__(self, input: str):
+        """
+        Initializes DecoderPlusPlus with the specified input.
+        :param input: the input which should be transformed.
+        """
         self._input = input
 
-    def decode(self):
+    def decode(self) -> 'DecoderPlusPlus':
+        """ Returns the decoder interface which encapsulates all possible decoding methods. """
         return Decoder(self._input)
 
-    def encode(self):
+    def encode(self) -> 'DecoderPlusPlus':
+        """ Returns the encoder interface which encapsulates all possible encoding methods. """
         return Encoder(self._input)
 
-    def hash(self):
+    def hash(self) -> 'DecoderPlusPlus':
+        """ Returns the hash interface which encapsulates all possible hashing methods. """
         return Hasher(self._input)
 
-    def script(self):
+    def script(self) -> 'DecoderPlusPlus':
+        """ Returns the script interface which encapsulates all possible scripting methods. """
         return Script(self._input)
 
     def run(self):
+        """ Starts the transformation process and returns the transformed input. """
         return self._input
 
 

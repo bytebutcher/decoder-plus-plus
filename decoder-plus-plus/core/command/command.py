@@ -19,6 +19,9 @@
 """
 Represents a codec (e.g. Decoder, Encoder, Hasher or Script).
 """
+from typing import Callable
+
+
 class Command(object):
 
     class Type(object):
@@ -28,7 +31,8 @@ class Command(object):
         HASHER = "Hasher"
         SCRIPT = "Script"
 
-    def __init__(self, name, type, author, title_method, run_method, select_method):
+    def __init__(self, name: str, type: str, author: str,
+                 title_method: Callable, run_method: Callable, select_method: Callable):
         self._name = name
         self._type = type
         self._author = author
@@ -36,52 +40,44 @@ class Command(object):
         self._run_method = run_method
         self._select_method = select_method
 
-    def _get_safe_name(self):
-        keepcharacters = ('_')
-        name = self._name.lower().replace(" ", "_").replace("+", "plus")
-        return "".join(c for c in name if c.isalnum() or c in keepcharacters).rstrip()
-
-    """
-    Returns the static name of the command (e.g. 'Search and Replace'). When safe_name is set to True this method
-    eliminates special characters (e.g. +, <space>, etc.).
-    """
-    def name(self, safe_name=False):
-        if safe_name:
-            return self._get_safe_name()
+    def name(self) -> str:
+        """ Returns the static name of the command (e.g. 'Search and Replace'). """
         return self._name
 
-    """
-    Returns the type of the command (e.g. DECODER, ENCODER, HASHER, SCRIPT).
-    """
-    def type(self):
+    def type(self) -> str:
+        """ Returns the type of the command (e.g. DECODER, ENCODER, HASHER, SCRIPT). """
         return self._type
 
-    """
-    Returns the (dynamic) command title. This may be the same string as returned by the name-method.
-    But it may also include hints of the current configuration of the command (e.g. 'Replace "A" with "B"' instead
-    of 'Search and Replace').
-    """
-    def title(self):
+    def title(self) -> str:
+        """
+        Returns the (dynamic) command title. This may be the same string as returned by the name-method.
+        But it may also include hints of the current configuration of the command (e.g. 'Replace "A" with "B"' instead
+        of 'Search and Replace').
+        """
         return self._title_method()
 
-    """
-    Returns the author of the command. This is usually set by plugins. Custom commands return an empty author.
-    """
-    def author(self):
+    def author(self) -> str:
+        """
+        Returns the author of the command. This is usually set by plugins. Custom commands return an empty author.
+        """
         return self._author
 
-    """
-    Executes the commands main-function and returns a transformed input-text.
-    """
-    def run(self, *args, **kwargs):
-        return self._run_method(*args)
-
-    """
-    Executes the select method. In it's simplest form the select-method is only executing the run-method. 
-    However, there may be cases where a configuration of the newly selected command is required.
-    """
-    def select(self, *args, **kwargs):
+    def select(self, *args, **kwargs) -> str:
+        """
+        Executes the select method. In it's simplest form the select-method is only executing the run-method.
+        However, there may be cases where a configuration of the newly selected command is required.
+        :param args: A list of arguments. Usually a input-text which should be transformed.
+        :return: The transformed input.
+        """
         return self._select_method(*args)
+
+    def run(self, *args, **kwargs) -> str:
+        """
+        Executes the commands main-function and returns a transformed input-text.
+        :param args: A list of arguments. Usually a input-text which should be transformed.
+        :return: The transformed input.
+        """
+        return self._run_method(*args)
 
     def __key(self):
         return (self._name, self._type)
@@ -98,51 +94,43 @@ class Command(object):
             self._name = None
             self._type = None
             self._author = None
-            self._run_source = None
             self._run_method = None
             self._select_method = None
             self._title_method = None
 
-        def name(self, name):
+        def name(self, name: str) -> 'Command.Builder':
             self._name = name
             return self
 
-        def type(self, type):
+        def type(self, type: str) -> 'Command.Builder':
             self._type = type
             return self
 
-        def author(self, author):
+        def author(self, author: str) -> 'Command.Builder':
             self._author = author
             return self
 
-        def title(self, title_method):
+        def title(self, title_method: Callable) -> 'Command.Builder':
             self._title_method = title_method
             return self
 
-        def run_source(self, run_source):
-            self._run_source = run_source
-            return self
-
-        def run(self, run_method):
+        def run(self, run_method: Callable) -> 'Command.Builder':
             self._run_method = run_method
             return self
 
-        def select(self, select_method):
+        def select(self, select_method: Callable) -> 'Command.Builder':
             self._select_method = select_method
             return self
 
-        def build(self):
-            assert self._name is not None and len(self._name) > 0, "Name is required and should not be None or Empty."
-            assert self._type is not None, "Type is required and should not be None."
-            assert self._run_method is not None or self._run_source is not None, "Run method or run source is required and should not be None."
-            assert not (self._run_method is None and self._run_source is None), "Run method or run source is required. Not both."
+        def build(self) -> 'Command':
+            assert self._name is not None and len(self._name) > 0, \
+                "Name is required and should not be None or Empty."
+            assert self._type is not None, \
+                "Type is required and should not be None."
+            assert self._run_method is not None, \
+                "Run method or run source is required and should not be None."
             def _select_method(*args, **kwargs):
                 self._run_method(*args)
-            if self._run_source is not None:
-                def _run_method(input):
-                    exec(self._run_source, globals(), locals())
-                    return eval("run")(input)
-                self._run_method = _run_method
             if self._select_method is None:
                 self._select_method = _select_method
             if self._title_method is None:
@@ -150,8 +138,8 @@ class Command(object):
             return Command(self._name, self._type, self._author, self._title_method, self._run_method, self._select_method)
 
 
-""" Implements a command which may be used as a Null-Object. """
 class NullCommand(Command):
+    """ Implements a command which may be used as a Null-Object. """
 
     def __init__(self):
         super(NullCommand, self).__init__("", "", "", lambda: "", self.run, self.select)

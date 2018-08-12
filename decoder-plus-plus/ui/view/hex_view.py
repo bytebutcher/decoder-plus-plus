@@ -54,6 +54,15 @@ class HexView(QTableView):
         self._item_font.setPointSize(8)
 
     def _init_column_size(self):
+        # BUG: Columns should only have minimal padding.
+        # WORKAROUND: Columns are resized to content.
+        # NOTE:
+        #   This is still not optimal but I couldn't figure out how to make columns even smaller.
+        #
+        #   Here's a list of things I tried:
+        #       * self.setStyleSheet("QTableView::item { border: 0px; padding: 0px; margin: 0px; }")
+        #       * setting font size
+        #
         for i in range(0, 16):
             self.resizeColumnToContents(i)
         self.horizontalHeader().setStretchLastSection(True)
@@ -64,11 +73,13 @@ class HexView(QTableView):
     def _vertical_header_width(self):
         # BUG: Synchronizing hex-views and code-views vertical header's width does not work (FixedWidth vs MarginWidth).
         # WORKAROUND: HexView requires additional 16 units.
-        # NOTE: To set CodeEditor vertical header we use setMarginWidth which is just not the same as setFixedWidth().
+        # NOTE:
+        # * Since the code-view isn't displayed anymore in the main-window these 6 additional units don't matter anymore.
+        #
         vertical_header_font = QFont()
         vertical_header_font.setFamily('Courier')
         vertical_header_font.setFixedPitch(True)
-        vertical_header_font.setPointSize(10)
+        vertical_header_font.setPointSize(8)
         vertical_header_width = QFontMetrics(vertical_header_font).width("00000") + 16 + 6
         return vertical_header_width
 

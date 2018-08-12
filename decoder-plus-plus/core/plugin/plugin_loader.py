@@ -17,16 +17,26 @@
 
 import os
 import sys
+from typing import List
+
+from core.plugin.abstract_plugin import AbstractPlugin
 
 
 class PluginLoader():
+    """ Loads python files of type Plugin from a specified folder. """
 
     def __init__(self, context):
         self._context = context
         self._logger = context.logger()
         self._unresolved_dependencies = {}
 
-    def load(self, path):
+    def load(self, path: str) -> List[AbstractPlugin]:
+        """
+        Loads plugins from the specified path and returns them in a list.
+        :param path: the path were plugin files (.py) are found.
+        :return: a list of plugins.
+        """
+        self._logger.debug("Loading plugins ...")
         self._plugins = {}
         sys.path.insert(0, path)
         for f in os.listdir(path):
@@ -41,6 +51,7 @@ class PluginLoader():
                             self._logger.error("{}: Unresolved dependencies {}".format(
                                 plugin.name(), ", ".join(unresolved_dependencies)))
                             continue
+                        self._logger.debug("{}".format(plugin.name()))
                         self._plugins[fname] = plugin
                     except Exception as e:
                         self._logger.error("{}: {}".format(fname, str(e)))

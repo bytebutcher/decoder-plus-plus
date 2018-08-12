@@ -15,14 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import List
+
 import qtawesome
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QTableView, QHBoxLayout, QDockWidget, QToolButton, QVBoxLayout, QFrame
+from PyQt5.QtWidgets import QTableView, QHBoxLayout, QDockWidget, QToolButton, QVBoxLayout, QFrame, QWidget
 
+from core.logging.log_entry import LogEntry
 from ui.widget.spacer import VSpacer
-
 
 class LogDock(QDockWidget):
 
@@ -49,25 +51,25 @@ class LogDock(QDockWidget):
                    self._filter("ERROR", self._filter_error, node) or \
                    self._filter("DEBUG", self._filter_debug, node)
 
-        def _filter(self, type, status, nodeName):
+        def _filter(self, type: str, status: bool, nodeName: str):
             return (nodeName is not None) and (status and type == nodeName)
 
-        def setFilterInfo(self, status):
+        def setFilterInfo(self, status: bool):
             self._filter_info = status
 
-        def setFilterError(self, status):
+        def setFilterError(self, status: bool):
             self._filter_error = status
 
-        def setFilterDebug(self, status):
+        def setFilterDebug(self, status: bool):
             self._filter_debug = status
 
     class Item(QStandardItem):
 
-        def __init__(self, text):
+        def __init__(self, text: str):
             super(LogDock.Item, self).__init__(text)
             self.setEditable(False)
 
-    def __init__(self, parent, log_entries):
+    def __init__(self, parent: QWidget, log_entries: List[LogEntry]):
         super(LogDock, self).__init__("Logs", parent)
         dock_frame = QFrame()
         dock_layout = QHBoxLayout()
@@ -107,16 +109,16 @@ class LogDock(QDockWidget):
         button_layout.addWidget(VSpacer(self))
         self._button_frame.setLayout(button_layout)
 
-    def _init_tool_button(self, icon, tool_tip, checkable, checked, callback):
+    def _init_tool_button(self, icon_name: str, tool_tip: str, checkable: bool, checked: bool, callback):
         button_filter = QToolButton()
-        button_filter.setIcon(qtawesome.icon(icon))
+        button_filter.setIcon(qtawesome.icon(icon_name))
         button_filter.setToolTip(tool_tip)
         button_filter.setCheckable(checkable)
         button_filter.setChecked(checked)
         button_filter.clicked.connect(callback)
         return button_filter
 
-    def _init_table_frame(self, log_entries):
+    def _init_table_frame(self, log_entries: List[LogEntry]):
         self._table_frame = QFrame()
         table_layout = QHBoxLayout()
         self._table = QTableView()
@@ -136,7 +138,7 @@ class LogDock(QDockWidget):
         header.setStretchLastSection(True)
         self._table.verticalHeader().hide()
 
-    def _init_model(self, log_entries):
+    def _init_model(self, log_entries: List[LogEntry]):
         self._filter_proxy_model = LogDock.ProxyModel()
         model = QStandardItemModel(len(log_entries), 3)
         model.setHorizontalHeaderLabels(["Type", "Time", "Message"])
@@ -148,11 +150,11 @@ class LogDock(QDockWidget):
         self._filter_proxy_model.setFilterKeyColumn(0)
         self._table.setModel(self._filter_proxy_model)
 
-    def addItems(self, *log_entries, **kwargs):
+    def addItems(self, *log_entries: List[LogEntry], **kwargs):
         for log_entry in log_entries:
             self.addItem(log_entry)
 
-    def addItem(self, log_entry):
+    def addItem(self, log_entry: LogEntry):
         model = self._table.model().sourceModel()
         nextIndex = model.rowCount()
         model.setItem(nextIndex, 0, LogDock.Item(log_entry.type()))
@@ -179,13 +181,13 @@ class LogDock(QDockWidget):
         self._init_model([])
         self.clearEvent.emit()
 
-    def setFilterChecked(self, filter, checked):
+    def setFilterChecked(self, filter: str, checked: bool):
         if not filter in self._button_filters:
             raise Exception("Unknown filter '{}'.".format(filter))
         if (checked != self._button_filters[filter].isChecked()):
             self._button_filters[filter].click()
 
-    def getFilters(self):
+    def getFilters(self) -> List[str]:
         return [LogDock.Filter.INFO, LogDock.Filter.ERROR, LogDock.Filter.DEBUG]
 
     def closeEvent(self, QCloseEvent):

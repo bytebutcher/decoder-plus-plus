@@ -19,6 +19,20 @@ import argparse
 
 
 class SingleArgs(argparse.Action):
+    """
+    Defines an Argparse-Action which allows specifying an argument only once.
+
+    Example:
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--test1', action=SingleArgs)
+        parser.add_argument('--test2', action=SingleArgs)
+
+        parser.parse_args(['--test2', '2', '--test1', '1', '--test2', '3'])
+        argparse.ArgumentTypeError: Argument "test2" can only be used once!
+
+    """
+
     def __call__(self, parser, args, values, option_string=None):
         if getattr(args, self.dest) is not None:
             raise argparse.ArgumentTypeError('Argument "{f}" can only be used once!'.format(f=self.dest))

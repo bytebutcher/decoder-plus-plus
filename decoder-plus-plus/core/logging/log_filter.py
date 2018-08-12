@@ -21,6 +21,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class LogFilter(logging.Filter, QObject):
+    """ Extends logging.Filter to emit signals for each logged message. """
+
     logInfoEvent = pyqtSignal('PyQt_PyObject')
     logWarnEvent = pyqtSignal('PyQt_PyObject')
     logErrorEvent = pyqtSignal('PyQt_PyObject')

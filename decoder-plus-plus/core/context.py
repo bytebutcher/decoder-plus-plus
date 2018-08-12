@@ -19,26 +19,32 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from core.command import Commands, Command
+from core.command import Command, Commands
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
 
 
 class Context(QObject):
+    """
+    The context of the application.
+    This includes often used functionality like logging, configuration and plugins.
+    Interaction with this class should be limited to minimize dependencies.
+    """
 
     shortcutUpdated = pyqtSignal('PyQt_PyObject')
 
     class Shortcut:
+        """ A set of all shortcut ids which can be used within the application. """
 
         TAB_NEW = "tab_new"
         TAB_RENAME = "tab_rename"
         TAB_NEXT = "tab_next"
         TAB_PREVIOUS = "tab_previous"
         TAB_CLOSE = "tab_close"
-        COMMAND_RUN = "command_run"
         FOCUS_ENCODER = "focus_encoder"
         FOCUS_DECODER = "focus_decoder"
         FOCUS_HASHER = "focus_hasher"
@@ -59,6 +65,7 @@ class Context(QObject):
         self._shortcuts = {}
 
     def _init_config(self):
+        """ Returns the configuration. Might return None when initialization fails. """
         try:
             from core.config import Config
             return Config(self.logger())
@@ -66,6 +73,7 @@ class Context(QObject):
             return None
 
     def _init_logger(self, log_format):
+        """ Returns the logger. """
         logger = logging.getLogger('decoder_plusplus')
         logging.root.setLevel(logging.DEBUG)
         hdlr = logging.StreamHandler(sys.stderr)
@@ -74,6 +82,7 @@ class Context(QObject):
         return logger
 
     def _init_plugins(self):
+        """ Returns standard and user plugins which could be loaded successfully. """
         plugins = self._load_default_plugins() + self._load_user_plugins()
         commands = []
         for plugin in plugins:
@@ -81,6 +90,7 @@ class Context(QObject):
         return Commands(self, commands)
 
     def _load_user_plugins(self):
+        """ Returns all user plugins located at ${HOME}/.config/dpp/plugins which could be loaded successfully. """
         try:
             user_plugin_folder = os.path.join(str(Path.home()), ".config", "dpp", "plugins")
             if not os.path.exists(user_plugin_folder):
@@ -91,6 +101,7 @@ class Context(QObject):
             return []
 
     def _load_default_plugins(self):
+        """ Returns all standard plugins located at ${APPPATH}/plugins which could be loaded successfully. """
         try:
             return list(self._plugin_loader.load(os.path.join(self.getAppPath(), "plugins")).values())
         except Exception as e:
@@ -98,13 +109,16 @@ class Context(QObject):
             return []
 
     def getAppPath(self):
+        """ Returns the path where the main application is located. """
         pathname = os.path.dirname(sys.argv[0])
         return pathname
 
     def config(self):
+        """ Returns the main configuration of the application. """
         return self._config
 
     def logger(self, log_format="%(module)s: %(lineno)d: %(msg)s", log_fields=None):
+        """ Returns the logger of the application. """
         if log_format not in self._logger:
             self._logger[log_format] = self._init_logger(log_format)
         if log_fields:
@@ -112,11 +126,20 @@ class Context(QObject):
         return self._logger[log_format]
 
     def commands(self):
+        """ Returns all plugins which could be loaded successfully. """
         if not self._commands:
             self._commands = self._init_plugins()
         return self._commands
 
-    def registerShortcut(self, the_id, the_name, the_default_shortcut_key, the_callback, the_widget):
+    def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget):
+        """
+        Registers a shortcut with the specified parameters.
+        :param the_id: the id of the shortcut.
+        :param the_name: the name of the shortcut which is displayed to the user.
+        :param the_default_shortcut_key: the default shortcut key which may be overwritten by the user.
+        :param the_callback: the callback which should be triggered when the shortcut is used.
+        :param the_widget: the widget to which the shortcut is bound to.
+        """
         the_shortcut_key = self._config.getShortcutKey(the_id)
         if not the_shortcut_key:
             the_shortcut_key = the_default_shortcut_key
@@ -126,7 +149,12 @@ class Context(QObject):
         self._config.setShortcutKey(the_id, the_shortcut_key)
         self.shortcutUpdated.emit(shortcut)
 
-    def updateShortcutKey(self, the_id, the_shortcut_key):
+    def updateShortcutKey(self, the_id: str, the_shortcut_key: str):
+        """
+        Updates the shortcut with the specified id.
+        :param the_id: the id of the shortcut.
+        :param the_shortcut_key: the shortcut key which should be used onwards.
+        """
         if the_id not in self._shortcuts:
             self.logger().error("Shortcut {} is not defined".format(the_id))
             return
@@ -137,14 +165,17 @@ class Context(QObject):
         self._config.setShortcutKey(the_id, the_shortcut_key)
         self.shortcutUpdated.emit(shortcut)
 
-    def getShortcuts(self):
+    def getShortcuts(self) -> List[Shortcut]:
+        """ Returns a list of shortcuts. """
         return self._shortcuts.values()
 
-    def getShortcutById(self, the_id):
+    def getShortcutById(self, the_id: str):
+        """ Returns the shortcut with the specified id. """
         if the_id not in self._shortcuts:
             self.logger().error("Shortcut {} is not defined".format(the_id))
             return NullShortcut()
         return self._shortcuts[the_id]
 
-    def getUnresolvedDependencies(self):
+    def getUnresolvedDependencies(self) -> List[str]:
+        """ Returns all unresolved dependencies in a list. """
         return self._plugin_loader.getUnresolvedDependencies()

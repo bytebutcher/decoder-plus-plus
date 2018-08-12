@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ui.widget.search_field import SearchField
-from ui.dialog.command_run_dialog import CommandRunDialog
 from .shortcut_table import ShortcutTable
 from ui.widget.spacer import Spacer
 from ui.widget.spacer import VSpacer

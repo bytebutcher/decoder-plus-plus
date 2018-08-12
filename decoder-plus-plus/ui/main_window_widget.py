@@ -64,11 +64,6 @@ class MainWindowWidget(QWidget):
                                        "Ctrl+W",
                                        self._tab_close,
                                        self)
-        self._context.registerShortcut(Context.Shortcut.COMMAND_RUN,
-                                       "Run Command",
-                                       "Ctrl+R",
-                                       self._show_command_run_dialog,
-                                       self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER,
                                        "Select Decoder",
                                        "Alt+D",
@@ -162,17 +157,6 @@ class MainWindowWidget(QWidget):
 
     def _toggle_search_field(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())
-
-    def _show_command_run_dialog(self):
-        def _do_command_run(command):
-            focussed_frame = self._get_focussed_frame()
-            if focussed_frame:
-                focussed_frame.selectComboBoxEntryByCommand(command)
-
-        if self._get_focussed_frame():
-            w = CommandRunDialog(self, self._commands)
-            w.commandRunEvent.connect(_do_command_run)
-            w.exec_()
 
     def _init_tabs_widget(self):
         tabs = QTabWidget()
