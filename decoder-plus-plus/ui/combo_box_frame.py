@@ -20,7 +20,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
 from core.plugin.plugin import NullPlugin
-from core.plugin.plugin import Plugin
+from core.plugin.plugin import PluginType
 from ui.widget.combo_box import ComboBox
 
 
@@ -36,15 +36,15 @@ class ComboBoxFrame(QFrame):
         self._logger = context.logger()
         self._plugin_history = {}
         layout = QVBoxLayout()
-        self._decoder_combo = self._init_combo_box("Decode as ...", Plugin.Type.DECODER)
-        self._encoder_combo = self._init_combo_box("Encode as ...", Plugin.Type.ENCODER)
-        self._hasher_combo = self._init_combo_box("Hash ...", Plugin.Type.HASHER)
-        self._script_combo = self._init_combo_box("Script ...", Plugin.Type.SCRIPT)
+        self._decoder_combo = self._init_combo_box("Decode as ...", PluginType.DECODER)
+        self._encoder_combo = self._init_combo_box("Encode as ...", PluginType.ENCODER)
+        self._hasher_combo = self._init_combo_box("Hash ...", PluginType.HASHER)
+        self._script_combo = self._init_combo_box("Script ...", PluginType.SCRIPT)
         self._combo_boxes = {
-            Plugin.Type.DECODER: self._decoder_combo,
-            Plugin.Type.ENCODER: self._encoder_combo,
-            Plugin.Type.HASHER: self._hasher_combo,
-            Plugin.Type.SCRIPT: self._script_combo
+            PluginType.DECODER: self._decoder_combo,
+            PluginType.ENCODER: self._encoder_combo,
+            PluginType.HASHER: self._hasher_combo,
+            PluginType.SCRIPT: self._script_combo
         }
         layout.addWidget(self._decoder_combo)
         layout.addWidget(self._encoder_combo)

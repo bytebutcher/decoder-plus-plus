@@ -18,6 +18,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QToolButton, QLabel
 
 from core import Context
+from core.plugin.plugin import PluginType
 from ui import *
 
 class MainWindowWidget(QWidget):
@@ -66,22 +67,22 @@ class MainWindowWidget(QWidget):
         self._context.registerShortcut(Context.Shortcut.FOCUS_DECODER,
                                        "Select Decoder",
                                        "Alt+D",
-                                       lambda: self._focus_combo_box(Plugin.Type.DECODER),
+                                       lambda: self._focus_combo_box(PluginType.DECODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_ENCODER,
                                        "Select Encoder",
                                        "Alt+E",
-                                       lambda: self._focus_combo_box(Plugin.Type.ENCODER),
+                                       lambda: self._focus_combo_box(PluginType.ENCODER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_HASHER,
                                        "Select Hasher",
                                        "Alt+H",
-                                       lambda: self._focus_combo_box(Plugin.Type.HASHER),
+                                       lambda: self._focus_combo_box(PluginType.HASHER),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_SCRIPT,
                                        "Select Script",
                                        "Alt+S",
-                                       lambda: self._focus_combo_box(Plugin.Type.SCRIPT),
+                                       lambda: self._focus_combo_box(PluginType.SCRIPT),
                                        self)
         self._context.registerShortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
                                        "Select Text Field",

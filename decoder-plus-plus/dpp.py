@@ -24,7 +24,7 @@ from core.argparse.ordered_multi_args import OrderedMultiArgs
 from core.argparse.single_args import SingleArgs
 from core.context import Context
 from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
-from core.plugin.plugin import Plugin
+from core.plugin.plugin import PluginType
 from ui import MainWindow
 
 
@@ -101,10 +101,10 @@ if __name__ == '__main__':
 
         # Builders can be used in interactive shell or within the ui's code-view.
         plugins = context.plugins()
-        init_builder(plugins, Decoder, Plugin.Type.DECODER)
-        init_builder(plugins, Encoder, Plugin.Type.ENCODER)
-        init_builder(plugins, Hasher, Plugin.Type.HASHER)
-        init_builder(plugins, Script, Plugin.Type.SCRIPT)
+        init_builder(plugins, Decoder, PluginType.DECODER)
+        init_builder(plugins, Encoder, PluginType.ENCODER)
+        init_builder(plugins, Hasher, PluginType.HASHER)
+        init_builder(plugins, Script, PluginType.SCRIPT)
 
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument('-?', '--help', action='store_true',

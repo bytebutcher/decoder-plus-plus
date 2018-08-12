@@ -20,9 +20,7 @@ import os
 from typing import List
 
 
-class Plugin(object):
-
-    class Type(object):
+class PluginType(object):
 
         DECODER = "Decoder"
         ENCODER = "Encoder"
@@ -42,7 +40,7 @@ class AbstractPlugin(object):
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         """
         assert(name is not None and len(name) > 0), "Name is required and should not be None or Empty"
-        assert(type in [Plugin.Type.DECODER, Plugin.Type.ENCODER, Plugin.Type.HASHER, Plugin.Type.SCRIPT]), \
+        assert(type in [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]), \
             "Type is required and should be either 'DECODER', 'ENCODER', 'HASHER' or 'SCRIPT'"
         assert(author is not None and len(author) > 0), "Author is required and should not be None or Empty"
         self._name = name
@@ -122,7 +120,7 @@ class DecoderPlugin(AbstractPlugin):
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         """
-        super(__class__, self).__init__(name, Plugin.Type.DECODER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.DECODER, author, dependencies)
 
     def can_be_decoded(self, input) -> bool:
         """
@@ -141,7 +139,7 @@ class EncoderPlugin(AbstractPlugin):
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         """
-        super(__class__, self).__init__(name, Plugin.Type.ENCODER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.ENCODER, author, dependencies)
 
 
 class HasherPlugin(AbstractPlugin):
@@ -153,7 +151,7 @@ class HasherPlugin(AbstractPlugin):
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         """
-        super(__class__, self).__init__(name, Plugin.Type.HASHER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.HASHER, author, dependencies)
 
 
 class ScriptPlugin(AbstractPlugin):
@@ -165,7 +163,7 @@ class ScriptPlugin(AbstractPlugin):
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         """
-        super(__class__, self).__init__(name, Plugin.Type.SCRIPT, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.SCRIPT, author, dependencies)
 
 
 class NullPlugin(AbstractPlugin):

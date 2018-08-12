@@ -18,13 +18,13 @@
 import collections
 from typing import List
 
-from core.plugin.plugin import Plugin
+from core.plugin.plugin import PluginType, AbstractPlugin
 
 
 class Plugins(object):
     """ Defines a list of plugins and additional helper methods for working with them. """
 
-    def __init__(self, context: 'core.context.Context', plugin_list: List[Plugin]):
+    def __init__(self, context: 'core.context.Context', plugin_list: List[AbstractPlugin]):
         self._context = context
         self._logger = context.logger()
         self._plugin_list = plugin_list
@@ -33,7 +33,7 @@ class Plugins(object):
     def names(self, type: str=None, author: str=None) -> List[str]:
         """
         Returns the plugin names in a list. Does match cases.
-        :param type: Filter plugin names by type (e.g. Plugin.Type.DECODER, ...)
+        :param type: Filter plugin names by type (e.g. PluginType.DECODER, ...)
         :param author: Filter plugin names by author (e.g. Thomas Engel, ...)
         """
         if type and author:
@@ -47,9 +47,9 @@ class Plugins(object):
 
     def types(self) -> List[str]:
         """ Returns all possible plugin types in a list. """
-        return [Plugin.Type.DECODER, Plugin.Type.ENCODER, Plugin.Type.HASHER, Plugin.Type.SCRIPT]
+        return [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]
 
-    def plugin(self, name: str, type: str) -> Plugin:
+    def plugin(self, name: str, type: str) -> AbstractPlugin:
         """
         Returns the plugin matching name and type. Does not match cases. There can only be one.
         :param name: The name of the plugin (e.g. SHA1/sha1).
@@ -67,7 +67,7 @@ class Plugins(object):
         authors = [plugin.author() for plugin in self._plugin_list if plugin.author()]
         return [author for author, _ in collections.Counter(authors).most_common()]
 
-    def filter(self, name: str=None, type:str =None) -> List[Plugin]:
+    def filter(self, name: str=None, type:str =None) -> List[AbstractPlugin]:
         """
         Returns the plugins matching name and/or type. Does not match cases.
         :param name: The name of the plugin (e.g. SHA1/sha1).
