@@ -125,8 +125,11 @@ class DecoderPlugin(AbstractPlugin):
     def can_decode_input(self, input) -> bool:
         """
         Returns whether it might be possible to decode the specified input with this plugin.
-        This methods needs to be implemented by a decoder-plugin to be able to be used with the "Smart decode"
-        functionality.
+
+        Override this method to implement custom "Smart decode" behaviour. See DecoderPlugin implementations for more
+        information regarding this matter.
+
+        :returns False by default.
         """
         return False
 
