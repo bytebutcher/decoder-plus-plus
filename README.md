@@ -2,8 +2,7 @@
 
 ![Decoder++ Logo](decoder-plus-plus/images/dpp.png)
 
-An extensible application for penetration testers and software developers to decode/encode data into various formats.  
-
+An extensible application for penetration testers and software developers to decode/encode data into various formats. 
 
 ## Usage
 
@@ -109,7 +108,7 @@ from core.plugin.abstract_plugin import DecoderPlugin
 class Plugin(DecoderPlugin):
     """
     Possible plugins are DecoderPlugin, EncoderPlugin, HasherPlugin or ScriptPlugin.
-    See AbstractPlugin or their implementations for more information.
+    See AbstractPlugin or it's implementations for more information.
     """ 
 
     def __init__(self, context):
@@ -130,6 +129,9 @@ class Plugin(DecoderPlugin):
 
 Feel free to issue pull-requests for new features/plugins.
 
+Thanks to 
+* Tim Menapace (RIPEMD160, KECCAK256)
+* Robin Krumnow (ROT13)
 
 ## Troubleshooting
 
@@ -150,8 +152,10 @@ When starting Decoder++ in CygWin an error occurs:
 This happens although PyQt5 is installed using pip. Currently there is no fix for that. Instead it is recommended
 to start Decoder++ using the Windows Commandline.
 
-## Powered By
+## Inspired By
+* PortSwigger's Burp Decoder
 
+## Powered By
 * PyQt5
 * QtAwesome
 * QScintilla
