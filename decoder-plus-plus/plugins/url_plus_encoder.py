@@ -8,4 +8,4 @@ class Plugin(EncoderPlugin):
 
     def run(self, text):
         import urllib.parse
-        return urllib.parse.quote_plus(text.encode('utf-8'))
+        return urllib.parse.quote_plus(text.encode('utf-8', errors='surrogateescape'))

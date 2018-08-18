@@ -10,7 +10,7 @@ class Plugin(DecoderPlugin):
 
     def run(self, text):
         import base64
-        return base64.b32decode(text.encode('utf-8')).decode('utf-8')
+        return base64.b32decode(text.encode('utf-8', errors='surrogateescape')).decode('utf-8', errors='surrogateescape')
 
     def can_decode_input(self, input):
         if len(input) % 4 == 0:

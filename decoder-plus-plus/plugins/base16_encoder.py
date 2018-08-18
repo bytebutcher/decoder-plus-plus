@@ -8,4 +8,4 @@ class Plugin(EncoderPlugin):
 
     def run(self, text):
         import base64
-        return base64.b16encode(text.encode('utf-8')).decode('utf-8')
+        return base64.b16encode(text.encode('utf-8', errors='surrogateescape')).decode('utf-8', errors='surrogateescape')

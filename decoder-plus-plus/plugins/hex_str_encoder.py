@@ -8,4 +8,4 @@ class Plugin(EncoderPlugin):
 
     def run(self, text):
         import codecs
-        return codecs.encode(text.encode('utf-8'), 'hex').decode('utf-8')
+        return codecs.encode(text.encode('utf-8', errors='surrogateescape'), 'hex').decode('utf-8')

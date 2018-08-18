@@ -8,4 +8,4 @@ class Plugin(HasherPlugin):
 
     def run(self, text):
         import hashlib
-        return hashlib.new('ripemd160',text.encode('utf-8')).hexdigest()
+        return hashlib.new('ripemd160',text.encode('utf-8', errors='surrogateescape')).hexdigest()

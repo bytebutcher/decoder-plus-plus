@@ -21,7 +21,14 @@ class Plugin(DecoderPlugin):
 
     def run(self, text):
         import base64
-        return base64.b64decode(text.encode('utf-8')).decode('utf-8')
+        text = self._add_missing_padding(text.encode('utf-8', errors="surrogateescape"))
+        return base64.b64decode(text).decode('utf-8', errors="surrogateescape")
+
+    def _add_missing_padding(self, text):
+        missing_padding = len(text) % 4
+        if missing_padding != 0:
+            text += b'=' * (4 - missing_padding)
+        return text
 
     def can_decode_input(self, input):
         if len(input) % 4 == 0:

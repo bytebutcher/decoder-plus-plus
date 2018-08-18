@@ -8,4 +8,4 @@ class Plugin(HasherPlugin):
 
     def run(self, text):
         import sha3
-        return sha3.keccak_256(text.encode('utf-8')).hexdigest()
+        return sha3.keccak_256(text.encode('utf-8', errors='surrogateescape')).hexdigest()

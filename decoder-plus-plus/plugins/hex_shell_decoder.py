@@ -29,7 +29,7 @@ class Plugin(DecoderPlugin):
             output = text
             for hex_code in set(sorted(re.findall(r'\\[Xx][0-9a-fA-F][0-9a-fA-F]', text))):
                 try:
-                    output = output.replace(hex_code, codecs.decode(hex_code[-2:], 'hex').decode('utf-8'))
+                    output = output.replace(hex_code, codecs.decode(hex_code[-2:], 'hex').decode('utf-8', errors='surrogateescape'))
                 except:
                     pass
             return output

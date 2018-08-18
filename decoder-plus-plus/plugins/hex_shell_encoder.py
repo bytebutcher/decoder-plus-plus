@@ -9,7 +9,7 @@ class Plugin(EncoderPlugin):
     def run(self, text):
         if text:
             import codecs
-            output = codecs.encode(text.encode('utf-8'), 'hex').decode('utf-8')
+            output = codecs.encode(text.encode('utf-8', errors='surrogateescape'), 'hex').decode('utf-8', errors='surrogateescape')
             return "\\x" + "\\x".join([i+j for i, j in zip(output[::2], output[1::2])])
         else:
             return ""

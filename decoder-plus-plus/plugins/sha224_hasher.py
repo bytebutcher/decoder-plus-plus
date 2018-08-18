@@ -8,4 +8,4 @@ class Plugin(HasherPlugin):
 
     def run(self, text):
         import hashlib
-        return hashlib.sha224(text.encode('utf-8')).hexdigest()
+        return hashlib.sha224(text.encode('utf-8', errors='surrogateescape')).hexdigest()
