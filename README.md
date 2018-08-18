@@ -26,7 +26,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
 
 ```bash
 python3 dpp.py -i
-Decoder++ 0.90
+Decoder++ 0.95
 >>> DecoderPlusPlus("Hello, world!").encode().base64().hash().sha1().run()
 'e52d74c6d046c390345ae4343406b99587f2af0d'
 ```
