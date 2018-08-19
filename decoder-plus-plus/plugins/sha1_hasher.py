@@ -1,6 +1,18 @@
 from core.plugin.plugin import HasherPlugin
 
 class Plugin(HasherPlugin):
+    """
+    Hashes a string using SHA1.
+
+    Example:
+
+        Input:
+            abcdefghijklmnopqrstuvwxyz
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
+            0123456789
+        Output:
+            518d5653e6c74547aa62b376c953be024ea3c1d3
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

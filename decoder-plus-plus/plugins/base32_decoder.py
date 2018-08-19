@@ -4,16 +4,19 @@ from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-     Decodes a base32 string.
+    Decodes a Base32 string.
 
-     Example:
+    Example:
 
-         Input:
-             MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43UOV3HO6DZPIFDAMJSGM2DKNRXHA4Q====
-         Output:
-             abcdefghijklmnopqrstuvwxyz
-             0123456789
-     """
+        Input:
+            MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43UOV3HO6DZPIFF5Q \\
+            VQEERMFJZEEUTC6KBJHU74FNDAHQ7HYIBMFYWTWOS7EMVS \\
+            OKT6BIYDCMRTGQ2TMNZYHE======
+        Output:
+            abcdefghijklmnopqrstuvwxyz
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
+            0123456789
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

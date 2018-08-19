@@ -9,6 +9,9 @@ from core.exception import AbortedException
 from core.plugin.plugin import ScriptPlugin
 
 class Plugin(ScriptPlugin):
+    """
+    Opens a search-and-replace dialog which supports Match-Case and Regular Expressions.
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

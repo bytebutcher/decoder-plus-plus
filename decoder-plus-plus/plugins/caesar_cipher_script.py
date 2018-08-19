@@ -1,7 +1,7 @@
 import string
 
 import qtawesome
-from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QIntValidator
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, QShortcut, \
     QSlider, QHBoxLayout
@@ -10,6 +10,9 @@ from core.exception import AbortedException
 from core.plugin.plugin import ScriptPlugin
 
 class Plugin(ScriptPlugin):
+    """
+    Opens a dialog to transform text using caesar-cipher.
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies
@@ -58,11 +61,11 @@ class CaesarCipherDialog(QDialog):
 
 
     def _setup_shortcuts(self):
-        ctrl_return_shortcut = QShortcut(QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Return), self)
+        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
         ctrl_return_shortcut.activated.connect(self._accept)
-        alt_return_shortcut = QShortcut(QKeySequence(QtCore.Qt.ALT + QtCore.Qt.Key_Return), self)
+        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
         alt_return_shortcut.activated.connect(self._accept)
-        alt_o_shortcut = QShortcut(QKeySequence(QtCore.Qt.ALT + QtCore.Qt.Key_O), self)
+        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_O), self)
         alt_o_shortcut.activated.connect(self._accept)
 
     def _init_button_box(self):
@@ -89,7 +92,7 @@ class CaesarCipherDialog(QDialog):
     def _init_slider_frame(self):
         slider_frame = QFrame()
         slider_frame_layout = QHBoxLayout()
-        self._shift_slider = QSlider(QtCore.Qt.Horizontal)
+        self._shift_slider = QSlider(Qt.Horizontal)
         self._shift_slider.setMinimum(0)
         self._shift_slider.setMaximum(26)
         self._shift_slider.setValue(0)

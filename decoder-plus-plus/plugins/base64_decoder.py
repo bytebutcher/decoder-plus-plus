@@ -4,14 +4,15 @@ from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Decodes a base64 string.
+    Decodes a Base64 string.
 
     Example:
 
         Input:
-            YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoKMDEyMzQ1Njc4OQ===
+            YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoKXsKwISLCpyQlJi8oKT0/wrRgPD58ICwuLTs6XyMrJyp+CjAxMjM0NTY3ODk=
         Output:
             abcdefghijklmnopqrstuvwxyz
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
     """
 

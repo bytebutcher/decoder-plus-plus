@@ -2,17 +2,17 @@ from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Decodes a html string.
+    Decodes a HTML string.
 
     Example:
 
         Input:
             abcdefghijklmnopqrstuvwxyz
-            !&quot;§$%&amp;/()=?´`
+            ^°!&quot;§$%&amp;/()=?´`&lt;&gt;| ,.-;:_#+&#x27;*~
             0123456789
         Output:
             abcdefghijklmnopqrstuvwxyz
-            !"§$%&/()=?´`
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
     """
 

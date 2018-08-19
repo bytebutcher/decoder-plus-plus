@@ -2,15 +2,17 @@ from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Decodes a URL.
+    Decodes an URL.
 
     Example:
 
         Input:
-            abcdefghijklmnopqrstuvwxyz%0A%21%22%C2%A7%24%25%26/%28%29%3D%3F%C2%B4%60%0A0123456789%0A
+            abcdefghijklmnopqrstuvwxyz \\
+            %0A%5E%C2%B0%21%22%C2%A7%24%25%26/%28%29%3D%3F%C2%B4%60%3C%3E%7C%20%2C.-%3B%3A_%23%2B%27%2A%7E%0A \\
+            0123456789
         Output:
             abcdefghijklmnopqrstuvwxyz
-            !"§$%&/()=?´`
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
     """
 

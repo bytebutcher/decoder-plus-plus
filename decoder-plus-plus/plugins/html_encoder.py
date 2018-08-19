@@ -2,17 +2,17 @@ from core.plugin.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
     """
-    Encodes a string to it's html representation.
+    Encodes a string to HTML.
 
     Example:
 
         Input:
             abcdefghijklmnopqrstuvwxyz
-            !"§$%&/()=?´`
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
         Output:
             abcdefghijklmnopqrstuvwxyz
-            !&quot;§$%&amp;/()=?´`
+            ^°!&quot;§$%&amp;/()=?´`&lt;&gt;| ,.-;:_#+&#x27;*~
             0123456789
     """
 

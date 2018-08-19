@@ -15,6 +15,9 @@ from core.decoder_plus_plus import DecoderPlusPlus
 
 
 class Plugin(ScriptPlugin):
+    """
+    Shows a code-dialog where interactive python scripts can be created.
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

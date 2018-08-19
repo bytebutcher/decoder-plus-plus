@@ -1,4 +1,4 @@
 PyQt5
 QtAwesome
 QScintilla
-sha3
+pysha3

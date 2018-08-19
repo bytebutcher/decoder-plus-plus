@@ -9,9 +9,12 @@ class Plugin(DecoderPlugin):
     Example:
 
         Input:
-            6162636465666768696a6b6c6d6e6f707172737475767778797a0a30313233343536373839
+            6162636465666768696a6b6c6d6e6f70717273747576777 \\
+            8797a0a5ec2b02122c2a72425262f28293d3fc2b4603c3e \\
+            7c202c2e2d3b3a5f232b272a7e0a30313233343536373839
         Output:
             abcdefghijklmnopqrstuvwxyz
+            ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
     """
 
