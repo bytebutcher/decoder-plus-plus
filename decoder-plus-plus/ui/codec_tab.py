@@ -26,11 +26,6 @@ from ui.widget.status_widget import StatusWidget
 
 class CodecTab(QScrollArea):
 
-    # BUG: codec_frame should have height 210 but has 480.
-    # WORKAROUND: manually set height to 210 height.
-    # SEE: https://forum.qt.io/topic/42055/qwidget-height-returns-incorrect-value-in-5-3/7
-    FRAME_HEIGHT = 210
-
     def __init__(self, parent, context: Context, plugins: Plugins):
         super(QWidget, self).__init__(parent)
         self._context = context
@@ -93,7 +88,7 @@ class CodecTab(QScrollArea):
                     # BUG: QSplitter does not allow frames to be wider than the surrounding area (here: QScrollArea).
                     # WORKAROUND: Set a fixed size for codec frames and disable handles which prevents users from
                     #             trying to resize the codec frames.
-                    new_frame.setFixedHeight(self.FRAME_HEIGHT)
+                    new_frame.setFixedHeight(new_frame.height())
                     self._frames.handle(self._frames.count() - 1).setEnabled(False)
 
                     if previous_frame:

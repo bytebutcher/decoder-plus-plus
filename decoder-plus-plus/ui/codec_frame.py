@@ -60,11 +60,10 @@ class CodecFrame(QFrame):
         _, top, _, bottom = self._layout.getContentsMargins()
         self._layout.addWidget(self._group_box)
         self.setLayout(self._layout)
+        self.show()
 
-    """
-    Initializes the logger. Encapsulates logger-instance to enhance standard-logging with frame-id.
-    """
     def _init_logger(self, context, frame_id):
+        """ Initializes the logger. Encapsulates logger-instance to enhance standard-logging with frame-id. """
         self._logger = context.logger()
         # BUG: Using logging with custom field frame_id does not work correctly.
         # WORKAROUND: ???
