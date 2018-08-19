@@ -25,6 +25,9 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('HEX (shell)', "Thomas Engel", ["codecs"])
 
+    def safe_name(self):
+        return "hex_shell"
+
     def run(self, text):
         if text:
             import codecs

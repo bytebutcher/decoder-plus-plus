@@ -22,7 +22,7 @@ class Plugin(DecoderPlugin):
         super().__init__('URL+', "Thomas Engel", ["urllib"])
 
     def safe_name(self):
-        return "urlplus"
+        return "url_plus"
 
     def run(self, text):
         import urllib.parse

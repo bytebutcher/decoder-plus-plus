@@ -61,7 +61,7 @@ class AbstractPlugin(object):
         """
         safe_name = ""
         for char in self._name.lower():
-            if char.isalpha():
+            if char.isalnum():
                 safe_name += char
             else:
                 safe_name += "_"
