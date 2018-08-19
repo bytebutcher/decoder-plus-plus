@@ -57,7 +57,7 @@ class AbstractPlugin(object):
         Returns the safe name of the plugin (e.g. "URL+" -> "url_").
         * Name is transformed to lower-case,
         * None-alphanumeric characters are transformed to underscore.
-        However, for better control it is recommended to overridde this method when an unsafe name is used.
+        However, for better control it is recommended to override this method when an unsafe name is used.
         """
         safe_name = ""
         for char in self._name.lower():
