@@ -89,13 +89,17 @@ optional arguments:
 ### Interactive Python Console
 
 ```python
-# Encode / Decode Base64
-encoded = DecoderPlusPlus("Hello, world!").encode().base64().run()
-decoded = DecoderPlusPlus(encoded).decode().base64().run()
-DecoderPlusPlus("Hello, world!").encode().base64().decode().base64().run() == "Hello, world!"
+>>> # List available decoders
+>>> DecoderPlusPlus("Hello, world!").decode().list()
+['base16', 'base32', 'base64', 'gzip', 'hex_int', 'hex_shell', 'hex_str', 'html', 'rot13', 'url', 'urlplus']
 
-# Hashing
-DecoderPlusPlus("Hello, world!").hash().sha1().run()
+>>> # Decode gzipped base64 string 
+>>> DecoderPlusPlus("H4sIAAXmeVsC//NIzcnJ11Eozy/KSVEEAObG5usNAAAA").decode().base64().gzip().run()
+'Hello, world!'
+>>> # Hashing
+>>> DecoderPlusPlus("Hello, world!").hash().sha1().run()
+'943a702d06f34599aee1f8da8ef9f7296031d699'
+
 ```
 
 ### Plugin Development

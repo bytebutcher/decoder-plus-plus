@@ -17,6 +17,7 @@
 
 import sys
 import argparse
+from typing import List
 
 from PyQt5.QtWidgets import QApplication
 
@@ -36,6 +37,15 @@ def get_safe_name(name):
 
 
 def init_builder(plugins, clazz, type):
+
+    def list(self) -> List[str]:
+        return [method for method in dir(self) if not method.startswith("_") and
+                method not in ["list", "decode", "encode", "hash", "script", "run"]]
+
+    # Add list method to clazz.
+    setattr(clazz, "list", lambda this: list(this))
+
+    # Add plugins to clazz.
     for plugin in plugins.filter(type=type):
         if not plugin.name():
             continue
