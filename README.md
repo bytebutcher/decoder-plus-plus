@@ -25,7 +25,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
 
 ```bash
 python3 dpp.py -i
-Decoder++ 0.95
+Decoder++ 0.96
 >>> DecoderPlusPlus("Hello, world!").encode().base64().hash().sha1().run()
 'e52d74c6d046c390345ae4343406b99587f2af0d'
 ```
@@ -33,7 +33,7 @@ Decoder++ 0.95
 ## Features
 
 * Preinstalled Scripts and Codecs:
-    * **Encode/Decode:** Base16, Base32, Base64, Hex, Html, Url, Url+
+    * **Encode/Decode:** Base16, Base32, Base64, Gzip, Hex, Html, Url, Url+
     * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
     * **Scripts:** Caesar, Search and Replace
 * Plugin System
