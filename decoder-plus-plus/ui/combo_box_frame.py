@@ -60,9 +60,11 @@ class ComboBoxFrame(QFrame):
         model = QStandardItemModel()
 
         model.setItem(0, 0, QStandardItem(title))
-        item_list = self._plugins.names(type)
-        for index, name in enumerate(item_list):
-            model.setItem(index + 1, 0, QStandardItem(name))
+        plugin_list = self._plugins.filter(type=type)
+        for index, plugin in enumerate(plugin_list):
+            item = QStandardItem(plugin.name())
+            item.setToolTip(plugin.__doc__)
+            model.setItem(index + 1, 0, item)
         combo_box.lineEdit().returnPressed.connect(lambda: self._combo_box_enter_pressed_event(type))
         # BUG: combo_box.lineEdit().selectAll when focussing lineEdit will be deselected again by general focus-event.
         # WORKAROUND: Delay select-all for a few milliseconds.

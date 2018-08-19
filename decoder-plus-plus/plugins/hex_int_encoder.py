@@ -1,6 +1,16 @@
 from core.plugin.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
+    """
+    Encodes an integer to a hex string.
+
+    Example:
+
+        Input:
+            123456789
+        Output:
+            0x75bcd15
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

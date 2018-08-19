@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QSortFilterProxyModel
+from PyQt5.QtCore import QSortFilterProxyModel, Qt
 from PyQt5.QtWidgets import QCompleter, QComboBox
 
 
@@ -24,14 +23,14 @@ class ComboBox(QComboBox):
     def __init__(self,  parent = None):
         super(ComboBox, self).__init__(parent)
 
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(Qt.StrongFocus)
         self.setEditable(True)
         self.completer = QCompleter(self)
 
         # always show all completions
         self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.pFilterModel = QSortFilterProxyModel(self)
-        self.pFilterModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setPopup(self.view())
         self.setCompleter(self.completer)
         self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)

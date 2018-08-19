@@ -4,7 +4,7 @@ from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Decodes an hex string to an integer.
+    Decodes a hex string to an integer.
 
     Example:
 
