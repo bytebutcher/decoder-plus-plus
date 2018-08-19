@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QAction
 
 from core.plugin.plugins import Plugins
 from core.plugin.plugin_loader import PluginLoader
@@ -127,7 +128,7 @@ class Context(QObject):
             self._plugins = self._init_plugins()
         return self._plugins
 
-    def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget):
+    def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget) -> QAction:
         """
         Registers a shortcut with the specified parameters.
         :param the_id: the id of the shortcut.
@@ -144,6 +145,7 @@ class Context(QObject):
         self._shortcuts[the_id] = shortcut
         self._config.setShortcutKey(the_id, the_shortcut_key)
         self.shortcutUpdated.emit(shortcut)
+        return shortcut
 
     def updateShortcutKey(self, the_id: str, the_shortcut_key: str):
         """

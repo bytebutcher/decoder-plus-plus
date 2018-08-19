@@ -19,11 +19,9 @@ import datetime
 import os
 from typing import List
 
-import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import QTimer, Qt, QRect, QEvent
+from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QMainWindow
+from PyQt5.QtWidgets import QMainWindow
 
 from core.logging.log_entry import LogEntry
 from core.logging.log_filter import LogFilter
@@ -49,7 +47,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addPermanentWidget(self._init_hidden_dialog())
         self._log_plugins_unresolved_dependencies(context)
         self._init_window_size()
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._log_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
         self._main_window_widget = MainWindowWidget(self, self._context)

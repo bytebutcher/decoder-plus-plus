@@ -27,16 +27,33 @@ from ui import IconLabel, ShortcutTable, SearchField
 
 class HiddenDialog(QDialog):
 
-    def __init__(self, parent, context):
+    TAB_ABOUT = "About"
+    TAB_KEYBOARD_SHORTCUTS = "Keyboard Shortcuts"
+
+    def __init__(self, parent, context, select_tab_name: str=None):
+        """
+        Initializes the hidden dialog.
+        :param parent: the widget which is calling the dialog.
+        :param context: the context of the application.
+        :param select_tab_name: the tab name which should be selcted.
+        """
         super().__init__(parent)
         self._context = context
         layout = QHBoxLayout()
         tabs = QTabWidget()
-        tabs.insertTab(0, self._init_about_tab(), "About")
-        tabs.insertTab(1, self._init_keyboard_shortcuts_tab(), "Keyboard Shortcuts")
+        tabs.insertTab(0, self._init_about_tab(), HiddenDialog.TAB_ABOUT)
+        tabs.insertTab(1, self._init_keyboard_shortcuts_tab(), HiddenDialog.TAB_KEYBOARD_SHORTCUTS)
+        self._init_tab_selection(tabs, select_tab_name)
         layout.addWidget(tabs)
         self.setLayout(layout)
         self.setWindowTitle(" ")
+
+    def _init_tab_selection(self, tabs: QTabWidget, tab_name: str):
+        """ Selects the tab with the specified name. """
+        for tab_index in range(len(tabs)):
+            text = tabs.tabText(tab_index)
+            if text == tab_name:
+                tabs.setCurrentIndex(tab_index)
 
     def _init_about_tab(self):
         tab = QWidget(self)

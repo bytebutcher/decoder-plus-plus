@@ -14,9 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from PyQt5 import QtCore
-from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
+#
+from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTableView
 from qtpy import QtWidgets
@@ -59,7 +58,7 @@ class ShortcutTable(QTableView):
         model.setHorizontalHeaderLabels(["Id", "Name", "Shortcut"])
         for index, shortcut in enumerate(shortcuts):
             name_item = QStandardItem(shortcut.name())
-            name_item.setFlags(name_item.flags() ^ QtCore.Qt.ItemIsEditable)
+            name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
             model.setItem(index, 0, QStandardItem(shortcut.id()))
             model.setItem(index, 1, name_item)
             model.setItem(index, 2, QStandardItem(shortcut.key()))
@@ -71,7 +70,7 @@ class ShortcutTable(QTableView):
         filter_proxy_model = QSortFilterProxyModel()
         filter_proxy_model.setSourceModel(self.model())
         filter_proxy_model.setFilterKeyColumn(1)
-        filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        filter_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(filter_proxy_model)
 
     def _shortcut_changed_event(self, item):
@@ -95,7 +94,7 @@ class ShortcutTable(QTableView):
         # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
         # WORKAROUND: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
         #             variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
-        if event.key() == QtCore.Qt.Key_Return:
+        if event.key() == Qt.Key_Return:
             self.edit(self.selectionModel().currentIndex())
             self.setEditingStarted()
             return
