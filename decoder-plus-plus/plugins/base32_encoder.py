@@ -1,6 +1,17 @@
 from core.plugin.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
+    """
+     Encodes a string to base32.
+
+     Example:
+
+         Input:
+             abcdefghijklmnopqrstuvwxyz
+             0123456789
+         Output:
+             MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43UOV3HO6DZPIFDAMJSGM2DKNRXHA4Q====
+     """
 
     def __init__(self, context):
         # Name, Author, Dependencies

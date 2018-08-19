@@ -3,6 +3,17 @@ import re
 from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
+    """
+     Decodes a base32 string.
+
+     Example:
+
+         Input:
+             MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43UOV3HO6DZPIFDAMJSGM2DKNRXHA4Q====
+         Output:
+             abcdefghijklmnopqrstuvwxyz
+             0123456789
+     """
 
     def __init__(self, context):
         # Name, Author, Dependencies

@@ -1,6 +1,17 @@
 from core.plugin.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
+    """
+    Encodes a string to base64.
+
+    Example:
+
+        Input:
+            abcdefghijklmnopqrstuvwxyz
+            0123456789
+        Output:
+            YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoKMDEyMzQ1Njc4OQ===
+    """
 
     def __init__(self, context):
         # Name, Author, Dependencies

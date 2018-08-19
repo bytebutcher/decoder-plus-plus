@@ -1,6 +1,17 @@
 from core.plugin.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
+    """
+     Decodes a base16 string.
+
+     Example:
+
+         Input:
+             6162636465666768696A6B6C6D6E6F707172737475767778797A0A30313233343536373839
+         Output:
+             abcdefghijklmnopqrstuvwxyz
+             0123456789
+     """
 
     def __init__(self, context):
         # Name, Author, Dependencies
