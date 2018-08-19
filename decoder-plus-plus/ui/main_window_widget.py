@@ -60,7 +60,7 @@ class MainWindowWidget(QWidget):
         help_menu.addAction(about_action)
 
     def _init_edit_menu(self, main_menu):
-        edit_menu = main_menu.addMenu('&Edit')
+        edit_menu = main_menu.addMenu('Edi&t')
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                 "Toggle Search Field",
                                 "Ctrl+F",
