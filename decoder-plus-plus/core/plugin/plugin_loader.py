@@ -36,7 +36,6 @@ class PluginLoader():
         :param path: the path were plugin files (.py) are found.
         :return: a list of plugins.
         """
-        self._logger.debug("Loading plugins ...")
         self._plugins = {}
         sys.path.insert(0, path)
         for f in os.listdir(path):
@@ -51,7 +50,6 @@ class PluginLoader():
                             self._logger.error("{}: Unresolved dependencies {}".format(
                                 plugin.name(), ", ".join(unresolved_dependencies)))
                             continue
-                        self._logger.debug("{}".format(plugin.name()))
                         self._plugins[fname] = plugin
                     except Exception as e:
                         self._logger.error("{}: {}".format(fname, str(e)))

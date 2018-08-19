@@ -86,23 +86,25 @@ class Context(QObject):
         """ Returns standard and user plugins which could be loaded successfully. """
         return Plugins(self, self._load_default_plugins() + self._load_user_plugins())
 
+    def _load_default_plugins(self):
+        """ Returns all standard plugins located at ${APPPATH}/plugins which could be loaded successfully. """
+        try:
+            self.logger().info("Loading default plugins ...")
+            return list(self._plugin_loader.load(os.path.join(self.getAppPath(), "plugins")).values())
+        except Exception as e:
+            self.logger().error("Error loading default plugins: {}".format(str(e)))
+            return []
+
     def _load_user_plugins(self):
         """ Returns all user plugins located at ${HOME}/.config/dpp/plugins which could be loaded successfully. """
         try:
             user_plugin_folder = os.path.join(str(Path.home()), ".config", "dpp", "plugins")
             if not os.path.exists(user_plugin_folder):
                 os.makedirs(user_plugin_folder)
+            self.logger().info("Loading user plugins ...")
             return list(self._plugin_loader.load(user_plugin_folder).values())
         except Exception as e:
             self.logger().error("Error loading user defined plugins: {}".format(str(e)))
-            return []
-
-    def _load_default_plugins(self):
-        """ Returns all standard plugins located at ${APPPATH}/plugins which could be loaded successfully. """
-        try:
-            return list(self._plugin_loader.load(os.path.join(self.getAppPath(), "plugins")).values())
-        except Exception as e:
-            self.logger().error("Error loading default plugins: {}".format(str(e)))
             return []
 
     def getAppPath(self):

@@ -96,6 +96,7 @@ optional arguments:
 >>> # Decode gzipped base64 string 
 >>> DecoderPlusPlus("H4sIAAXmeVsC//NIzcnJ11Eozy/KSVEEAObG5usNAAAA").decode().base64().gzip().run()
 'Hello, world!'
+
 >>> # Hashing
 >>> DecoderPlusPlus("Hello, world!").hash().sha1().run()
 '943a702d06f34599aee1f8da8ef9f7296031d699'

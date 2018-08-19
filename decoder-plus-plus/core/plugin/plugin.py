@@ -49,8 +49,23 @@ class AbstractPlugin(object):
         self._dependencies = dependencies
 
     def name(self) -> str:
-        """ Returns the name of the plugin. """
+        """ Returns the name of the plugin (e.g. "URL+"). """
         return self._name
+
+    def safe_name(self) -> str:
+        """
+        Returns the safe name of the plugin (e.g. "URL+" -> "url_").
+        * Name is transformed to lower-case,
+        * None-alphanumeric characters are transformed to underscore.
+        However, for better control it is recommended to overridde this method when an unsafe name is used.
+        """
+        safe_name = ""
+        for char in self._name.lower():
+            if char.isalpha():
+                safe_name += char
+            else:
+                safe_name += "_"
+        return safe_name
 
     def type(self) -> str:
         """ Returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """

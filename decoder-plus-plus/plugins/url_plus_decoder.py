@@ -21,6 +21,9 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('URL+', "Thomas Engel", ["urllib"])
 
+    def safe_name(self):
+        return "urlplus"
+
     def run(self, text):
         import urllib.parse
         return urllib.parse.unquote_plus(text)

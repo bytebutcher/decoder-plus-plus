@@ -29,13 +29,6 @@ from core.plugin.plugin import PluginType
 from ui import MainWindow
 
 
-def get_safe_name(name):
-    keepcharacters = ('_')
-    name = name.lower().replace(" ", "_").replace("+", "plus").replace("-", "_")
-    name = "".join(c for c in name if c.isalnum() or c in keepcharacters).rstrip()
-    return name
-
-
 def init_builder(plugins, clazz, type):
 
     def list(self) -> List[str]:
@@ -54,7 +47,7 @@ def init_builder(plugins, clazz, type):
                 self._input = plugin.run(self._input)
                 return self
             return _runner
-        setattr(clazz, get_safe_name(plugin.name()), runner(plugin))
+        setattr(clazz, plugin.safe_name(), runner(plugin))
 
 
 def setup_syntax_completion():
