@@ -52,7 +52,6 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
         self._main_window_widget = MainWindowWidget(self, self._context)
         self.setCentralWidget(self._main_window_widget)
-        self._logger.info("Ready")
         self.show()
 
     def _log_plugins_unresolved_dependencies(self, context: 'core.context.Context'):

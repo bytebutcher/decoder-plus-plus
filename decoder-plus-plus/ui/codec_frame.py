@@ -144,35 +144,17 @@ class CodecFrame(QFrame):
 
     def _smart_decode_button_click_event(self):
         input = self._plain_view_widget.toPlainText()
-        possible_decoders = self._smart_decode_button.smart_decode(input)
-        if not possible_decoders:
-            self._logger.info("No matching decoders detected.")
-            return
+        decoders = self._smart_decode_button.get_possible_decoders(input)
+        if not decoders:
+            self._logger.error("No matching decoders detected.")
+            return None
 
-        if len(possible_decoders) > 1:
-            decoder_titles = [decoder.title() for decoder in possible_decoders]
-            self._logger.info("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
-            decoders_without_error = []
-            self._logger.info("Trying to match decoders based on errors...")
-            for decoder in possible_decoders:
-                try:
-                    decoder.select(input)
-                    decoders_without_error.append(decoder)
-                except:
-                    pass
+        if len(decoders) > 1:
+            decoder_titles = [decoder.title() for decoder in decoders]
+            self._logger.error("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
+            return None
 
-            if not decoders_without_error:
-                self._logger.info("No matching decoders without errors detected.")
-                return
-
-            if len(decoders_without_error) > 1:
-                decoder_titles = [decoder.title() for decoder in decoders_without_error]
-                self._logger.info("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
-                return
-
-            possible_decoders = decoders_without_error
-
-        decoder = possible_decoders[0]
+        decoder = decoders[0]
         self._logger.info("Possible match: {}".format(decoder.title()))
         self.selectComboBoxEntryByPlugin(decoder)
 

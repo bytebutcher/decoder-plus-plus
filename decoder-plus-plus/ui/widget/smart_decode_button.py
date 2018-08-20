@@ -45,10 +45,21 @@ class SmartDecodeButton(QFrame):
         """ Forwards the "Smart decode" button click event. """
         self.clicked.emit()
 
-    def smart_decode(self, input) -> List[DecoderPlugin]:
+    def _test_decoders(self, input, possible_decoders) -> List[DecoderPlugin]:
+        """ Returns a list of decoders which did not threw an error when executing them with the specified input. """
+        decoders_without_error = []
+        for decoder in possible_decoders:
+            try:
+                decoder.select(input)
+                decoders_without_error.append(decoder)
+            except:
+                pass
+        return decoders_without_error
+
+    def get_possible_decoders(self, input) -> List[DecoderPlugin]:
         """ Returns a list of possible decoders for the specified input. """
         possible_decoders = []
         for plugin in self._plugins:
             if plugin.can_decode_input(input):
                 possible_decoders.append(plugin)
-        return possible_decoders
+        return self._test_decoders(input, possible_decoders)
