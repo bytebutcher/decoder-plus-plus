@@ -30,6 +30,9 @@ class MessageWidget(QFrame):
     infoClicked = pyqtSignal()
     errorClicked = pyqtSignal()
 
+    ICON_READY = "ICON_READY"
+    ICON_INFO = "ICON_INFO"
+    ICON_ERROR = "ICON_ERROR"
 
     class CountWidget(QFrame):
         """ A widget with an icon and a counter. """
@@ -68,6 +71,12 @@ class MessageWidget(QFrame):
     def __init__(self, parent=None):
         super(__class__, self).__init__(parent)
         layout = QHBoxLayout()
+
+        self._icons = dict()
+        self._icons[self.ICON_READY] = qtawesome.icon("fa.check")
+        self._icons[self.ICON_INFO] = qtawesome.icon("fa.info")
+        self._icons[self.ICON_ERROR] = qtawesome.icon("fa.exclamation")
+
         self._log_info_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.info-circle"), 0, self)
         self._log_info_count_widget.mouseDoubleClickEvent = lambda e: self.infoClicked.emit()
         self._log_error_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.exclamation-triangle"), 0, self)
@@ -82,7 +91,7 @@ class MessageWidget(QFrame):
         line.setFrameShadow(QFrame.Sunken)
         layout.addWidget(line, 0, Qt.AlignLeft)
 
-        self._log_message_icon_label = IconLabel(self, qtawesome.icon("fa.check"))
+        self._log_message_icon_label = IconLabel(self, self._get_icon(self.ICON_READY))
         self._log_message_icon_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
         self._log_message_text_label = QLabel("Ready.")
         self._log_message_text_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
@@ -90,6 +99,13 @@ class MessageWidget(QFrame):
         layout.addWidget(self._log_message_text_label)
 
         self.setLayout(layout)
+
+    def _get_icon(self, type: str):
+        """
+        Returns an icon of the specified type.
+        :param type: the type of the icon (e.g. READY, INFO, ERROR).
+        """
+        return self._icons[type]
 
     def _log_message(self, type: str, message: str):
         """
@@ -109,24 +125,30 @@ class MessageWidget(QFrame):
         self._log_message("INFO", message)
         self._log_info_count_widget.incrementCount()
         if not log_only:
-            self.showMessage(message)
+            self.showMessage(message, self.ICON_INFO)
 
     def showError(self, message: str, log_only: bool=False):
         """ Shows error message in the statusbar. Adds error message to the log. Increments error count. """
         self._log_message("ERROR", message)
         self._log_error_count_widget.incrementCount()
         if not log_only:
-            self.showMessage(message)
+            self.showMessage(message, self.ICON_ERROR)
 
-    def showMessage(self, message: str):
+    def showMessage(self, message: str, icon_type: str):
         """
         Displays a message (shortened to 100 characters) for 5 seconds in the statusbar.
         :param message: the message to display.
+        :param icon_type: the type of the icon (e.g. INFO, ERROR).
         """
         if message:
+            def _show_ready():
+                self._log_message_icon_label.setIcon(self._get_icon(self.ICON_READY))
+                self._log_message_text_label.setText("Ready.")
+
             message = self._shorten_message(message, 100)
+            self._log_message_icon_label.setIcon(self._get_icon(icon_type))
             self._log_message_text_label.setText(message)
-            QTimer.singleShot(5000, lambda: self._log_message_text_label.setText("Ready."))
+            QTimer.singleShot(5000, _show_ready)
 
     def _shorten_message(self, message: str, max_length: int):
         """
