@@ -27,3 +27,15 @@ class Plugin(DecoderPlugin):
     def run(self, text):
         import urllib.parse
         return urllib.parse.unquote_plus(text)
+
+    def can_decode_input(self, input):
+        """
+        Check whether input can be decoded and output does not match input.
+        If input contains no plus sign it is rather just URL encoded so we return False here.
+        """
+        if input and "+" in input:
+            try:
+                return self.run(input) != input
+            except:
+                return False
+        return False
