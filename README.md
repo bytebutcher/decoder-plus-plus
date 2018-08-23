@@ -36,6 +36,7 @@ Decoder++ 0.96
     * **Encode/Decode:** Base16, Base32, Base64, Binary, Gzip, Hex, Html, Url, Url+
     * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
     * **Scripts:** Caesar, Search and Replace
+* Smart-Decode
 * Plugin System
 * Platforms:
     * Windows

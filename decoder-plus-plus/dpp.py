@@ -158,7 +158,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         if args.file and args.input:
-            context.logger().error("Argument --file and input can not be used in together.")
+            context.logger().error("Argument --file and input can not be used together.")
             sys.exit(1)
 
         input = get_input(context, args)
