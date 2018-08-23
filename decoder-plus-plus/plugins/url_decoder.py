@@ -26,8 +26,9 @@ class Plugin(DecoderPlugin):
 
     def can_decode_input(self, input):
         """
-        Check whether input can be decoded and output does not match input.
-        If input contains a plus sign it is rather URL+ encoded so we return False here.
+        Checks whether input can be decoded. When the input contains a plus sign we return False since it is more likely
+        that our input is URL+ encoded instead.  When decoded input does not match the initial input some decoding must
+        have happened so we return True.
         """
         if input and "+" not in input:
             try:

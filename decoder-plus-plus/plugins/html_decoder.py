@@ -23,3 +23,15 @@ class Plugin(DecoderPlugin):
     def run(self, text):
         import html
         return html.unescape(text)
+
+    def can_decode_input(self, input):
+        """
+        Checks whether input can be decoded. When decoded input does not match the initial input some decoding must
+        have happened so we return True.
+        """
+        if input:
+            try:
+                return self.run(input) != input
+            except:
+                return False
+        return False
