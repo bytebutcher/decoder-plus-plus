@@ -117,14 +117,14 @@ class CaesarCipherOffsetCalculator:
         :return: the most likely offset
         """
         entropy_values = {}
-        for i in range(25):
+        for i in range(26):
             offset = i * -1
             test_cipher = self._cipher(input, offset)
             entropy_values[i] = self._calculate_entropy(test_cipher)
 
         sorted_by_entropy = sorted(entropy_values, key=entropy_values.get)
         offset = sorted_by_entropy[0] * -1
-        return abs(offset)
+        return 26 + offset
 
 
 class CaesarCipherDialog(QDialog):
