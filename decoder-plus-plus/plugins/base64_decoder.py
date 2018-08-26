@@ -33,6 +33,9 @@ class Plugin(DecoderPlugin):
 
     def can_decode_input(self, input):
         if len(input) % 4 == 0:
+            if input.startswith("0o") and input[2:].isdigit():
+                # This looks more like an octal encoding.
+                return False
             if re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$', input):
                 return True
         return False
