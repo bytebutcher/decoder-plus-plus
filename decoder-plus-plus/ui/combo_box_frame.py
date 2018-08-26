@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import copy
 
 from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
@@ -87,10 +88,6 @@ class ComboBoxFrame(QFrame):
             return
 
         plugin = self.getPluginByTypeAndIndex(type, index)
-        if plugin in self._plugin_history:
-            plugin = self._plugin_history[plugin]
-        else:
-            self._plugin_history[plugin] = plugin
         self.pluginSelected.emit(plugin)
 
         # BUG: Item gets deselected when running dialogs.
@@ -107,7 +104,11 @@ class ComboBoxFrame(QFrame):
         try:
             combo_box = self._combo_boxes[type]
             name = combo_box.itemText(index)
-            plugin = self._plugins.plugin(name, type)
+            plugin = copy.deepcopy(self._plugins.plugin(name, type))
+            if plugin in self._plugin_history:
+                plugin = self._plugin_history[plugin]
+            else:
+                self._plugin_history[plugin] = plugin
             return plugin
         except Exception as e:
             self._logger.error("Unexpected error. {}".format(e))
@@ -131,40 +132,34 @@ class ComboBoxFrame(QFrame):
                 combo_box.blockSignals(False)
                 break
 
-    def focusType(self, type):
+    def focusType(self, type: str):
+        """ Focues the combo-box associated with the specified type (e.g. PluginType.DECODER, ...). """
         self._combo_boxes[type].setFocus()
 
-    def reset(self, *combo_boxes, **kwargs):
+    def _reset(self, *combo_boxes, **kwargs):
+        """ Resets a list of combo-boxes. """
         for combo_box in combo_boxes:
             combo_box.blockSignals(True)
             combo_box.setCurrentIndex(0)
             combo_box.blockSignals(False)
 
-    def resetExceptType(self, type):
+    def resetExceptType(self, type: str):
+        """ Resets all combo-boxes except the specified type (e.g. PluginType.DECODER, ...). """
         for plugin_type in self._combo_boxes.keys():
             if plugin_type is not type:
-                self.reset(self._combo_boxes[plugin_type])
+                self._reset(self._combo_boxes[plugin_type])
 
     def resetAll(self):
-        self.reset(self._decoder_combo, self._encoder_combo, self._hasher_combo, self._script_combo)
+        """ Resets all combo-boxes to show the first element. """
+        self._reset(self._decoder_combo, self._encoder_combo, self._hasher_combo, self._script_combo)
 
-    def setToolTipByPluginType(self, plugin_type, tooltip):
-        # BUG: Tooltip is not setup as expected.
-        # WORKAROUND: Use the decoder/encoder/hasher/script method.
-        # TODO: Workaround breaks design. Combo-boxes should not leave this object.
+    def setToolTipByPluginType(self, plugin_type: str, tooltip: str):
+        """
+        Setup's the tooltip of the combo-box associated with the specified plugin-type.
+        :param plugin_type: the plugin-type which is associated with the combo-box (e.g. PluginType.DECODER, ...).
+        :param tooltip: the tooltip to show.
+        """
         if not plugin_type in self._combo_boxes.keys():
             self._logger.error("Unknown plugin type '{}'. Can not set tooltip to {}.".format(plugin_type, tooltip))
             return
         self._combo_boxes[plugin_type].setToolTip(tooltip)
-
-    def decoder(self):
-        return self._decoder_combo
-
-    def encoder(self):
-        return self._encoder_combo
-
-    def hasher(self):
-        return self._hasher_combo
-
-    def script(self):
-        return self._script_combo

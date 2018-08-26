@@ -115,14 +115,14 @@ class CodecFrame(QFrame):
     def _shortcut_updated_event(self, shortcut):
         id = shortcut.id()
         tooltip = self._get_tooltip_by_shortcut(shortcut)
-        if id == Context.Shortcut.FOCUS_DECODER:
-            self._combo_box_frame.decoder().setToolTip(tooltip)
-        elif id == Context.Shortcut.FOCUS_ENCODER:
-            self._combo_box_frame.encoder().setToolTip(tooltip)
-        elif id == Context.Shortcut.FOCUS_HASHER:
-            self._combo_box_frame.hasher().setToolTip(tooltip)
-        elif id == Context.Shortcut.FOCUS_SCRIPT:
-            self._combo_box_frame.script().setToolTip(tooltip)
+        combo_box_shortcut_map = {
+            Context.Shortcut.FOCUS_DECODER: PluginType.DECODER,
+            Context.Shortcut.FOCUS_ENCODER: PluginType.ENCODER,
+            Context.Shortcut.FOCUS_HASHER: PluginType.HASHER,
+            Context.Shortcut.FOCUS_SCRIPT: PluginType.SCRIPT
+        }
+        if id in combo_box_shortcut_map:
+            self._combo_box_frame.setToolTipByPluginType(combo_box_shortcut_map[id], tooltip)
         elif id == Context.Shortcut.SELECT_PLAIN_VIEW:
             self._plain_radio.setToolTip(tooltip)
         elif id == Context.Shortcut.SELECT_HEX_VIEW:
