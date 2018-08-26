@@ -33,7 +33,7 @@ Decoder++ 0.96
 ## Features
 
 * Preinstalled Scripts and Codecs:
-    * **Encode/Decode:** Base16, Base32, Base64, Binary, Gzip, Hex, Html, Url, Url+
+    * **Encode/Decode:** Base16, Base32, Base64, Binary, Gzip, Hex, Html, Octal, Url, Url+
     * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
     * **Scripts:** Caesar, Search and Replace
 * Smart-Decode
