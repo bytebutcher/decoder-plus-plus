@@ -35,7 +35,7 @@ class Plugin(DecoderPlugin):
         """
         if input and "+" in input:
             try:
-                return self.run(input) != input
+                return self.run(input) != input.replace('+', ' ')
             except:
                 return False
         return False
