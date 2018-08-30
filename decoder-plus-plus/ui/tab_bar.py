@@ -40,6 +40,8 @@ class TabBar(QTabBar):
         self.start_rename(self.currentIndex())
 
     def start_rename(self, tab_index):
+        if not self.isTabEnabled(tab_index):
+            return
         self.__edited_tab = tab_index
         rect = self.tabRect(tab_index)
         top_margin = 3
