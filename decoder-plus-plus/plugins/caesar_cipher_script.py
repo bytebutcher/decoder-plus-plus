@@ -42,6 +42,12 @@ class Plugin(ScriptPlugin):
         return self._do_caesar(text, self._shift)
 
     def _do_caesar(self, plaintext, shift):
+        """
+        Applies the caesar cipher.
+        :param plaintext: the input string.
+        :param shift: integer by which the value of the letters should be shifted.
+        :return: String with cipher applied.
+        """
         alphabet = string.ascii_lowercase
         shifted_alphabet = alphabet[shift:] + alphabet[:shift]
         table = str.maketrans(alphabet, shifted_alphabet)
@@ -93,7 +99,7 @@ class CaesarCipherOffsetCalculator:
         """
         total = 0
         for char in input:
-            if char.isalpha():
+            if char.isalpha() and char in self.frequency:
                 prob = self.frequency[char.lower()]
                 total += - math.log(prob) / math.log(2)
         return total
