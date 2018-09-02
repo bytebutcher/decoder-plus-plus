@@ -22,14 +22,16 @@ from core import Context
 from core.plugin.plugin import PluginType
 from core.plugin.plugins import Plugins
 from core.exception import AbortedException
+from ui import VSpacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.view.hex_view import HexView
+from ui.widget.frame_layout import CollapsibleFrame
 from ui.widget.smart_decode_button import SmartDecodeButton
 from ui.widget.status_widget import StatusWidget
 
 
-class CodecFrame(QFrame):
+class CodecFrame(CollapsibleFrame):
 
     def __init__(self, parent, context: Context, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
         super(CodecFrame, self).__init__(parent)
@@ -45,21 +47,14 @@ class CodecFrame(QFrame):
         self._plugins = plugins
         self._flash_event = None
 
-        self._layout = QHBoxLayout(self)
         self._status_widget = StatusWidget(self)
         input_frame = self._init_input_frame(text)
         button_frame = self._init_button_frame()
 
-        self._group_box = QGroupBox()
-        group_box_layout = QHBoxLayout()
-        group_box_layout.addWidget(self._status_widget)
-        group_box_layout.addWidget(input_frame)
-        group_box_layout.addWidget(button_frame, 0, Qt.AlignTop)
-        self._group_box.setLayout(group_box_layout)
+        self.addWidget(self._status_widget)
+        self.addWidget(input_frame)
+        self.addWidget(button_frame)
 
-        _, top, _, bottom = self._layout.getContentsMargins()
-        self._layout.addWidget(self._group_box)
-        self.setLayout(self._layout)
         self.show()
 
     def _init_logger(self, context, frame_id):
@@ -96,6 +91,7 @@ class CodecFrame(QFrame):
         self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
         button_frame_layout.addWidget(self._smart_decode_button)
         button_frame_layout.addWidget(self._init_radio_frame())
+        button_frame_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_frame_layout)
         return button_frame
 
@@ -255,9 +251,6 @@ class CodecFrame(QFrame):
 
     def previous(self):
         return self._previous_frame
-
-    def setTitle(self, title):
-        self._group_box.setTitle(title)
 
     def setInputText(self, text, blockSignals=False):
         self._plain_view_widget.blockSignals(blockSignals)

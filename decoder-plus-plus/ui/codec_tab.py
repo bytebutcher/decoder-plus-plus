@@ -35,13 +35,14 @@ class CodecTab(QScrollArea):
         self._plugins = plugins
 
         self._next_frame_id = 1
-        self._frames = QSplitter(Qt.Vertical)
-        self._frames.setChildrenCollapsible(False)
-        self._frames.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
-        self._frames.setContentsMargins(0, 0, 0, 0)
+        self._frames = QFrame()
+        self._frames_layout = QVBoxLayout()
+        self._frames.setLayout(self._frames_layout)
+        self._frames_layout.setContentsMargins(0, 0, 0, 0)
 
         self._main_frame = QFrame(self)
         self._main_frame_layout = QVBoxLayout()
+        self._main_frame_layout.setAlignment(Qt.AlignTop)
         self._main_frame_layout.addWidget(self._frames)
         self._main_frame_layout.addWidget(VSpacer(self))
         self._main_frame.setLayout(self._main_frame_layout)
@@ -80,22 +81,13 @@ class CodecTab(QScrollArea):
                 try:
                     new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._plugins, previous_frame, text)
                     self._next_frame_id += 1
-                    if self._frames.count() > 0:
+                    if self._frames.layout().count() > 0:
                         new_frame.flashStatus(status, msg)
                     new_frame.setTitle(title)
                     new_frame.setContentsMargins(0, 0, 0, 0)
                     new_frame.layout().setContentsMargins(0, 0, 0, 0)
-                    self._frames.addWidget(new_frame)
-
-                    # BUG: QSplitter does not allow frames to be wider than the surrounding area (here: QScrollArea).
-                    # WORKAROUND: Set a fixed size for codec frames and disable handles which prevents users from
-                    #             trying to resize the codec frames.
-                    # BUG: Frame height is only calculated correctly for first frame.
-                    # WORKAROUND: Cache and use frame height of first frame for all other frames.
-                    if not self.FRAME_HEIGHT:
-                        self.FRAME_HEIGHT = new_frame.height()
-                    new_frame.setFixedHeight(self.FRAME_HEIGHT)
-                    self._frames.handle(self._frames.count() - 1).setEnabled(False)
+                    self._frames_layout.addWidget(new_frame)
+                    self._set_frame_content_height(new_frame)
 
                     if previous_frame:
                         previous_frame.focusInputText()
@@ -103,6 +95,14 @@ class CodecTab(QScrollArea):
                         new_frame.focusInputText()
                 except Exception as e:
                     self._logger.error("Error Initializing New Codec Frame: {}".format(str(e)))
+
+    def _set_frame_content_height(self, new_frame):
+        # BUG: Frame height is only calculated correctly for first frame.
+        # WORKAROUND: Cache and use frame height of first frame for all other frames.
+        if not self.FRAME_HEIGHT:
+            new_frame.show()
+            self.FRAME_HEIGHT = new_frame.getContentHeight()
+        new_frame.setContentHeight(self.FRAME_HEIGHT)
 
     def removeFrames(self, frame):
         if frame:
