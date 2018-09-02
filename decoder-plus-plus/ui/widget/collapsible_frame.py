@@ -74,9 +74,15 @@ class CollapsibleFrame(QWidget):
         self._content_layout.setDirection(direction)
 
     def toggleCollapsed(self):
-        """ Un-/collapses the frame. """
+        """ Toggles collapsing of the frame. """
         self._content.setVisible(self._is_collasped)
         self._is_collasped = not self._is_collasped
+        self._title_frame._arrow.setArrow(int(self._is_collasped))
+
+    def setCollapsed(self, status):
+        """ Un-/collapses the frame. """
+        self._content.setVisible(not status)
+        self._is_collasped = status
         self._title_frame._arrow.setArrow(int(self._is_collasped))
 
     def setTitle(self, title: str):

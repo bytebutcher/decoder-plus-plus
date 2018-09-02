@@ -81,8 +81,15 @@ class CodecTab(QScrollArea):
                 try:
                     new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._plugins, previous_frame, text)
                     self._next_frame_id += 1
+                    if self._frames.layout().count() == 0:
+                        # First frame has no title and should not be collapsible.
+                        new_frame._title_frame.setHidden(True)
                     if self._frames.layout().count() > 0:
+                        # Every frame (except the first frame) should signal success/error.
                         new_frame.flashStatus(status, msg)
+                    if self._frames.layout().count() > 1:
+                        # Auto-collapse previous frames (except first frame).
+                        previous_frame.setCollapsed(True)
                     new_frame.setTitle(title)
                     new_frame.setContentsMargins(0, 0, 0, 0)
                     new_frame.layout().setContentsMargins(0, 0, 0, 0)
