@@ -26,7 +26,7 @@ from ui import VSpacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.view.hex_view import HexView
-from ui.widget.frame_layout import CollapsibleFrame
+from ui.widget.collapsible_frame import CollapsibleFrame
 from ui.widget.smart_decode_button import SmartDecodeButton
 from ui.widget.status_widget import StatusWidget
 
@@ -34,7 +34,7 @@ from ui.widget.status_widget import StatusWidget
 class CodecFrame(CollapsibleFrame):
 
     def __init__(self, parent, context: Context, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
-        super(CodecFrame, self).__init__(parent)
+        super(__class__, self).__init__(parent)
         self._context = context
         self._context.shortcutUpdated.connect(self._shortcut_updated_event)
         self._init_logger(context, frame_id)

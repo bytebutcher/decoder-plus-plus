@@ -22,7 +22,6 @@ from ui.widget.spacer import VSpacer
 from ui.widget.spacer import HSpacer
 from .tab_bar import TabBar
 from ui.widget.icon_label import IconLabel
-from .codec_frame import CodecFrame
 from .codec_tab import CodecTab
 from .main_window_widget import MainWindowWidget
 from .main_window import MainWindow

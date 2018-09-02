@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter
 
 from core import Context
 from core.plugin.plugins import Plugins
-from ui import CodecFrame
+from ui.codec_frame import CodecFrame
 from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget
 
