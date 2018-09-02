@@ -20,6 +20,9 @@ class Plugin(ScriptPlugin):
     def safe_name(self):
         return 'little_big_endian'
 
+    def title(self):
+        return "Little/Big Endian Transform"
+
     def run(self, text):
         return ''.join(list(reversed(self._chunk_string(text, 2))))
 

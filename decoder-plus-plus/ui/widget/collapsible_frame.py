@@ -89,6 +89,10 @@ class CollapsibleFrame(QWidget):
         """ Sets the title of the frame. """
         self._title_frame.setTitle(title)
 
+    def indicateError(self, status: bool):
+        """ Indicates that there was an error during encoding/decoding/hashing/scripting. """
+        self._title_frame.indicateError(status)
+
     def getContentHeight(self) -> int:
         """ Returns the height of the content when uncollapsed. """
         return self._content.height()
@@ -108,7 +112,7 @@ class CollapsibleFrame(QWidget):
             self.setMinimumHeight(24)
             self.setMaximumHeight(24)
             self.move(QtCore.QPoint(24, 0))
-            self.setStyleSheet("border:1px solid rgb(41, 41, 41); ")
+            self.indicateError(False)
 
             self._hlayout = QHBoxLayout(self)
             self._hlayout.setContentsMargins(0, 0, 0, 0)
@@ -131,6 +135,13 @@ class CollapsibleFrame(QWidget):
             self._title.move(QtCore.QPoint(24, 0))
             self._title.setStyleSheet("border:0px")
             return self._title
+
+        def indicateError(self, status: bool):
+            """ Indicates an error by painting the title-border red. Otherweise black. """
+            if status:
+                self.setStyleSheet("border:1px solid red; ")
+            else:
+                self.setStyleSheet("border:1px solid rgb(41, 41, 41); ")
 
         def setTitle(self, title: str):
             """ Sets the title of the frame. """

@@ -219,6 +219,7 @@ class CodecFrame(CollapsibleFrame):
             self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.ERROR, msg=error)
 
     def flashStatus(self, status, message):
+        self._title_frame.indicateError(status is "ERROR")
         self._status_widget.setStatus(status, message)
 
     def selectComboBoxEntryByPlugin(self, plugin):
