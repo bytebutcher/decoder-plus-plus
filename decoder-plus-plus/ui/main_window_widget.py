@@ -60,7 +60,7 @@ class MainWindowWidget(QWidget):
         help_menu.addAction(about_action)
 
     def _init_edit_menu(self, main_menu):
-        edit_menu = main_menu.addMenu('Edi&t')
+        edit_menu = main_menu.addMenu('&Edit')
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                 "Toggle Search Field",
                                 "Ctrl+F",
@@ -71,12 +71,12 @@ class MainWindowWidget(QWidget):
         view_menu = main_menu.addMenu('&View')
         self._register_shortcut(Context.Shortcut.SELECT_PLAIN_VIEW,
                                 "Show Plain View",
-                                "Alt+P",
+                                "Alt+Shift+P",
                                 lambda: self._select_plain_view(),
                                 view_menu)
         self._register_shortcut(Context.Shortcut.SELECT_HEX_VIEW,
                                 "Show Hex View",
-                                "Alt+X",
+                                "Alt+Shift+X",
                                 lambda: self._select_hex_view(),
                                 view_menu)
 
@@ -84,27 +84,27 @@ class MainWindowWidget(QWidget):
         select_menu = main_menu.addMenu('&Select')
         self._register_shortcut(Context.Shortcut.FOCUS_DECODER,
                                 "Select Decoder",
-                                "Alt+D",
+                                "Alt+Shift+D",
                                 lambda: self._focus_combo_box(PluginType.DECODER),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_ENCODER,
                                 "Select Encoder",
-                                "Alt+E",
+                                "Alt+Shift+E",
                                 lambda: self._focus_combo_box(PluginType.ENCODER),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_HASHER,
                                 "Select Hasher",
-                                "Alt+H",
+                                "Alt+Shift+H",
                                 lambda: self._focus_combo_box(PluginType.HASHER),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_SCRIPT,
                                 "Select Script",
-                                "Alt+S",
+                                "Alt+Shift+S",
                                 lambda: self._focus_combo_box(PluginType.SCRIPT),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
                                 "Select Text Field",
-                                "Alt+I",
+                                "Alt+Shift+I",
                                 lambda: self._focus_input_text(),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
