@@ -35,7 +35,15 @@ class Plugin(ScriptPlugin):
         self._dialog_return_code = None
 
     def title(self):
-        return "Split by '{}' & Rejoin with '{}'".format(self._dialog.getSplitByText(), self._dialog.getJoinWithText())
+        if self._dialog.getSplitByOption() == SplitAndRejoinDialog.SPLIT_BY_LENGTH:
+            return "Split by length {} and Rejoin with '{}'".format(
+                self._dialog.getSplitByText(), self._dialog.getJoinWithText()
+            )
+        elif self._dialog.getSplitByOption() == SplitAndRejoinDialog.SPLIT_BY_CHARACTER:
+            return "Split by character '{}' and Rejoin with '{}'".format(
+                self._dialog.getSplitByText(), self._dialog.getJoinWithText()
+            )
+        return "Split by '{}' and Rejoin with '{}'".format(self._dialog.getSplitByText(), self._dialog.getJoinWithText())
 
     def safe_name(self):
         return "split_and_rejoin"
