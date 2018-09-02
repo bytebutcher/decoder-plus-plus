@@ -32,6 +32,10 @@ Decoder++ 0.96
 
 ## Features
 
+* Interfaces:
+    * Graphical User Interface
+    * Command Line Interface
+    * Interactive Python Console
 * Preinstalled Scripts and Codecs:
     * **Encode/Decode:** Base16, Base32, Base64, Binary, Gzip, Hex, Html, Octal, Url, Url+
     * **Hashing:** Keccak256, Md5, RipeMd160, Sha1, Sha224, Sha256, Sha348, Sha512
@@ -42,10 +46,6 @@ Decoder++ 0.96
     * Windows
     * Linux
     * MAC
-* Interfaces:
-    * Graphical User Interface
-    * Command Line Interface
-    * Interactive Python Console    
 
 ## Setup
 
