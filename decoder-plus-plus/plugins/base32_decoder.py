@@ -12,6 +12,7 @@ class Plugin(DecoderPlugin):
             MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43UOV3HO6DZPIFF5Q \\
             VQEERMFJZEEUTC6KBJHU74FNDAHQ7HYIBMFYWTWOS7EMVS \\
             OKT6BIYDCMRTGQ2TMNZYHE======
+
         Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~

@@ -10,6 +10,7 @@ class Plugin(DecoderPlugin):
 
         Input:
             111010110111100110100010101
+
         Output:
             123456789
     """

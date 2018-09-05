@@ -10,6 +10,7 @@ class Plugin(DecoderPlugin):
 
         Input:
             0x75bcd15
+
         Output:
             123456789
     """

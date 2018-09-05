@@ -10,6 +10,7 @@ class Plugin(HasherPlugin):
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
+
         Output:
             58cd501bee1ece7411a23b2e86bfb795b136f2aae5d8f94a59c551622d9a0d7e \\
             293a04a8584244eadf1f9bedd34cbcb7e99f7bdedaac56591f88bb282c5146cd

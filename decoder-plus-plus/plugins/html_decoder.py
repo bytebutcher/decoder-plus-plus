@@ -10,6 +10,7 @@ class Plugin(DecoderPlugin):
             abcdefghijklmnopqrstuvwxyz
             ^°!&quot;§$%&amp;/()=?´`&lt;&gt;| ,.-;:_#+&#x27;*~
             0123456789
+
         Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~

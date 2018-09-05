@@ -10,6 +10,7 @@ class Plugin(HasherPlugin):
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
+
         Output:
             $md5,rounds=34000$l3zQgEcw$$WilWKupRZIxRHlKHC1azb1
     """

@@ -10,6 +10,7 @@ class Plugin(DecoderPlugin):
             6162636465666768696A6B6C6D6E6F70717273747576777 \\
             8797A0A5EC2B02122C2A72425262F28293D3FC2B4603C3E \\
             7C202C2E2D3B3A5F232B272A7E0A30313233343536373839
+
         Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~

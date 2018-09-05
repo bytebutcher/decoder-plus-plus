@@ -10,6 +10,7 @@ class Plugin(EncoderPlugin):
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
+
         Output:
             6162636465666768696A6B6C6D6E6F70717273747576777 \\
             8797A0A5EC2B02122C2A72425262F28293D3FC2B4603C3E \\

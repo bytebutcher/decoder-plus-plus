@@ -9,6 +9,7 @@ class Plugin(ScriptPlugin):
 
         Input:
             0002000A
+
         Output:
             0A000200
     """

@@ -10,19 +10,23 @@ class Plugin(ScriptPlugin):
     """
     Splits and Rejoins a string.
 
-    Examples:
+    Example 1:
 
         Split by character ' ' and join with ''
 
         Input:
             ab cd ef gh ij kl mn op qr st uv wx yz
+
         Output:
             abcdefghijklmnopqrstuvwxyz
+
+    Example 2:
 
         Split by length '2' and join with ' '
 
         Input:
             abcdefghijklmnopqrstuvwxyz
+
         Output:
             ab cd ef gh ij kl mn op qr st uv wx yz
 

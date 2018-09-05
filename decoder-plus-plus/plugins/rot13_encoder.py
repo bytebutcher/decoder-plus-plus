@@ -10,6 +10,7 @@ class Plugin(EncoderPlugin):
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
+
         Output:
             nopqrstuvwxyzabcdefghijklm
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~

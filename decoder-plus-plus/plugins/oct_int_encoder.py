@@ -8,6 +8,7 @@ class Plugin(EncoderPlugin):
 
         Input:
             123456789
+
         Output:
             0o726746425
     """

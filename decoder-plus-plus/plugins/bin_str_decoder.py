@@ -11,6 +11,7 @@ class Plugin(DecoderPlugin):
             1100110 1100111 1101000 1101001 1101010 \\
             ...
             110100 110101 110110 110111 111000 111001
+
         Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~

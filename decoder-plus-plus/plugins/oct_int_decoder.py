@@ -8,6 +8,7 @@ class Plugin(DecoderPlugin):
 
         Input:
             0o726746425
+
         Output:
             123456789
     """

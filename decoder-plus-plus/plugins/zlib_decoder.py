@@ -8,6 +8,7 @@ class Plugin(DecoderPlugin):
 
         Input:
             [bytes]
+
         Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
