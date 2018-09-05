@@ -2,7 +2,7 @@ from core.plugin.plugin import HasherPlugin
 
 class Plugin(HasherPlugin):
     """
-    Hashes a string using KECCAK 256.
+    Hashes a string using Apache MD5.
 
     Example:
 
@@ -11,13 +11,13 @@ class Plugin(HasherPlugin):
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
         Output:
-            53205b3c714c875f1d892d9ec3e7e9194f908d5b61a744d08c32f1f0a7c94c6e
+            $apr1$l97celjJ$SaLNyFiJgatX5pHuQ5cNI0
     """
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('KECCAK 256', "Tim Menapace", ["_pysha3"])
+        super().__init__('Apache-MD5', "Thomas Engel", ["passlib"])
 
     def run(self, text):
-        import _pysha3
-        return _pysha3.keccak_256(text.encode('utf-8', errors='surrogateescape')).hexdigest()
+        from passlib.hash import apr_md5_crypt
+        return apr_md5_crypt.encrypt(text.encode('utf-8', errors='surrogateescape'))

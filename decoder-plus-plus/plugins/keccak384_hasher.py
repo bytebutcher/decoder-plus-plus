@@ -2,7 +2,7 @@ from core.plugin.plugin import HasherPlugin
 
 class Plugin(HasherPlugin):
     """
-    Hashes a string using KECCAK 256.
+    Hashes a string using KECCAK 384.
 
     Example:
 
@@ -11,13 +11,13 @@ class Plugin(HasherPlugin):
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
         Output:
-            53205b3c714c875f1d892d9ec3e7e9194f908d5b61a744d08c32f1f0a7c94c6e
+            2f1b4db7016471554160335867949a2d8a8bd68a002b0e0289f119ee25ab719e40ed2e8fc2f5604d8c4272ca3487cfe7
     """
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('KECCAK 256', "Tim Menapace", ["_pysha3"])
+        super().__init__('KECCAK 384', "Thomas Engel", ["_pysha3"])
 
     def run(self, text):
         import _pysha3
-        return _pysha3.keccak_256(text.encode('utf-8', errors='surrogateescape')).hexdigest()
+        return _pysha3.keccak_384(text.encode('utf-8', errors='surrogateescape')).hexdigest()
