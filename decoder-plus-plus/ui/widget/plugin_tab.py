@@ -87,9 +87,16 @@ class PluginSelectionFrame(QFrame):
             name = plugin.full_name()
             item = QStandardItem(name)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-            if plugin.check_dependencies():
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
+            dependencies = plugin.check_dependencies()
+            if dependencies:
                 # Highlight plugins with unresolved dependencies
                 item.setForeground(QBrush(QtCore.Qt.red, QtCore.Qt.SolidPattern))
+                # Disable plugins with missing dependencies.
+                plugin.set_enabled(False)
+                # Prevent user from enabling plugins with missing dependencies.
+                item.setCheckable(False)
+
             if plugin.is_enabled():
                 # Set the checkbox when plugins are enabled
                 item.setCheckState(QtCore.Qt.Checked)
