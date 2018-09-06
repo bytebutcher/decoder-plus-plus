@@ -15,7 +15,7 @@ class Plugin(ScriptPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('Search & Replace', "Thomas Engel", )
+        super().__init__('Search & Replace', "Thomas Engel", [], context)
         self._dialog = None
         self._dialog_return_code = None
 

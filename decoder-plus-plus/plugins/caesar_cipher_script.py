@@ -17,7 +17,7 @@ class Plugin(ScriptPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('Caesar Cipher', "Thomas Engel", )
+        super().__init__('Caesar Cipher', "Thomas Engel", [], context)
         self._shift = None
         self._dialog = None
 

@@ -19,7 +19,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('HEX (str)', "Thomas Engel", ["codecs"])
+        super().__init__('HEX (str)', "Thomas Engel", ["codecs"], context)
 
     def safe_name(self):
         return "hex_str"

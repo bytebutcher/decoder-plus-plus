@@ -24,7 +24,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('HEX (shell)', "Thomas Engel", ["codecs"])
+        super().__init__('HEX (shell)', "Thomas Engel", ["codecs"], context)
 
     def safe_name(self):
         return "hex_shell"

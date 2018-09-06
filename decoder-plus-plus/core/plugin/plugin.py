@@ -31,13 +31,14 @@ class PluginType(object):
 class AbstractPlugin(object):
     """ Base-class to all plugins. Should not be used directly. Instead use one of its abstract implementations. """
 
-    def __init__(self, name: str, type: str, author: str, dependencies: List[str]=None):
+    def __init__(self, name: str, type: str, author: str, dependencies: List[str], context: 'Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
         :param type: the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT).
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
         """
         assert(name is not None and len(name) > 0), "Name is required and should not be None or Empty"
         assert(type in [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]), \
@@ -47,17 +48,23 @@ class AbstractPlugin(object):
         self._type = type
         self._author = author
         self._dependencies = dependencies
+        self._context = context
 
     def name(self) -> str:
         """ Returns the name of the plugin (e.g. "URL+"). """
         return self._name
+
+    def full_name(self) -> str:
+        """ Returns the full name of the plugin including name and type (e.g. "URL+" -> "URL+-Decoder"). """
+        return "{}-{}".format(self.name(), self.type())
 
     def safe_name(self) -> str:
         """
         Returns the safe name of the plugin (e.g. "URL+" -> "url_").
         * Name is transformed to lower-case,
         * None-alphanumeric characters are transformed to underscore.
-        However, for better control it is recommended to override this method when an unsafe name is used.
+        This name is e.g. used in the Decoder++ command-line. To prevent name-collisions and have somewhat better
+        looking names it is recommended to override this method.
         """
         safe_name = ""
         for char in self._name.lower():
@@ -66,6 +73,10 @@ class AbstractPlugin(object):
             else:
                 safe_name += "_"
         return safe_name
+
+    def full_safe_name(self) -> str:
+        """ Returns the full name of the plugin including name and type (e.g. "URL+" -> "url_-decoder"). """
+        return "{}-{}".format(self.safe_name(), self.type()).lower()
 
     def type(self) -> str:
         """ Returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
@@ -87,11 +98,19 @@ class AbstractPlugin(object):
         unresolved_dependencies = []
         if self._dependencies:
             for dependency in self._dependencies:
-                try:
-                    importlib.import_module(dependency)
-                except Exception as e:
+                if not self.check_dependency(dependency):
                     unresolved_dependencies.append(dependency)
         return unresolved_dependencies
+
+    def check_dependency(self, dependency):
+        try:
+            importlib.import_module(dependency)
+            return True
+        except Exception as e:
+            return False
+
+    def dependencies(self) -> List[str]:
+        return self._dependencies
 
     def run(self, *args, **kwargs) -> str:
         """ The main method of the plugin which must be implemented by the plugin. """
@@ -116,6 +135,14 @@ class AbstractPlugin(object):
         """
         return self.run(*args)
 
+    def is_enabled(self) -> bool:
+        """ Returns whether the plugin is enabled/disabled. """
+        return self._context.config().getPluginStatus(self.full_safe_name())
+
+    def set_enabled(self, status):
+        """ Sets the status of the plugin to enabled/disabled. """
+        self._context.config().setPluginStatus(self.full_safe_name(), status)
+
     def __key(self):
         return (self._name, self._type)
 
@@ -128,14 +155,15 @@ class AbstractPlugin(object):
 
 class DecoderPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str]=None):
+    def __init__(self, name: str, author: str, dependencies: List[str], context):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
         """
-        super(__class__, self).__init__(name, PluginType.DECODER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.DECODER, author, dependencies, context)
 
     def can_decode_input(self, input) -> bool:
         """
@@ -150,45 +178,48 @@ class DecoderPlugin(AbstractPlugin):
 
 class EncoderPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+    def __init__(self, name: str, author: str, dependencies: List[str], context):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
         """
-        super(__class__, self).__init__(name, PluginType.ENCODER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.ENCODER, author, dependencies, context)
 
 
 class HasherPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+    def __init__(self, name: str, author: str, dependencies: List[str], context):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
         """
-        super(__class__, self).__init__(name, PluginType.HASHER, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.HASHER, author, dependencies, context)
 
 
 class ScriptPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str] = None):
+    def __init__(self, name: str, author: str, dependencies: List[str], context):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
         """
-        super(__class__, self).__init__(name, PluginType.SCRIPT, author, dependencies)
+        super(__class__, self).__init__(name, PluginType.SCRIPT, author, dependencies, context)
 
 
 class NullPlugin(AbstractPlugin):
     """ Implements a plugin which can be used as a Null-Object. """
 
-    def __init__(self):
-        super(NullPlugin, self).__init__("", "", "", [])
+    def __init__(self, context):
+        super(NullPlugin, self).__init__("", "", "", [], context)
 
     def select(self, *args, **kwargs):
         pass

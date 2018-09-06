@@ -19,7 +19,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('ROT13', "Robin Krumnow", ["codecs"])
+        super().__init__('ROT13', "Robin Krumnow", ["codecs"], context)
 
     def run(self, text):
         import codecs

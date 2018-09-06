@@ -17,7 +17,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('RIPEMD160', "Tim Menapace", ["hashlib"])
+        super().__init__('RIPEMD160', "Tim Menapace", ["hashlib"], context)
 
     def run(self, text):
         import hashlib

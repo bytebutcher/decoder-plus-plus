@@ -19,7 +19,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction
@@ -176,6 +176,10 @@ class Context(QObject):
             return NullShortcut()
         return self._shortcuts[the_id]
 
-    def getUnresolvedDependencies(self) -> List[str]:
-        """ Returns all unresolved dependencies in a list. """
-        return self._plugin_loader.getUnresolvedDependencies()
+    def getPluginsUnresolvedDependencies(self) -> Dict[str, str]:
+        """ Returns all unresolved dependencies in a dict. """
+        return self._plugin_loader.get_unresolved_dependencies()
+
+    def getPluginsErrors(self) -> Dict[str, str]:
+        """ Returns all errors which happened while loading plugins. """
+        return self._plugin_loader.get_errors()

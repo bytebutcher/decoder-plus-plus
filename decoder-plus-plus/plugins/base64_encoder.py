@@ -17,7 +17,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('BASE64', "Thomas Engel", ["base64"])
+        super().__init__('BASE64', "Thomas Engel", ["base64"], context)
 
     def run(self, text):
         import base64

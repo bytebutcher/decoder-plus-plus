@@ -17,7 +17,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('PHPass', "Thomas Engel", ["passlib"])
+        super().__init__('PHPass', "Thomas Engel", ["passlib"], context)
 
     def run(self, text):
         from passlib.hash import phpass

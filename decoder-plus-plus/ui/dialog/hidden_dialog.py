@@ -23,11 +23,13 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
 from ui import IconLabel, ShortcutTable, SearchField
+from ui.widget.plugin_tab import PluginTab
 
 
 class HiddenDialog(QDialog):
 
     TAB_ABOUT = "About"
+    TAB_PLUGINS = "Plugins"
     TAB_KEYBOARD_SHORTCUTS = "Keyboard Shortcuts"
 
     def __init__(self, parent, context, select_tab_name: str=None):
@@ -41,11 +43,22 @@ class HiddenDialog(QDialog):
         self._context = context
         layout = QHBoxLayout()
         tabs = QTabWidget()
-        tabs.insertTab(0, self._init_about_tab(), HiddenDialog.TAB_ABOUT)
-        tabs.insertTab(1, self._init_keyboard_shortcuts_tab(), HiddenDialog.TAB_KEYBOARD_SHORTCUTS)
+
+        self._about_tab = self._init_about_tab()
+        tabs.insertTab(0, self._about_tab, HiddenDialog.TAB_ABOUT)
+
+        self._plugins_tab = self._init_plugins_tab()
+        tabs.insertTab(1, self._plugins_tab, HiddenDialog.TAB_PLUGINS)
+
+        self._keyboard_shortcuts_tab = self._init_keyboard_shortcuts_tab()
+        tabs.insertTab(2, self._keyboard_shortcuts_tab, HiddenDialog.TAB_KEYBOARD_SHORTCUTS)
+
         self._init_tab_selection(tabs, select_tab_name)
+
         layout.addWidget(tabs)
+
         self.setLayout(layout)
+        self.setMinimumWidth(640)
         self.setWindowTitle(" ")
 
     def _init_tab_selection(self, tabs: QTabWidget, tab_name: str):
@@ -58,7 +71,7 @@ class HiddenDialog(QDialog):
     def _init_about_tab(self):
         tab = QWidget(self)
         base_layout = QHBoxLayout()
-        base_layout.setAlignment(QtCore.Qt.AlignCenter)
+        base_layout.setAlignment(QtCore.Qt.AlignVCenter)
         logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
         icon_label = IconLabel(self, QIcon(logo))
         icon_label.setFixedSize(QSize(180, 180))
@@ -72,22 +85,29 @@ class HiddenDialog(QDialog):
         plugin_authors = self._context.plugins().authors()
         for plugin_author in plugin_authors:
             plugin_author_label = QLabel(plugin_author)
-            plugin_author_label.setToolTip(", ".join(sorted(set(self._context.plugins().names(author=plugin_author)))))
+            # Show tooltip with all plugin names.
+            # Enable automatic text wrapping of tooltip by using rich-text.
+            plugin_author_label.setToolTip("<font>{}</font>".format(", ".join(sorted(set(self._context.plugins().names(author=plugin_author))))))
             form_layout.addRow(QLabel(""), plugin_author_label)
         form_frame.setLayout(form_layout)
         base_layout.addWidget(form_frame)
         tab.setLayout(base_layout)
         return tab
 
+    def _init_plugins_tab(self):
+        return PluginTab(self._context, self)
+
     def _init_keyboard_shortcuts_tab(self):
         frame = QFrame(self)
         frame_layout = QVBoxLayout(self)
         shortcut_filter = SearchField()
+        shortcut_filter.setPlaceholderText("Search keyboard shortcut...")
         shortcut_filter.setIcon(qtawesome.icon("fa.search"))
         frame_layout.addWidget(shortcut_filter)
         shortcut_table = ShortcutTable(self, self._context.getShortcuts())
         shortcut_table.shortcutUpdated.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))
         shortcut_filter.textChanged.connect(shortcut_table.model().setFilterRegExp)
         frame_layout.addWidget(shortcut_table)
+        frame_layout.setContentsMargins(20, 20, 20, 20)
         frame.setLayout(frame_layout)
         return frame

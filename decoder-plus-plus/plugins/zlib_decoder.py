@@ -17,7 +17,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('Zlib', "Thomas Engel", ["zlib"])
+        super().__init__('Zlib', "Thomas Engel", ["zlib"], context)
 
     def run(self, text):
         import zlib

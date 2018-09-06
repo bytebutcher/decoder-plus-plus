@@ -17,7 +17,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('KECCAK 384', "Thomas Engel", ["_pysha3"])
+        super().__init__('KECCAK 384', "Thomas Engel", ["_pysha3"], context)
 
     def run(self, text):
         import _pysha3

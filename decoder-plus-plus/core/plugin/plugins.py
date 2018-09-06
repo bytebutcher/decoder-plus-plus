@@ -67,7 +67,7 @@ class Plugins(object):
         authors = [plugin.author() for plugin in self._plugin_list if plugin.author()]
         return [author for author, _ in collections.Counter(authors).most_common()]
 
-    def filter(self, name: str=None, type:str =None) -> List[AbstractPlugin]:
+    def filter(self, name: str=None, type: str=None) -> List[AbstractPlugin]:
         """
         Returns the plugins matching name and/or type. Does not match cases.
         :param name: The name of the plugin (e.g. SHA1/sha1).
@@ -86,6 +86,9 @@ class Plugins(object):
             the_type_name = type.lower()
             return [plugin for plugin in self._plugin_list if plugin.type().lower() == the_type_name]
         raise Exception("Unknown Error '{}::{}'!".format(name, type))
+
+    def __getitem__(self, item):
+        return self._plugin_list[item]
 
     def __len__(self):
         return len(self._plugin_list)

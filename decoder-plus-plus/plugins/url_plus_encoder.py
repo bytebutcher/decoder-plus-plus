@@ -19,7 +19,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('URL+', "Thomas Engel", ["urllib"])
+        super().__init__('URL+', "Thomas Engel", ["urllib"], context)
 
     def safe_name(self):
         return "url_plus"

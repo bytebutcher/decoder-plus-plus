@@ -17,7 +17,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('MD2', "Thomas Engel", ["Crypto"])
+        super().__init__('MD2', "Thomas Engel", ["Crypto"], context)
 
     def run(self, text):
         from Crypto.Hash import MD2

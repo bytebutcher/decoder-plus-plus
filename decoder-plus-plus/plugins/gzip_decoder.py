@@ -17,7 +17,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('Gzip', "Thomas Engel", ["gzip"])
+        super().__init__('Gzip', "Thomas Engel", ["gzip"], context)
 
     def run(self, text):
         import gzip

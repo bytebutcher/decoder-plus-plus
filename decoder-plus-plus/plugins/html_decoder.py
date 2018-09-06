@@ -19,7 +19,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('HTML', "Thomas Engel", ["html"])
+        super().__init__('HTML', "Thomas Engel", ["html"], context)
 
     def run(self, text):
         import html

@@ -17,7 +17,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('CRC32', "Thomas Engel", ["zlib"])
+        super().__init__('CRC32', "Thomas Engel", ["zlib"], context)
 
     def run(self, text):
         import zlib

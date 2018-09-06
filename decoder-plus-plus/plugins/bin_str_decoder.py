@@ -20,7 +20,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('BIN (str)', "Thomas Engel", [])
+        super().__init__('BIN (str)', "Thomas Engel", [], context)
 
     def safe_name(self):
         return "bin_str"

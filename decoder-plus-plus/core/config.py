@@ -61,5 +61,12 @@ class Config(QSettings):
         """ Returns a saved shortcut key or None when no shortcut were defined for the specified id. """
         return self.value('shortcut.{}'.format(id))
 
+    def setPluginStatus(self, id: str, status: bool):
+        """ Sets the status of the specified plugin to enabled/disabled. """
+        self.setValue('plugin.{}'.format(id.lower()), str(status))
 
+    def getPluginStatus(self, id: str) -> bool:
+        """ Returns whether the plugin is enabled/disabled. When no status was stored True will be returned. """
+        status = self.value('plugin.{}'.format(id.lower()))
+        return status == "True" or status is None
 

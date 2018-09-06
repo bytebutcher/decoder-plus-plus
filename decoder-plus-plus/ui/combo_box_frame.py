@@ -61,7 +61,8 @@ class ComboBoxFrame(QFrame):
         model = QStandardItemModel()
 
         model.setItem(0, 0, QStandardItem(title))
-        plugin_list = self._plugins.filter(type=type)
+        # Do not load disabled plugins and plugins with unresolved dependencies into the combobox.
+        plugin_list = [plugin for plugin in self._plugins.filter(type=type) if plugin.is_enabled() and not plugin.check_dependencies()]
         for index, plugin in enumerate(plugin_list):
             item = QStandardItem(plugin.name())
             item.setToolTip(plugin.__doc__)
@@ -104,7 +105,7 @@ class ComboBoxFrame(QFrame):
         try:
             combo_box = self._combo_boxes[type]
             name = combo_box.itemText(index)
-            plugin = copy.deepcopy(self._plugins.plugin(name, type))
+            plugin = copy.copy(self._plugins.plugin(name, type))
             if plugin in self._plugin_history:
                 plugin = self._plugin_history[plugin]
             else:
@@ -112,7 +113,7 @@ class ComboBoxFrame(QFrame):
             return plugin
         except Exception as e:
             self._logger.error("Unexpected error. {}".format(e))
-            return NullPlugin()
+            return NullPlugin(self._context)
 
     def selectedPlugin(self):
         selected_plugin_types = [plugin_type for plugin_type in self._combo_boxes.keys() if self._combo_boxes[plugin_type].currentIndex() != 0]

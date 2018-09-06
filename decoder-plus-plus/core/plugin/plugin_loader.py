@@ -17,7 +17,7 @@
 
 import os
 import sys
-from typing import List
+from typing import Dict
 
 from core.plugin.plugin import AbstractPlugin
 
@@ -29,14 +29,18 @@ class PluginLoader():
         self._context = context
         self._logger = context.logger()
         self._unresolved_dependencies = {}
+        self._errors = {}
+        self._plugins_path = {}
 
-    def load(self, path: str) -> List[AbstractPlugin]:
+    def load(self, path: str) -> Dict[str, AbstractPlugin]:
         """
         Loads plugins from the specified path and returns them in a list.
         :param path: the path were plugin files (.py) are found.
         :return: a list of plugins.
         """
-        self._plugins = {}
+        if path in self._plugins_path:
+            return self._plugins_path[path]
+        self._plugins_path[path] = {}
         sys.path.insert(0, path)
         for f in os.listdir(path):
                 fname, ext = os.path.splitext(f)
@@ -49,15 +53,35 @@ class PluginLoader():
                             self._unresolved_dependencies[plugin.name()] = unresolved_dependencies
                             self._logger.error("{}: Unresolved dependencies {}".format(
                                 plugin.name(), ", ".join(unresolved_dependencies)))
-                            continue
-                        self._plugins[fname] = plugin
+                        self._plugins_path[path][fname] = plugin
                     except Exception as e:
                         self._logger.error("{}: {}".format(fname, str(e)))
-                        self._logger.debug("Unknown error: {}", e)
+                        self._errors[fname] = str(e)
                         pass
         sys.path.pop(0)
-        return self._plugins
+        return self._plugins_path[path]
 
-    def getUnresolvedDependencies(self):
-        return self._unresolved_dependencies
+    def _get_plugins(self):
+        plugins = {}
+        for path in self._plugins_path:
+            for fname in self._plugins_path[path]:
+                plugins[fname] = self._plugins_path[path][fname]
+        return plugins
 
+    def get_unresolved_dependencies(self, filter_enabled_plugins: bool=True) -> Dict[str, str]:
+        """ Returns unresolved dependencies of all plugins.
+        :param filter_enabled_plugins: when True, returns only unresolved dependencies of enabled plugins.
+        """
+        unresolved_dependencies = {}
+        plugins = self._get_plugins()
+        for plugin_name in plugins:
+            plugin = plugins[plugin_name]
+            plugin_unresolved_dependencies = plugin.check_dependencies()
+            if (not filter_enabled_plugins or (filter_enabled_plugins and plugin.is_enabled())) \
+                    and plugin_unresolved_dependencies:
+                unresolved_dependencies[plugin.name()] = plugin_unresolved_dependencies
+        return unresolved_dependencies
+
+    def get_errors(self) -> Dict[str, str]:
+        """ Returns all errors which occured during loading plugins."""
+        return self._errors
