@@ -86,7 +86,7 @@ class HiddenDialog(QDialog):
         form_frame = QFrame(self)
         form_layout = QFormLayout()
         form_layout.setAlignment(QtCore.Qt.AlignLeft)
-        form_layout.addRow(QLabel("<b>Decoder++</b>"), QLabel(""))
+        form_layout.addRow(QLabel("<font size='18'>Decoder++</font>"), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel(""))
         form_layout.addRow(QLabel("Core-Development: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("Thomas Engel"))
