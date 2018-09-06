@@ -22,7 +22,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
-from ui import IconLabel, ShortcutTable, SearchField
+from ui import IconLabel, ShortcutTable, SearchField, HSpacer
 from ui.widget.plugin_tab import PluginTab
 
 
@@ -73,12 +73,21 @@ class HiddenDialog(QDialog):
         base_layout = QHBoxLayout()
         base_layout.setAlignment(QtCore.Qt.AlignVCenter)
         logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
+
+        icon_frame = QFrame()
+        icon_layout = QHBoxLayout()
         icon_label = IconLabel(self, QIcon(logo))
         icon_label.setFixedSize(QSize(180, 180))
-        base_layout.addWidget(icon_label)
+        icon_layout.setAlignment(QtCore.Qt.AlignLeft)
+        icon_layout.setContentsMargins(10, 10, 10, 10)
+        icon_layout.addWidget(icon_label)
+        icon_frame.setLayout(icon_layout)
+        base_layout.addWidget(icon_frame)
         form_frame = QFrame(self)
         form_layout = QFormLayout()
-        form_layout.addRow(QLabel("Decoder++"), QLabel(""))
+        form_layout.setAlignment(QtCore.Qt.AlignLeft)
+        form_layout.addRow(QLabel("<b>Decoder++</b>"), QLabel(""))
+        form_layout.addRow(QLabel(""), QLabel(""))
         form_layout.addRow(QLabel("Core-Development: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("Thomas Engel"))
         form_layout.addRow(QLabel("Plugin-Development: "), QLabel(""))
@@ -89,8 +98,17 @@ class HiddenDialog(QDialog):
             # Enable automatic text wrapping of tooltip by using rich-text.
             plugin_author_label.setToolTip("<font>{}</font>".format(", ".join(sorted(set(self._context.plugins().names(author=plugin_author))))))
             form_layout.addRow(QLabel(""), plugin_author_label)
+        form_layout.addRow(QLabel("Inspired By: "), QLabel(""))
+        form_layout.addRow(QLabel(""), QLabel("PortSwigger's Burp Decoder"))
+        form_layout.addRow(QLabel("Powered By: "), QLabel(""))
+        form_layout.addRow(QLabel(""), QLabel("PyQt5"))
+        form_layout.addRow(QLabel(""), QLabel("QtAwesome"))
+        form_layout.addRow(QLabel(""), QLabel("QScintilla"))
+        form_layout.addRow(QLabel("Website: "), QLabel(""))
+        form_layout.addRow(QLabel(""), QLabel("<a href='https://github.com/bytebutcher/decoder-plus-plus/'>https://github.com/bytebutcher/decoder-plus-plus</a>"))
         form_frame.setLayout(form_layout)
         base_layout.addWidget(form_frame)
+        base_layout.addWidget(HSpacer())
         tab.setLayout(base_layout)
         return tab
 
