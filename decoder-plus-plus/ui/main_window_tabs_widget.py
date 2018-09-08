@@ -17,9 +17,10 @@
 #
 import qtawesome
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton
+from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu
 
 from ui import TabBar, CodecTab
+from ui.builder.action_builder import ActionBuilder
 
 
 class MainWindowTabsWidget(QTabWidget):
@@ -39,7 +40,9 @@ class MainWindowTabsWidget(QTabWidget):
         super(__class__, self).__init__(parent)
         self._context = context
         self._plugins = plugins
+        self._current_tab_number = 1
         bar = TabBar()
+        bar.customContextMenuRequested.connect(self.showContextMenu)
         bar.tabRenamed.connect(self.tabRenamed.emit)
         # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
         # WORKAROUND: ???
@@ -51,18 +54,44 @@ class MainWindowTabsWidget(QTabWidget):
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
         tab_new_button = QToolButton()
+        tab_new_button.setToolTip("New Tab")
         tab_new_button.clicked.connect(self.newTab)
         tab_new_button.setIcon(qtawesome.icon("fa.plus"))
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
 
+    def showContextMenu(self, point):
+        if not point:
+            return
+
+        index = self.tabBar().tabAt(point)
+        if index == self.count() - 1:
+            # Do not show any context-menu for "Add new tab"-Tab.
+            return
+
+        menu = QMenu(self)
+        menu.addAction(ActionBuilder(self).name("New Tab").callback(self.newTab).build())
+        menu.addSeparator()
+        menu.addAction(ActionBuilder(self).name("Rename Tab").callback(self.renameTab).build())
+        menu.addSeparator()
+        menu.addAction(ActionBuilder(self).name("Close Tab").callback(self.closeTab).build())
+        close_other_tabs_action = ActionBuilder(self).name("Close Other Tabs").callback(lambda: self.closeOtherTabs(None))
+        if self.count() <= 2:
+            close_other_tabs_action.enabled(False)
+        menu.addAction(close_other_tabs_action.build())
+        menu.exec(self.tabBar().mapToGlobal(point))
+
     def newTab(self):
-        name = "Tab {}".format(self.count())
+        name = "Tab {}".format(self._current_tab_number)
+        self._current_tab_number += 1
         self.insertTab(self.count() - 1, CodecTab(self, self._context, self._plugins), name)
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
+
+    def renameTab(self):
+        self.tabBar().renameTab()
 
     def selectTab(self, index):
         if index < 0 or index > self.count() - 2:
@@ -70,7 +99,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.setCurrentIndex(index)
 
     def closeTab(self, index=None):
-        if not index:
+        if index is None:
             index = self.currentIndex()
         name = self.tabText(index)
         self.removeTab(index)
@@ -79,6 +108,18 @@ class MainWindowTabsWidget(QTabWidget):
         else:
             self.setCurrentIndex(index - 1)
         self.tabClosed.emit(index, name)
+
+    def closeOtherTabs(self, current_index=None):
+        if current_index is None:
+            current_index = self.currentIndex()
+
+        # Close every tab ahead of the current one, starting at the end.
+        for index in reversed(range(current_index + 1, self.tabCount())):
+            self.closeTab(index)
+
+        # Close every tab below the current one, starting at the beginning.
+        for index in range(0, current_index):
+            self.closeTab(0)
 
     def nextTab(self):
         old_index = self.currentIndex()

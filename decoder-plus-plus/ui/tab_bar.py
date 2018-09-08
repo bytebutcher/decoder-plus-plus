@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QTabBar, QLineEdit
 
@@ -28,6 +28,7 @@ class TabBar(QTabBar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.__edit_mode_activated = False
 
     def mouseDoubleClickEvent(self, event):
