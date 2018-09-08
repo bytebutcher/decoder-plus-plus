@@ -34,6 +34,8 @@ class MainWindowWidget(QWidget):
 
         self.layout = QVBoxLayout(self)
         self._tabs = MainWindowTabsWidget(self._context, self._plugins)
+        self._tabs.tabAdded.connect(self._tab_added_event)
+        self._tabs.tabClosed.connect(self._tab_closed_event)
         self.layout.addWidget(self._tabs)
         self.setLayout(self.layout)
 
@@ -139,6 +141,21 @@ class MainWindowWidget(QWidget):
                                 "Ctrl+Shift+Tab",
                                 lambda: self._tabs.previousTab(),
                                 tab_menu)
+
+        tab_menu.addSeparator()
+        self._tabs_select_action = []
+
+        def select_tab(index):
+            return lambda: self._tabs.selectTab(index)
+
+        for tab_num in range(1, 10):
+            action = self._register_shortcut(Context.Shortcut.TAB_SELECT_.format(tab_num),
+                                    "Select Tab {}".format(tab_num),
+                                    "Alt+{}".format(tab_num),
+                                    select_tab(tab_num - 1),
+                                    tab_menu)
+            action.setVisible(False)
+            self._tabs_select_action.append(action)
         return tab_menu
 
     def _init_file_menu(self, main_menu):
@@ -154,9 +171,10 @@ class MainWindowWidget(QWidget):
                                 file_menu)
         return file_menu
 
-    def _register_shortcut(self, id, text, shortcut_key, callback, menu):
+    def _register_shortcut(self, id, text, shortcut_key, callback, menu) -> QAction:
         action = self._context.registerShortcut(id, text, shortcut_key, callback, self)
         menu.addAction(action)
+        return action
 
     def _call_focussed_frame(self, callback):
         focussed_frame = self._get_focussed_frame()
@@ -205,3 +223,11 @@ class MainWindowWidget(QWidget):
         """ Shows the hidden dialog. """
         hidden_dialog = HiddenDialog(self, self._context, tab_select)
         hidden_dialog.exec_()
+
+    def _tab_added_event(self, index, name):
+        if 0 <= index < len(self._tabs_select_action):
+            self._tabs_select_action[index].setVisible(True)
+
+    def _tab_closed_event(self, index, name):
+        for index in range(0, len(self._tabs_select_action)):
+            self._tabs_select_action[index].setVisible(index  < self._tabs.tabCount())

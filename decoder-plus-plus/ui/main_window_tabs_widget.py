@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import qtawesome
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton
 
@@ -51,7 +52,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.tabCloseRequested.connect(self.closeTab)
         tab_new_button = QToolButton()
         tab_new_button.clicked.connect(self.newTab)
-        tab_new_button.setText("+")
+        tab_new_button.setIcon(qtawesome.icon("fa.plus"))
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
@@ -62,6 +63,11 @@ class MainWindowTabsWidget(QTabWidget):
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
+
+    def selectTab(self, index):
+        if index < 0 or index > self.count() - 2:
+            return
+        self.setCurrentIndex(index)
 
     def closeTab(self, index=None):
         if not index:
@@ -87,3 +93,7 @@ class MainWindowTabsWidget(QTabWidget):
         new_index = (old_index - 1) % (self.count() - 1)
         self.setCurrentIndex(new_index)
         self.tabMovedToPrevious.emit(old_index, new_index, name)
+
+    def tabCount(self):
+        # do not count the "Add new Tab"-Tab.
+        return self.count() - 1
