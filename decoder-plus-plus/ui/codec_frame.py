@@ -264,6 +264,15 @@ class CodecFrame(CollapsibleFrame):
     def getComboBoxes(self):
         return self._combo_boxes
 
+    def cutSelectedInputText(self):
+        self._plain_view_widget.cutSelectedInputText()
+
+    def copySelectedInputText(self):
+        self._plain_view_widget.copySelectedInputText()
+
+    def pasteSelectedInputText(self):
+        self._plain_view_widget.pasteSelectedInputText()
+
     def focusInputText(self):
         self._plain_view_widget.setFocus()
 

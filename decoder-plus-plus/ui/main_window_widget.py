@@ -64,6 +64,22 @@ class MainWindowWidget(QWidget):
 
     def _init_edit_menu(self, main_menu):
         edit_menu = main_menu.addMenu('&Edit')
+        self._register_shortcut(Context.Shortcut.EDIT_CUT,
+                                "C&ut",
+                                "Ctrl+X",
+                                lambda: self._cut_selected_plain_view(),
+                                edit_menu)
+        self._register_shortcut(Context.Shortcut.EDIT_COPY,
+                                "&Copy",
+                                "Ctrl+C",
+                                lambda: self._copy_selected_plain_view(),
+                                edit_menu)
+        self._register_shortcut(Context.Shortcut.EDIT_PASTE,
+                                "&Paste",
+                                "Ctrl+P",
+                                lambda: self._paste_selected_plain_view(),
+                                edit_menu)
+        edit_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                 "Toggle Search Field",
                                 "Ctrl+F",
@@ -107,6 +123,9 @@ class MainWindowWidget(QWidget):
                                 "Alt+Shift+S",
                                 lambda: self._focus_combo_box(PluginType.SCRIPT),
                                 select_menu)
+
+        select_menu.addSeparator()
+
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
                                 "Select Text Field",
                                 "Alt+Shift+I",
@@ -169,6 +188,12 @@ class MainWindowWidget(QWidget):
                                 "Ctrl+W",
                                 lambda: self._tabs.closeTab(),
                                 file_menu)
+        file_menu.addSeparator()
+        self._register_shortcut(Context.Shortcut.FILE_EXIT,
+                                "E&xit",
+                                "Ctrl+Q",
+                                lambda: self._parent.close(),
+                                file_menu)
         return file_menu
 
     def _register_shortcut(self, id, text, shortcut_key, callback, menu) -> QAction:
@@ -209,6 +234,15 @@ class MainWindowWidget(QWidget):
                 focus_frame = focussed_frame
             focus_frame.focusInputText()
             self._tabs.currentWidget().ensureWidgetVisible(focus_frame)
+
+    def _paste_selected_plain_view(self):
+        self._call_focussed_frame(lambda focussed_frame: focussed_frame.pasteSelectedInputText())
+
+    def _cut_selected_plain_view(self):
+        self._call_focussed_frame(lambda focussed_frame: focussed_frame.cutSelectedInputText())
+
+    def _copy_selected_plain_view(self):
+        self._call_focussed_frame(lambda focussed_frame: focussed_frame.copySelectedInputText())
 
     def _select_plain_view(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.selectPlainView())

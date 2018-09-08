@@ -39,8 +39,12 @@ class Shortcut(QAction):
         """ Returns the unique id of the shortcut (e.g. "next_frame_focus"). """
         return self._id
 
-    def name(self) -> str:
-        """ Returns the name of the shortcut (e.g. "Focus next frame"). """
+    def name(self, remove_anchors=False) -> str:
+        """ Returns the name of the shortcut (e.g. "Focus next frame").
+        :param remove_anchors: if True removes every occurences of the ampersand-symbol (&) within the name.
+        """
+        if remove_anchors:
+            return self._name.replace("&", "")
         return self._name
 
     def setName(self, name: str):

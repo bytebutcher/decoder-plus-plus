@@ -57,7 +57,7 @@ class ShortcutTable(QTableView):
         model = QStandardItemModel(len(shortcuts), 3)
         model.setHorizontalHeaderLabels(["Id", "Name", "Shortcut"])
         for index, shortcut in enumerate(shortcuts):
-            name_item = QStandardItem(shortcut.name())
+            name_item = QStandardItem(shortcut.name(remove_anchors=True))
             name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
             model.setItem(index, 0, QStandardItem(shortcut.id()))
             model.setItem(index, 1, name_item)

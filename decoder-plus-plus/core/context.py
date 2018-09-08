@@ -41,6 +41,10 @@ class Context(QObject):
     class Shortcut:
         """ A set of all shortcut ids which can be used within the application. """
 
+        FILE_EXIT = "file_exit"
+        EDIT_CUT = "edit_cut"
+        EDIT_COPY = "edit_copy"
+        EDIT_PASTE = "edit_paste"
         TAB_NEW = "tab_new"
         TAB_RENAME = "tab_rename"
         TAB_NEXT = "tab_next"

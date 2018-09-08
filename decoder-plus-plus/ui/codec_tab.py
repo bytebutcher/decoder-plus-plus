@@ -129,4 +129,4 @@ class CodecTab(QScrollArea):
             if isinstance(widget, CodecFrame):
                 return widget
             widget = widget.parent()
-        return self._frames.widget(0)
+        return self._frames_layout.itemAt(0).widget()

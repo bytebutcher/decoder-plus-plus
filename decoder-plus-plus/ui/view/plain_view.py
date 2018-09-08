@@ -151,6 +151,15 @@ class PlainView(QFrame):
         self._plain_text.setFocus()
         self._search_field.setVisible(False)
 
+    def cutSelectedInputText(self):
+        self._plain_text.cut()
+
+    def copySelectedInputText(self):
+        self._plain_text.copy()
+
+    def pasteSelectedInputText(self):
+        self._plain_text.paste()
+
     def toggleSearchField(self):
         """ Toggles the search field. """
         if self._search_field.hasFocus() and self._search_field.isVisible():
