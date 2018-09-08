@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QToolButton, QLabel, QAction
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction
 
 from core import Context
 from core.plugin.plugin import PluginType
-from ui import *
 from ui.dialog.hidden_dialog import HiddenDialog
+from ui.main_window_tabs_widget import MainWindowTabsWidget
 
 
 class MainWindowWidget(QWidget):
@@ -33,22 +33,22 @@ class MainWindowWidget(QWidget):
         self._main_window = parent
 
         self.layout = QVBoxLayout(self)
-        self._tabs = self._init_tabs_widget()
-        self._tab_new()
-        self._tabs.setCurrentIndex(0)
+        self._tabs = MainWindowTabsWidget(self._context, self._plugins)
         self.layout.addWidget(self._tabs)
         self.setLayout(self.layout)
-        self._init_shortcuts()
 
+        self._init_shortcuts()
+        self._tabs.newTab()
+        self._tabs.setCurrentIndex(0)
 
     def _init_shortcuts(self):
         main_menu = self._parent.menuBar()
-        self._init_file_menu(main_menu)
-        self._init_edit_menu(main_menu)
-        self._init_view_menu(main_menu)
-        self._init_select_menu(main_menu)
-        self._init_tab_menu(main_menu)
-        self._init_help_menu(main_menu)
+        self._file_menu = self._init_file_menu(main_menu)
+        self._edit_menu = self._init_edit_menu(main_menu)
+        self._view_menu = self._init_view_menu(main_menu)
+        self._select_menu = self._init_select_menu(main_menu)
+        self._tab_menu = self._init_tab_menu(main_menu)
+        self._help_menu = self._init_help_menu(main_menu)
 
     def _init_help_menu(self, main_menu):
         help_menu = main_menu.addMenu('&Help')
@@ -58,6 +58,7 @@ class MainWindowWidget(QWidget):
         about_action = QAction("&About", self)
         about_action.triggered.connect(self._show_hidden_dialog)
         help_menu.addAction(about_action)
+        return help_menu
 
     def _init_edit_menu(self, main_menu):
         edit_menu = main_menu.addMenu('&Edit')
@@ -66,6 +67,7 @@ class MainWindowWidget(QWidget):
                                 "Ctrl+F",
                                 lambda: self._toggle_search_field(),
                                 edit_menu)
+        return edit_menu
 
     def _init_view_menu(self, main_menu):
         view_menu = main_menu.addMenu('&View')
@@ -79,6 +81,7 @@ class MainWindowWidget(QWidget):
                                 "Alt+Shift+X",
                                 lambda: self._select_hex_view(),
                                 view_menu)
+        return view_menu
 
     def _init_select_menu(self, main_menu):
         select_menu = main_menu.addMenu('&Select')
@@ -117,41 +120,43 @@ class MainWindowWidget(QWidget):
                                 "Alt+Up",
                                 lambda: self._focus_input_text_previous(),
                                 select_menu)
+        return select_menu
 
     def _init_tab_menu(self, main_menu):
         tab_menu = main_menu.addMenu('&Tabs')
         self._register_shortcut(Context.Shortcut.TAB_RENAME,
                                 "Rename Tab",
                                 "Alt+Shift+R",
-                                self._tabs.tabBar().renameTab,
+                                lambda: self._tabs.tabBar().renameTab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_NEXT,
                                 "Next Tab",
                                 "Ctrl+Tab",
-                                self._tab_next,
+                                lambda: self._tabs.nextTab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_PREVIOUS,
                                 "Previous Tab",
                                 "Ctrl+Shift+Tab",
-                                self._tab_previous,
+                                lambda: self._tabs.previousTab(),
                                 tab_menu)
+        return tab_menu
 
     def _init_file_menu(self, main_menu):
         file_menu = main_menu.addMenu('&File')
         self._register_shortcut(Context.Shortcut.TAB_NEW,
                                 "New Tab", "Ctrl+T",
-                                self._tab_new,
+                                lambda: self._tabs.newTab(),
                                 file_menu)
         self._register_shortcut(Context.Shortcut.TAB_CLOSE,
                                 "Close Tab",
                                 "Ctrl+W",
-                                self._tab_close,
+                                lambda: self._tabs.closeTab(),
                                 file_menu)
+        return file_menu
 
     def _register_shortcut(self, id, text, shortcut_key, callback, menu):
         action = self._context.registerShortcut(id, text, shortcut_key, callback, self)
         menu.addAction(action)
-
 
     def _call_focussed_frame(self, callback):
         focussed_frame = self._get_focussed_frame()
@@ -195,45 +200,6 @@ class MainWindowWidget(QWidget):
 
     def _toggle_search_field(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())
-
-    def _init_tabs_widget(self):
-        tabs = QTabWidget()
-        bar = TabBar()
-        # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
-        # WORKAROUND: ???
-        # NOTES:
-        # * Currently moving tabs is disabled.
-        # * Using an Event-Filter to disable dropping tabs on certain areas did not work.
-        bar.setMovable(False)
-        tabs.setTabBar(bar)
-        tabs.setTabsClosable(True)
-        tabs.tabCloseRequested.connect(self._tab_close)
-        tab_new_button = QToolButton()
-        tab_new_button.clicked.connect(self._tab_new)
-        tab_new_button.setText("+")
-        tabs.addTab(QLabel("Add new Tab"), "")
-        tabs.setTabEnabled(0, False)
-        tabs.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
-        return tabs
-
-    def _tab_new(self):
-        self._tabs.insertTab(self._tabs.count() - 1, CodecTab(self, self._context, self._plugins), "Tab")
-        self._tabs.setCurrentIndex(self._tabs.count() - 2)
-
-    def _tab_close(self, index=None):
-        if not index:
-            index = self._tabs.currentIndex()
-        self._tabs.removeTab(index)
-        if self._tabs.count() <= 1:
-            self._tab_new()
-        else:
-            self._tabs.setCurrentIndex(index - 1)
-
-    def _tab_next(self):
-        self._tabs.setCurrentIndex((self._tabs.currentIndex() + 1) % (self._tabs.count() - 1))
-
-    def _tab_previous(self):
-        self._tabs.setCurrentIndex((self._tabs.currentIndex() - 1) % (self._tabs.count() - 1))
 
     def _show_hidden_dialog(self, tab_select: str=None):
         """ Shows the hidden dialog. """

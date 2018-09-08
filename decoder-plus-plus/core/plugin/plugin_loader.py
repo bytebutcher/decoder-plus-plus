@@ -53,6 +53,8 @@ class PluginLoader():
                             self._unresolved_dependencies[plugin.name()] = unresolved_dependencies
                             self._logger.error("{}: Unresolved dependencies {}".format(
                                 plugin.name(), ", ".join(unresolved_dependencies)))
+                            # Disable plugins with unresolved dependencies.
+                            plugin.set_enabled(False)
                         self._plugins_path[path][fname] = plugin
                     except Exception as e:
                         self._logger.error("{}: {}".format(fname, str(e)))

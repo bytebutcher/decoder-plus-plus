@@ -92,12 +92,10 @@ class PluginSelectionFrame(QFrame):
             if dependencies:
                 # Highlight plugins with unresolved dependencies
                 item.setForeground(QBrush(QtCore.Qt.red, QtCore.Qt.SolidPattern))
-                # Disable plugins with missing dependencies.
-                plugin.set_enabled(False)
                 # Prevent user from enabling plugins with missing dependencies.
                 item.setCheckable(False)
 
-            if plugin.is_enabled():
+            if not dependencies and plugin.is_enabled():
                 # Set the checkbox when plugins are enabled
                 item.setCheckState(QtCore.Qt.Checked)
             else:

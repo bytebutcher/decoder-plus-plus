@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
     def _log_plugins_unresolved_dependencies(self, context: 'core.context.Context'):
         """ Show unresolved dependencies of plugins in LogDock. """
         try:
-            unresolved_dependencies = context.getPluginsUnresolvedDependencies()
+            unresolved_dependencies = context.getPluginsUnresolvedDependencies(filter_enabled_plugins=False)
             for plugin_name in unresolved_dependencies:
                 self._message_widget.showError(
                     "{}: Unresolved dependencies {}".format(plugin_name, ", ".join(unresolved_dependencies[plugin_name]))

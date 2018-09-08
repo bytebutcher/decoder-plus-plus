@@ -176,9 +176,11 @@ class Context(QObject):
             return NullShortcut()
         return self._shortcuts[the_id]
 
-    def getPluginsUnresolvedDependencies(self) -> Dict[str, str]:
-        """ Returns all unresolved dependencies in a dict. """
-        return self._plugin_loader.get_unresolved_dependencies()
+    def getPluginsUnresolvedDependencies(self, filter_enabled_plugins: bool=True) -> Dict[str, str]:
+        """ Returns all unresolved dependencies in a dict.
+        :param filter_enabled_plugins: when True, returns only unresolved dependencies of enabled plugins.
+        """
+        return self._plugin_loader.get_unresolved_dependencies(filter_enabled_plugins)
 
     def getPluginsErrors(self) -> Dict[str, str]:
         """ Returns all errors which happened while loading plugins. """
