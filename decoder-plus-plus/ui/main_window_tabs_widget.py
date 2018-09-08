@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton
 
 from ui import TabBar, CodecTab
@@ -22,11 +23,23 @@ from ui import TabBar, CodecTab
 
 class MainWindowTabsWidget(QTabWidget):
 
+    # tabAdded(index, name)
+    tabAdded = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    # tabClosed(index, name)
+    tabClosed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    # tabRenamed(index, old_name, new_name)
+    tabRenamed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabMovedToPrevious(old_index, new_index, name)
+    tabMovedToPrevious = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabMovedToNext(old_index, new_index, name)
+    tabMovedToNext = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+
     def __init__(self, context, plugins, parent=None):
         super(__class__, self).__init__(parent)
         self._context = context
         self._plugins = plugins
         bar = TabBar()
+        bar.tabRenamed.connect(self.tabRenamed.emit)
         # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
         # WORKAROUND: ???
         # NOTES:
@@ -44,20 +57,33 @@ class MainWindowTabsWidget(QTabWidget):
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
 
     def newTab(self):
-        self.insertTab(self.count() - 1, CodecTab(self, self._context, self._plugins), "Tab")
-        self.setCurrentIndex(self.count() - 2)
+        name = "Tab"
+        self.insertTab(self.count() - 1, CodecTab(self, self._context, self._plugins), name)
+        index = self.count() - 2
+        self.setCurrentIndex(index)
+        self.tabAdded.emit(index, name)
 
     def closeTab(self, index=None):
         if not index:
             index = self.currentIndex()
+        name = self.tabText(index)
         self.removeTab(index)
         if self.count() <= 1:
             self.newTab()
         else:
             self.setCurrentIndex(index - 1)
+        self.tabClosed.emit(index, name)
 
     def nextTab(self):
-        self.setCurrentIndex((self.currentIndex() + 1) % (self.count() - 1))
+        old_index = self.currentIndex()
+        name = self.tabText(old_index)
+        new_index = (old_index + 1) % (self.count() - 1)
+        self.setCurrentIndex(new_index)
+        self.tabMovedToNext.emit(old_index, new_index, name)
 
     def previousTab(self):
-        self.setCurrentIndex((self.currentIndex() - 1) % (self.count() - 1))
+        old_index = self.currentIndex()
+        name = self.tabText(old_index)
+        new_index = (old_index - 1) % (self.count() - 1)
+        self.setCurrentIndex(new_index)
+        self.tabMovedToPrevious.emit(old_index, new_index, name)

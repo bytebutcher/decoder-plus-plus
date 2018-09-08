@@ -20,14 +20,15 @@ from PyQt5.QtWidgets import QTabBar, QLineEdit
 
 
 class TabBar(QTabBar):
-
     """QTabBar with double click signal and tab rename behavior."""
+
+    # tabRenamed(index, old_name, new_name)
+    tabRenamed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    tabDoubleClicked = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.__edit_mode_activated = False
-
-    tabDoubleClicked = pyqtSignal(int)
 
     def mouseDoubleClickEvent(self, event):
         if not self.__edit_mode_activated:
@@ -57,7 +58,10 @@ class TabBar(QTabBar):
 
     @pyqtSlot()
     def finish_rename(self):
+        old_name = self.tabText(self.__edited_tab)
+        new_name = self.__edit.text()
         self.setTabText(self.__edited_tab, self.__edit.text())
         self.__edit.deleteLater()
         self.__edit_mode_activated = False
+        self.tabRenamed.emit(self.__edited_tab, old_name, new_name)
 
