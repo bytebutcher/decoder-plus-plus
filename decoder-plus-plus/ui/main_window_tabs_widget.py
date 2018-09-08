@@ -57,7 +57,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
 
     def newTab(self):
-        name = "Tab"
+        name = "Tab {}".format(self.count())
         self.insertTab(self.count() - 1, CodecTab(self, self._context, self._plugins), name)
         index = self.count() - 2
         self.setCurrentIndex(index)
