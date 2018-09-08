@@ -42,7 +42,7 @@ class MainWindowTabsWidget(QTabWidget):
         self._plugins = plugins
         self._current_tab_number = 1
         bar = TabBar()
-        bar.customContextMenuRequested.connect(self.showContextMenu)
+        bar.customContextMenuRequested.connect(self._show_context_menu)
         bar.tabRenamed.connect(self.tabRenamed.emit)
         # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
         # WORKAROUND: ???
@@ -61,7 +61,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
 
-    def showContextMenu(self, point):
+    def _show_context_menu(self, point):
         if not point:
             return
 
@@ -71,15 +71,21 @@ class MainWindowTabsWidget(QTabWidget):
             return
 
         menu = QMenu(self)
-        menu.addAction(ActionBuilder(self).name("New Tab").callback(self.newTab).build())
+        menu.addAction(ActionBuilder(self)
+                       .name("New Tab")
+                       .callback(self.newTab).build())
         menu.addSeparator()
-        menu.addAction(ActionBuilder(self).name("Rename Tab").callback(self.renameTab).build())
+        menu.addAction(ActionBuilder(self)
+                       .name("Rename Tab")
+                       .callback(self.renameTab).build())
         menu.addSeparator()
-        menu.addAction(ActionBuilder(self).name("Close Tab").callback(self.closeTab).build())
-        close_other_tabs_action = ActionBuilder(self).name("Close Other Tabs").callback(lambda: self.closeOtherTabs(None))
-        if self.count() <= 2:
-            close_other_tabs_action.enabled(False)
-        menu.addAction(close_other_tabs_action.build())
+        menu.addAction(ActionBuilder(self)
+                       .name("Close Tab")
+                       .callback(self.closeTab).build())
+        menu.addAction(ActionBuilder(self)
+                       .name("Close Other Tabs")
+                       .enabled(self.tabCount() > 1)
+                       .callback(lambda: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
     def newTab(self):
