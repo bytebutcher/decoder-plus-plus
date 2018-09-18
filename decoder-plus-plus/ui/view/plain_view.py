@@ -16,9 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import qtawesome
-from PyQt5.QtCore import pyqtSignal, QRegExp, Qt
-from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal, QRegExp, QPoint, QEvent
+from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QAction
 
 from ui import SearchField
 
@@ -39,9 +40,12 @@ class PlainView(QFrame):
         self._logger = logging.getLogger('decoder_plusplus')
 
         self._plain_text = QPlainTextEdit(text)
+        self._plain_text.setLineWrapMode(QPlainTextEdit.NoWrap)
         self._plain_text.dragEnterEvent = self._on_plain_text_drag_enter_event
         self._plain_text.dropEvent = self._on_plain_text_drop_event
         self._plain_text.textChanged.connect(self._on_plain_text_changed_event)
+        self._plain_text.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._plain_text.customContextMenuRequested.connect(self.showContextMenu)
 
         self._search_field = SearchField()
         self._search_field.setClosable(True)
@@ -58,6 +62,27 @@ class PlainView(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(layout)
+
+    def showContextMenu(self, point: QPoint=None):
+        """ Displays a customized context menu for the plain view. """
+        if not point:
+            point = QCursor.pos()
+        context_menu = self._plain_text.createStandardContextMenu()
+        context_menu.addSeparator()
+        wrap_lines_action = QAction(self)
+        wrap_lines_action.setText("Wrap Lines")
+        wrap_lines_action.setCheckable(True)
+        wrap_lines_action.setChecked(self._plain_text.lineWrapMode() == QPlainTextEdit.WidgetWidth)
+        wrap_lines_action.triggered.connect(self._on_plain_text_context_menu_wrap_lines)
+        context_menu.addAction(wrap_lines_action)
+        context_menu.exec(self._plain_text.mapToGlobal(point))
+
+    def _on_plain_text_context_menu_wrap_lines(self, e: QEvent):
+        """ Un-/wraps lines when user clicks the wrap-lines action within the plain views context-menu. """
+        if self._plain_text.lineWrapMode() == QPlainTextEdit.NoWrap:
+            self._plain_text.setLineWrapMode(QPlainTextEdit.WidgetWidth)
+        else:
+            self._plain_text.setLineWrapMode(QPlainTextEdit.NoWrap)
 
     def _on_plain_text_drag_enter_event(self, e):
         """ Catches the drag-enter-event which is triggered when media is dragged into the plain text area. """
