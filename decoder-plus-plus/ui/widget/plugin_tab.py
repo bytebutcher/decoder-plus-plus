@@ -37,13 +37,13 @@ class PluginSelectionFrame(QFrame):
     itemChanged = pyqtSignal('PyQt_PyObject')
     textChanged = pyqtSignal('PyQt_PyObject')
 
-    def __init__(self, context: Context, plugins: Plugins):
+    def __init__(self, context: Context, plugins: Plugins, parent=None):
         """
         Initializes the Plugin Selection Frame.
         :param context: the context of the application.
         :param plugins: the plugins to display.
         """
-        super(__class__, self).__init__()
+        super(__class__, self).__init__(parent)
         self._context = context
         self._logger = context.logger()
         self._plugins = plugins
@@ -175,10 +175,10 @@ class PluginTab(QFrame):
         self._context = context
         self._logger = context.logger()
         self._plugins = context.plugins()
-        self._plugin_selection_frame = PluginSelectionFrame(context, self._plugins)
+        self._plugin_selection_frame = PluginSelectionFrame(context, self._plugins, self)
 
         base_layout = QVBoxLayout()
-        inner_widget = QFrame()
+        inner_widget = QFrame(self)
         inner_layout = QHBoxLayout()
         self._plugin_selection_frame.enterPressed.connect(self._on_enter_pressed)
         self._plugin_selection_frame.selectionChanged.connect(self._select_frame)

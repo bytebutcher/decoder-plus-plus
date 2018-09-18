@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QGroupBox, QRadioButton
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QRadioButton
 
 from core import Context
 from core.plugin.plugin import PluginType
@@ -65,11 +64,12 @@ class CodecFrame(CollapsibleFrame):
         #self._logger = context.logger(log_format="%(module)s: %(frame_id)d: %(lineno)d: %(msg)s",log_fields={'frame_id': frame_id})
 
     def _init_input_frame(self, text):
-        input_frame = QFrame()
+        input_frame = QFrame(self)
         frame_layout = QVBoxLayout()
-        self._plain_view_widget = PlainView(text)
+        self._plain_view_widget = PlainView(self, text)
         self._plain_view_widget.textChanged.connect(self._text_changed_event)
         self._plain_view_widget = self._plain_view_widget
+        self.setMetaData(text)
         frame_layout.addWidget(self._plain_view_widget)
         frame_layout.setContentsMargins(0, 6, 6, 6)
 
@@ -81,13 +81,13 @@ class CodecFrame(CollapsibleFrame):
         return input_frame
 
     def _init_button_frame(self):
-        button_frame = QFrame()
+        button_frame = QFrame(self)
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
         self._combo_box_frame.pluginSelected.connect(self._execute_plugin_select)
         button_frame_layout.addWidget(self._combo_box_frame)
-        self._smart_decode_button = SmartDecodeButton(self._plugins.filter(type=PluginType.DECODER))
+        self._smart_decode_button = SmartDecodeButton(self, self._plugins.filter(type=PluginType.DECODER))
         self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
         button_frame_layout.addWidget(self._smart_decode_button)
         button_frame_layout.addWidget(self._init_radio_frame())
@@ -96,7 +96,7 @@ class CodecFrame(CollapsibleFrame):
         return button_frame
 
     def _init_radio_frame(self):
-        radio_frame = QFrame()
+        radio_frame = QFrame(self)
         radio_frame_layout = QHBoxLayout()
         self._plain_radio = QRadioButton("Plain")
         self._plain_radio.setChecked(True)
@@ -257,9 +257,13 @@ class CodecFrame(CollapsibleFrame):
         self._plain_view_widget.blockSignals(blockSignals)
         self._plain_view_widget.setPlainText(text)
         self._plain_view_widget.blockSignals(False)
+        self.setMetaData(text)
 
     def getInputText(self):
         return self._plain_view_widget.toPlainText()
+
+    def getTitle(self) -> str:
+        return self._title_frame.getTitle()
 
     def getComboBoxes(self):
         return self._combo_boxes

@@ -30,12 +30,12 @@ class PlainView(QFrame):
 
     textChanged = pyqtSignal()
 
-    def __init__(self, text):
+    def __init__(self, parent, text):
         """
         Initializes the plain view.
         :param text: the text to be shown in the plain-text-edit.
         """
-        super(PlainView, self).__init__()
+        super(PlainView, self).__init__(parent)
         self._logger = logging.getLogger('decoder_plusplus')
 
         self._plain_text = QPlainTextEdit(text)

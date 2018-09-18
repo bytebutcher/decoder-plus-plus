@@ -27,7 +27,7 @@ class SmartDecodeButton(QFrame):
 
     clicked = pyqtSignal()
 
-    def __init__(self, plugins: List[DecoderPlugin], parent=None):
+    def __init__(self, parent, plugins: List[DecoderPlugin]):
         super(__class__, self).__init__(parent)
         self._plugins = plugins
         layout = QHBoxLayout()
