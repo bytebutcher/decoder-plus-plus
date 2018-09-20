@@ -172,12 +172,13 @@ class CodecFrame(CollapsibleFrame):
     def _text_changed_event(self):
         # BUG: Performance Issue When Updating Multiple HexView-Frames When Input Text Changes
         # WORKAROUND: Do only update HexView when it's visible
+        input = self._plain_view_widget.toPlainText()
         if self._hex_view_widget.isVisible():
-            input = self._plain_view_widget.toPlainText()
             self._hex_view_widget.blockSignals(True)
             self._hex_view_widget.setData(input)
             self._hex_view_widget.blockSignals(False)
         self._status_widget.setStatus("DEFAULT")
+        self.setMetaData(input)
         self._execute()
 
     def _hex_view_text_changed_event(self, new_text):

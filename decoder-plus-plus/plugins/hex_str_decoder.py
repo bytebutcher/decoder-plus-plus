@@ -27,7 +27,7 @@ class Plugin(DecoderPlugin):
         return "hex_str"
 
     def run(self, text):
-        return bytes.fromhex(text).decode('ascii')
+        return self._run_lines(text, lambda text_part: bytes.fromhex(text_part).decode('ascii'))
 
     def can_decode_input(self, input):
         if len(input) % 2 == 0:
