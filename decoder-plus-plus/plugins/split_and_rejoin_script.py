@@ -103,7 +103,6 @@ class SplitAndRejoinDialog(QDialog):
         self._error_frame.setHidden(True)
         return self._error_frame
 
-
     def _init_button_box(self):
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self._accept)

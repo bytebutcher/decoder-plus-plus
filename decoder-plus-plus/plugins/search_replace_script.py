@@ -1,9 +1,7 @@
 import re
 
 import qtawesome
-from PyQt5.QtCore import QPoint
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QLabel, QLineEdit, QFrame, \
-    QCheckBox, QToolTip
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QLabel, QLineEdit, QFrame, QCheckBox
 
 from core.exception import AbortedException
 from core.plugin.plugin import ScriptPlugin
@@ -75,6 +73,7 @@ class SearchAndReplaceDialog(QDialog):
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(self._init_form_frame())
+        main_layout.addWidget(self._init_error_frame())
         main_layout.addWidget(self._init_button_box())
         self.setLayout(main_layout)
         self.setWindowIcon(qtawesome.icon("fa.search"))
@@ -86,11 +85,24 @@ class SearchAndReplaceDialog(QDialog):
         button_box.rejected.connect(self.reject)
         return button_box
 
+    def _init_error_frame(self):
+        self._error_frame = QFrame()
+        layout = QVBoxLayout()
+        self._error_text = QLabel("")
+        self._error_text.setStyleSheet('QLabel { color: red }')
+        layout.addWidget(self._error_text)
+        self._error_frame.setLayout(layout)
+        self._error_frame.setHidden(True)
+        return self._error_frame
+
+
     def _accept(self):
         if not self.getSearchTerm():
             self._search_term_edit.setStyleSheet('QLineEdit { background-color: #f6989d }')
-            QToolTip.showText(self._search_term_edit.mapToGlobal(QPoint()), "Search term should not be empty.")
+            self._error_frame.setHidden(False)
+            self._error_text.setText("Search term should not be empty.")
             return
+        self._error_text.setHidden(True)
         self.accept()
 
     def _init_form_frame(self):
