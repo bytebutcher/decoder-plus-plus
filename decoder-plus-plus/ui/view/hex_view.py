@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from typing import List
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QRegExp
@@ -71,16 +72,11 @@ class HexView(QTableView):
         self.verticalHeader().setFont(self._item_font)
 
     def _vertical_header_width(self):
-        # BUG: Synchronizing hex-views and code-views vertical header's width does not work (FixedWidth vs MarginWidth).
-        # WORKAROUND: HexView requires additional 16 units.
-        # NOTE:
-        # * Since the code-view isn't displayed anymore in the main-window these 6 additional units don't matter anymore.
-        #
         vertical_header_font = QFont()
         vertical_header_font.setFamily('Courier')
         vertical_header_font.setFixedPitch(True)
         vertical_header_font.setPointSize(8)
-        vertical_header_width = QFontMetrics(vertical_header_font).width("00000") + 16 + 6
+        vertical_header_width = QFontMetrics(vertical_header_font).width("00000") + 22
         return vertical_header_width
 
     def _init_headers(self, chunks):
@@ -150,7 +146,7 @@ class HexView(QTableView):
         self._prefix_hex_value(item, model)
         self._set_hex_text(item, model)
         hex_string = self._get_hex_text(model)
-        self.textChanged.emit(bytearray.fromhex(hex_string).decode(encoding="Latin1"))
+        self.textChanged.emit(bytearray.fromhex(hex_string).decode('utf-8', errors='surrogateescape'))
 
     def _get_hex_text(self, model):
         hex_string = ""
@@ -169,7 +165,7 @@ class HexView(QTableView):
                 hex_text += hex_char
         model.blockSignals(True)
         model_item = model.item(item.row(), 16)
-        model_item.setText(str(self._get_text_view(hex_text)))
+        model_item.setText(bytes.fromhex(hex_text).decode('utf-8', errors='surrogateescape'))
         model.blockSignals(False)
 
     def _prefix_hex_value(self, item, model):
@@ -179,27 +175,17 @@ class HexView(QTableView):
             model.item(item.row(), item.column()).setText("0" + hex_char)
             model.blockSignals(False)
 
-    """
-    Breaks the string into a list of chunks with a specified max length. 
-    """
-    def _chunk_string(self, string, length):
+    def _chunk_string(self, string: str, length: int) -> List[str]:
+        """ Breaks the string into a list of chunks with a specified max length. """
         return [string[0 + i:length + i] for i in range(0, len(string), length)]
 
-    def _get_hex_view(self, string):
-        hex_view = ["{0:02x}".format(ord(string[i])) for i in range(0, len(string))]
-        return hex_view
+    def _get_hex_view(self, string: str) -> List[str]:
+        def get_hex_char(str_char):
+            """ Returns the hex representation of an utf-character while ignoring surrogate special characters. """
+            return "{0:02x}".format(ord(str_char))[:2]
+        return [get_hex_char(string[i]) for i in range(0, len(string))]
 
-    def _get_text_view(self, hex):
-        text = ""
-        hex_chunks = self._chunk_string(hex, 2)
-        for hex_chunk in hex_chunks:
-            if int(hex_chunk, 16) <= 32 or int(hex_chunk, 16) >= 127:
-                text += "."
-            else:
-                text += bytearray.fromhex(hex_chunk).decode(encoding="Latin1")
-        return text
-
-    def setData(self, input_text):
+    def setData(self, input_text: str):
         self._input_text = input_text
         self._refresh_model()
 
