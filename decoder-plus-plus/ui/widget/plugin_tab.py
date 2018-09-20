@@ -130,7 +130,17 @@ class PluginSelectionFrame(QFrame):
     def _show_item(self, index):
         """ Triggers the selectionChanged event with the selected command as parameter. """
         if len(self._list_widget.selectedIndexes()) > 0:
-            item_name = self._list_widget.item(self._list_widget.selectedIndexes()[0].row()).text()
+            # BUG: When list is filtered by text the emitted index does not correspond to the correct item.
+            # NOTE: List uses SortFilterProxyProxyModel to implement search filter.
+            # EXAMPLE:
+            #   10 items in real list. 3 items in proxy list due to search filter.
+            #   1st item in proxy list corresponds to 1st item in real list.
+            #   2nd item in proxy list corresponds to 7th item in real list.
+            #   3rd item in proxy list corresponds to 9th item in real list.
+            #   When clicking the 2nd item in proxy list the text of the 7th item of the real list should be printed.
+            # WORKAROUND: Map proxy index to model index.
+            item_index = self._list_widget.model().mapToSource(self._list_widget.selectedIndexes()[0]).row()
+            item_name = self._list_widget.item(item_index).text()
             item = self._get_item_by_name(item_name)
             self.selectionChanged.emit(item)
 
