@@ -53,6 +53,7 @@ class ComboBoxFrame(QFrame):
         layout.addWidget(self._script_combo)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self._combo_box_selection_history = []
 
     def _init_combo_box(self, title, type):
         combo_box = ComboBox()
@@ -79,6 +80,7 @@ class ComboBoxFrame(QFrame):
     def _combo_box_enter_pressed_event(self, type):
         combo_box = self._combo_boxes[type]
         current_text = combo_box.currentText()
+        self._combo_box_selection_history.append([type, combo_box.index()])
         self.selectItem(type, current_text, block_signals=False)
 
     def _combo_box_item_selected_event(self, type, index):
@@ -88,16 +90,30 @@ class ComboBoxFrame(QFrame):
             self.titleSelected.emit()
             return
 
+        self._combo_box_selection_history.append([type, index])
         plugin = self.getPluginByTypeAndIndex(type, index)
         self.pluginSelected.emit(plugin)
 
-        # BUG: Item gets deselected when running dialogs.
-        # WORKAROUND: Reselect Item
-        self._reselect_item(index, type)
+        if plugin.was_aborted():
+            # BUG: Item gets selected although dialog was canceled.
+            # WORKAROUND: Reselect last item prior to current selection.
+            self.reselectLastItem(blockSignals=True)
+        else:
+            # BUG: Item gets deselected when running dialogs.
+            # WORKAROUND: Reselect Item
+            self._reselect_item(index, type)
 
-    def _reselect_item(self, index, type):
+    def reselectLastItem(self, blockSignals=True):
+        # Always reset everything first.
+        self.resetAll()
+        if len(self._combo_box_selection_history) > 1:
+            # Reselect previous item if any.
+            type, index = self._combo_box_selection_history[-2]
+            self._reselect_item(index, type)
+
+    def _reselect_item(self, index, type, blockSignals=True):
         combo_box = self._combo_boxes[type]
-        combo_box.blockSignals(True)
+        combo_box.blockSignals(blockSignals)
         combo_box.setCurrentIndex(index)
         combo_box.blockSignals(False)
 

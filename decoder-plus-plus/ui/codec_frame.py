@@ -208,12 +208,14 @@ class CodecFrame(CollapsibleFrame):
     def _execute_plugin_select(self, plugin):
         output = ""
         try:
+            plugin.set_aborted(False)
             input = self.getInputText()
             output = plugin.select(input)
             self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.SUCCESS)
         except AbortedException as e:
             # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
             self._logger.debug(str(e))
+            plugin.set_aborted(True)
         except Exception as e:
             error = str(e)
             self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))

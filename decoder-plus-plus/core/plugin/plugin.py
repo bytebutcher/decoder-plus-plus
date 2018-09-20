@@ -49,6 +49,7 @@ class AbstractPlugin(object):
         self._author = author
         self._dependencies = dependencies
         self._context = context
+        self._aborted = False
 
     def name(self) -> str:
         """ Returns the name of the plugin (e.g. "URL+"). """
@@ -142,6 +143,14 @@ class AbstractPlugin(object):
     def set_enabled(self, status):
         """ Sets the status of the plugin to enabled/disabled. """
         self._context.config().setPluginStatus(self.full_safe_name(), status)
+
+    def set_aborted(self, status):
+        """ Sets whether the execution of the plugin was aborted by the user. """
+        self._aborted = status
+
+    def was_aborted(self) -> bool:
+        """ Returns whether the execution of the plugin was aborted by the user. """
+        return self._aborted
 
     def __key(self):
         return (self._name, self._type)
