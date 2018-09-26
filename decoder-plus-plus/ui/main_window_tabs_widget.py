@@ -91,13 +91,14 @@ class MainWindowTabsWidget(QTabWidget):
     def newTab(self):
         name = "Tab {}".format(self._current_tab_number)
         self._current_tab_number += 1
-        self.insertTab(self.count() - 1, CodecTab(self, self._context, self._plugins), name)
+        codec_tab = CodecTab(self, self._context, self._plugins)
+        self.insertTab(self.count() - 1, codec_tab, name)
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
         # BUG: Input-text of newly added codec-tab is not focused correctly.
         # WORKAROUND: Refocus input-text.
-        widget.getFocussedFrame().focusInputText()
+        codec_tab.getFocussedFrame().focusInputText()
 
     def renameTab(self):
         self.tabBar().renameTab()
