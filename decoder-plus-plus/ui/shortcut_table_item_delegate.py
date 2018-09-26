@@ -43,8 +43,8 @@ class ShortcutTableItemDelegate(QStyledItemDelegate):
 
         def keyReleaseEvent(self, *args, **kwargs):
             # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
-            # WORKAROUND: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
-            #             variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
+            # FIX: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
+            #       variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
             if self._widget.hasEditingStarted():
                 self._widget.setEditingEnded()
                 return

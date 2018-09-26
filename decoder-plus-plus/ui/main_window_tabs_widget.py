@@ -45,7 +45,7 @@ class MainWindowTabsWidget(QTabWidget):
         bar.customContextMenuRequested.connect(self._show_context_menu)
         bar.tabRenamed.connect(self.tabRenamed.emit)
         # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
-        # WORKAROUND: ???
+        # FIX: ???
         # NOTES:
         # * Currently moving tabs is disabled.
         # * Using an Event-Filter to disable dropping tabs on certain areas did not work.
@@ -97,7 +97,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
         # BUG: Input-text of newly added codec-tab is not focused correctly.
-        # WORKAROUND: Refocus input-text.
+        # FIX: Refocus input-text.
         codec_tab.getFocussedFrame().focusInputText()
 
     def renameTab(self):

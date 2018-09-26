@@ -138,7 +138,7 @@ class PluginSelectionFrame(QFrame):
             #   2nd item in proxy list corresponds to 7th item in real list.
             #   3rd item in proxy list corresponds to 9th item in real list.
             #   When clicking the 2nd item in proxy list the text of the 7th item of the real list should be printed.
-            # WORKAROUND: Map proxy index to model index.
+            # FIX: Map proxy index to model index.
             item_index = self._list_widget.model().mapToSource(self._list_widget.selectedIndexes()[0]).row()
             item_name = self._list_widget.item(item_index).text()
             item = self._get_item_by_name(item_name)
