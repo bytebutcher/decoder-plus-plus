@@ -23,17 +23,20 @@ class IconLabel(QLabel):
 
     def __init__(self, parent, icon):
         super(IconLabel, self).__init__(parent)
-        self.setIcon(icon)
+        self._do_repaint = True
+        self._icon = icon
         self._last_height = None
 
     def setIcon(self, icon):
         """ Sets the icon. """
+        self._do_repaint = True
         self._icon = icon
 
     def paintEvent(self, event=None):
         """ Paints the specified icon (if any). """
         super(IconLabel, self).paintEvent(event)
-        if self._icon is not None and self.height() is not self._last_height:
+        if self._do_repaint or (self._icon is not None and self.height() is not self._last_height):
             pxm = self._icon.pixmap(self.height(), self.height())
             self.setPixmap(pxm)
             self._last_height = self.height()
+            self._do_repaint = False
