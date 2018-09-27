@@ -66,8 +66,8 @@ pip3 install decoder-plus-plus
 
 ### Command Line Interface
 ```bash
-usage: dpp.py [-?] [-f FILE] [-i] [-e ENCODE] [-d DECODE] [-h HASH]
-              [-s SCRIPT [SCRIPT ...]]
+usage: dpp.py [-?] [-f FILE] [-i] [--new-instance] [-e ENCODE] [-d DECODE]
+              [-h HASH] [-s SCRIPT [SCRIPT ...]]
               [input]
 
 positional arguments:
@@ -77,6 +77,8 @@ optional arguments:
   -?, --help            show this help message and exit
   -f FILE, --file FILE  specifies the input-file
   -i, --interactive     drops into an interactive python shell
+  --new-instance        opens new instance instead of new tab in already
+                        running instance.
   -e ENCODE, --encode ENCODE
                         encodes the input using the specified codec(s).
   -d DECODE, --decode DECODE
