@@ -33,7 +33,7 @@ from ui.widget.message_widget import MessageWidget
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, context: 'core.context.Context'):
+    def __init__(self, context: 'core.context.Context', input: str=None):
         super().__init__()
         self._context = context
         self._logger = context.logger()
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
-        self._main_window_widget = MainWindowWidget(self, self._context)
+        self._main_window_widget = MainWindowWidget(self, self._context, input)
         self.setCentralWidget(self._main_window_widget)
         self.show()
 

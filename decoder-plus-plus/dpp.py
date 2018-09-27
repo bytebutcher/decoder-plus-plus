@@ -144,7 +144,7 @@ if __name__ == '__main__':
                     context.logger().info("Application is already running...")
                     if args.new_instance:
                         context.logger().info("Starting Decoder++ GUI in new instance...")
-                        ex = MainWindow(context)
+                        ex = MainWindow(context, args.input)
                         sys.exit(app.exec_())
                     else:
                         context.logger().info("Opening new tab in already running instance...")
@@ -152,7 +152,7 @@ if __name__ == '__main__':
                         sys.exit(0)
                 else:
                     context.logger().info("Starting Decoder++ GUI...")
-                    ex = MainWindow(context)
+                    ex = MainWindow(context, args.input)
                     instance.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:

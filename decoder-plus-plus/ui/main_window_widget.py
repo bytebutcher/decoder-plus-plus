@@ -25,7 +25,7 @@ from ui.main_window_tabs_widget import MainWindowTabsWidget
 
 class MainWindowWidget(QWidget):
 
-    def __init__(self, parent, context):
+    def __init__(self, parent, context: 'core.context.Context', input: str=None):
         super(QWidget, self).__init__(parent)
         self._parent = parent
         self._context = context
@@ -40,7 +40,7 @@ class MainWindowWidget(QWidget):
         self.setLayout(self.layout)
 
         self._init_shortcuts()
-        self._tabs.newTab()
+        self._tabs.newTab(input)
         self._tabs.setCurrentIndex(0)
 
     def _init_shortcuts(self):

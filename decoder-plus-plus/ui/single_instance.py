@@ -33,6 +33,7 @@ class SingleInstance(QObject):
         if not self.isAlreadyRunning():
             self._server = QLocalServer(self)
             self._server.newConnection.connect(self._receive_data)
+            self._server.removeServer(self._name)
             self._server.listen(self._name)
 
     def _send_data(self, data=None):
