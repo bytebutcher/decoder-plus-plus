@@ -10,7 +10,7 @@ class Plugin(EncoderPlugin):
             123456789
 
         Output:
-            0o726746425
+            726746425
     """
 
     def __init__(self, context):
@@ -21,4 +21,4 @@ class Plugin(EncoderPlugin):
         return "oct_int"
 
     def run(self, text):
-        return self._run_lines(text, lambda text_part: oct(int(text_part)))
+        return self._run_lines(text, lambda text_part: format(int(text_part), "o"))

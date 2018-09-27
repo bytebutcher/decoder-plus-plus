@@ -7,7 +7,7 @@ class Plugin(DecoderPlugin):
     Example:
 
         Input:
-            0o726746425
+            726746425
 
         Output:
             123456789
