@@ -34,7 +34,7 @@ class ShortcutTable(QTableView):
         self._init_proxy_model()
         self._editing_started = False
         # BUG: Catching the tab-key in shortcut-table does not work correctly. Instead another column gets selected.
-        # WORKAROUND: Disabling feature of assigning keyboard-shortcut by key-press as long as there is no permanent fix for this.
+        # FIX: Disabling feature of assigning keyboard-shortcut by key-press as long as there is no permanent fix for this.
         # TODO: Catch tab-key in ShortcutTableItemDelegate (or in QTableView) when in edit-mode.
         # NOTES:
         # - installed event-filters in ShortcutTableItemDelegate and QTableView. Both didn't catch the tab-key ...
@@ -76,7 +76,7 @@ class ShortcutTable(QTableView):
     def _shortcut_changed_event(self, item):
         # BUG: Cell changes to row below when editing cell is finished.
         # REQUIREMENT: The cell-selection should not change.
-        # WORKAROUND: ???
+        # FIX: ???
         id = self.model().sourceModel().item(item.row(), 0).text()
         shortcut_key = self.model().sourceModel().item(item.row(), 2).text()
         self.shortcutUpdated.emit(id, shortcut_key)
@@ -92,8 +92,8 @@ class ShortcutTable(QTableView):
 
     def keyPressEvent(self, event):
         # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
-        # WORKAROUND: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
-        #             variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
+        # FIX: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
+        #      variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
         if event.key() == Qt.Key_Return:
             self.edit(self.selectionModel().currentIndex())
             self.setEditingStarted()

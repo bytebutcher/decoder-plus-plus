@@ -60,7 +60,7 @@ class CodecFrame(CollapsibleFrame):
         """ Initializes the logger. Encapsulates logger-instance to enhance standard-logging with frame-id. """
         self._logger = context.logger()
         # BUG: Using logging with custom field frame_id does not work correctly.
-        # WORKAROUND: ???
+        # FIX: ???
         #self._logger = context.logger(log_format="%(module)s: %(frame_id)d: %(lineno)d: %(msg)s",log_fields={'frame_id': frame_id})
 
     def _init_input_frame(self, text):
@@ -162,7 +162,7 @@ class CodecFrame(CollapsibleFrame):
         self._plain_view_widget.setVisible(self._plain_radio.isChecked())
         self._hex_view_widget.setVisible(self._hex_radio.isChecked())
         # BUG: Performance Issue When Updating Multiple HexView-Frames During Input Text Changes
-        # WORKAROUND: Do only update HexView when it's visible
+        # FIX: Do only update HexView when it's visible
         if self._hex_radio.isChecked():
             input = self._plain_view_widget.toPlainText()
             self._hex_view_widget.blockSignals(True)
@@ -171,7 +171,7 @@ class CodecFrame(CollapsibleFrame):
 
     def _text_changed_event(self):
         # BUG: Performance Issue When Updating Multiple HexView-Frames When Input Text Changes
-        # WORKAROUND: Do only update HexView when it's visible
+        # FIX: Do only update HexView when it's visible
         input = self._plain_view_widget.toPlainText()
         if self._hex_view_widget.isVisible():
             self._hex_view_widget.blockSignals(True)

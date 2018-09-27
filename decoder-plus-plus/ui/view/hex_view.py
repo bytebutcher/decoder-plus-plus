@@ -56,11 +56,11 @@ class HexView(QTableView):
 
     def _init_column_size(self):
         # BUG: Columns should only have minimal padding.
-        # WORKAROUND: Columns are resized to content.
+        # FIX: Columns are resized to content.
         # NOTE:
         #   This is still not optimal but I couldn't figure out how to make columns even smaller.
         #
-        #   Here's a list of things I tried:
+        #   Here's a list of things I've tried:
         #       * self.setStyleSheet("QTableView::item { border: 0px; padding: 0px; margin: 0px; }")
         #       * setting font size
         #

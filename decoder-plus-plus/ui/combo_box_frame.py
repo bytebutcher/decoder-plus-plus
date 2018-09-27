@@ -70,7 +70,7 @@ class ComboBoxFrame(QFrame):
             model.setItem(index + 1, 0, item)
         combo_box.lineEdit().returnPressed.connect(lambda: self._combo_box_enter_pressed_event(type))
         # BUG: combo_box.lineEdit().selectAll when focussing lineEdit will be deselected again by general focus-event.
-        # WORKAROUND: Delay select-all for a few milliseconds.
+        # FIX: Delay select-all for a few milliseconds.
         combo_box.focusInEvent = lambda e: QTimer.singleShot(100, lambda: combo_box.lineEdit().selectAll())
         combo_box.setModel(model)
         combo_box.setModelColumn(0)
@@ -96,11 +96,11 @@ class ComboBoxFrame(QFrame):
 
         if plugin.was_aborted():
             # BUG: Item gets selected although dialog was canceled.
-            # WORKAROUND: Reselect last item prior to current selection.
+            # FIX: Reselect last item prior to current selection.
             self.reselectLastItem(blockSignals=True)
         else:
             # BUG: Item gets deselected when running dialogs.
-            # WORKAROUND: Reselect Item
+            # FIX: Reselect Item
             self._reselect_item(index, type)
 
     def reselectLastItem(self, blockSignals=True):

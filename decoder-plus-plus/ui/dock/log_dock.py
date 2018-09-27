@@ -134,7 +134,7 @@ class LogDock(QDockWidget):
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         # BUG: Loosing stretch when using ProxyModel
-        # WORKAROUND: Use setStretchLastSection
+        # FIX: Use setStretchLastSection
         header.setStretchLastSection(True)
         self._table.verticalHeader().hide()
 

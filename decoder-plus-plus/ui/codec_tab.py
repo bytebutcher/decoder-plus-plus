@@ -53,8 +53,8 @@ class CodecTab(QScrollArea):
         self.setWidget(self._main_frame)
 
     def newFrame(self, text, title, previous_frame=None, status=None, msg=None):
-             # BUG: Setting complex default values is not possible in python
-            # WORKAROUND: Set default value to None and set real default later.
+            # BUG: Setting complex default values is not possible in python
+            # FIX: Set default value to None and set real default later.
             if status is None:
                 status = StatusWidget.DEFAULT
 
@@ -105,7 +105,7 @@ class CodecTab(QScrollArea):
 
     def _set_frame_content_height(self, new_frame):
         # BUG: Frame height is only calculated correctly for first frame.
-        # WORKAROUND: Cache and use frame height of first frame for all other frames.
+        # FIX: Cache and use frame height of first frame for all other frames.
         if not self.FRAME_HEIGHT:
             new_frame.show()
             self.FRAME_HEIGHT = new_frame.getContentHeight()
