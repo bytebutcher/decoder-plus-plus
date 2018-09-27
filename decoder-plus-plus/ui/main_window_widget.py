@@ -265,3 +265,10 @@ class MainWindowWidget(QWidget):
     def _tab_closed_event(self, index, name):
         for index in range(0, len(self._tabs_select_action)):
             self._tabs_select_action[index].setVisible(index  < self._tabs.tabCount())
+
+    def newTab(self, input: str=None):
+        """
+        Opens a new tab and writes input into first codec-frame.
+        :param input: The input which should be placed into the first codec-frame.
+        """
+        self._tabs.newTab(input)

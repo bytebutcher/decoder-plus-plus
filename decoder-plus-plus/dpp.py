@@ -27,6 +27,7 @@ from core.context import Context
 from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
 from core.plugin.plugin import PluginType
 from ui import MainWindow
+from ui.single_instance import SingleInstance
 
 
 def init_builder(plugins, clazz, type):
@@ -118,6 +119,8 @@ if __name__ == '__main__':
                             help="specifies the input-file")
         parser.add_argument('-i', '--interactive', action='store_true',
                             help="drops into an interactive python shell")
+        parser.add_argument('--new-instance', action='store_true',
+                            help="opens new instance instead of new tab in already running instance.")
         parser.add_argument('-e', '--encode', dest="encode", action=OrderedMultiArgs,
                             help="encodes the input using the specified codec(s).")
         parser.add_argument('-d', '--decode', action=OrderedMultiArgs,
@@ -136,8 +139,22 @@ if __name__ == '__main__':
             # Start GUI when no other parameters were used.
             try:
                 app = QApplication(sys.argv)
-                ex = MainWindow(context)
-                sys.exit(app.exec_())
+                instance = SingleInstance(app, "decoder-plus-plus")
+                if instance.isAlreadyRunning():
+                    context.logger().info("Application is already running...")
+                    if args.new_instance:
+                        context.logger().info("Starting Decoder++ GUI in new instance...")
+                        ex = MainWindow(context)
+                        sys.exit(app.exec_())
+                    else:
+                        context.logger().info("Opening new tab in already running instance...")
+                        instance.newTab(args.input)
+                        sys.exit(0)
+                else:
+                    context.logger().info("Starting Decoder++ GUI...")
+                    ex = MainWindow(context)
+                    instance.received.connect(ex.newTab)
+                    sys.exit(app.exec_())
             except Exception as e:
                 context.logger().error("Unexpected Exception: {}".format(e))
                 sys.exit(1)

@@ -134,6 +134,10 @@ class MainWindow(QMainWindow):
             for filter in self._log_dock.getFilters():
                 self._log_dock.setFilterChecked(filter, filter in filters)
 
+    def newTab(self, input: str):
+        """ Opens a new tab. """
+        self._main_window_widget.newTab(input)
+
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """
         self._context.config().setSize(self.size())

@@ -88,7 +88,11 @@ class MainWindowTabsWidget(QTabWidget):
                        .callback(lambda: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
-    def newTab(self):
+    def newTab(self, input: str=None):
+        """
+        Opens a new tab and writes input into first codec-frame.
+        :param input: The input which should be placed into the first codec-frame.
+        """
         name = "Tab {}".format(self._current_tab_number)
         self._current_tab_number += 1
         codec_tab = CodecTab(self, self._context, self._plugins)
@@ -96,6 +100,7 @@ class MainWindowTabsWidget(QTabWidget):
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
+        codec_tab.getFocussedFrame().setInputText(input)
         # BUG: Input-text of newly added codec-tab is not focused correctly.
         # FIX: Refocus input-text.
         codec_tab.getFocussedFrame().focusInputText()
