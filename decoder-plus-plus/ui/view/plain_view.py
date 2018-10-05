@@ -198,7 +198,7 @@ class PlainView(QFrame):
 
     def setPlainText(self, text):
         """ Sets the text of the text area. """
-        return self._plain_text.setPlainText(text)
+        self._plain_text.setPlainText(text)
 
     def setFocus(self, Qt_FocusReason=None):
         """ Sets the focus to the plain text area. """

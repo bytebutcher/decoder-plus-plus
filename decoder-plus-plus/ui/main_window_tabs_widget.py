@@ -55,7 +55,7 @@ class MainWindowTabsWidget(QTabWidget):
         self.tabCloseRequested.connect(self.closeTab)
         tab_new_button = QToolButton()
         tab_new_button.setToolTip("New Tab")
-        tab_new_button.clicked.connect(self.newTab)
+        tab_new_button.clicked.connect(lambda: self.newTab())
         tab_new_button.setIcon(qtawesome.icon("fa.plus"))
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
