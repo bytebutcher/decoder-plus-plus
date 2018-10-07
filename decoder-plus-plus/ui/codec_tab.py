@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
 from core import Context
@@ -27,6 +27,8 @@ from ui.widget.status_widget import StatusWidget
 class CodecTab(QScrollArea):
 
     FRAME_HEIGHT = None
+
+    openInNewTab = pyqtSignal(str)
 
     def __init__(self, parent, context: Context, plugins: Plugins):
         super(QWidget, self).__init__(parent)
@@ -93,6 +95,7 @@ class CodecTab(QScrollArea):
                     new_frame.setTitle(title)
                     new_frame.setContentsMargins(0, 0, 0, 0)
                     new_frame.layout().setContentsMargins(0, 0, 0, 0)
+                    new_frame.openInNewTab.connect(self.openInNewTab.emit)
                     self._frames_layout.addWidget(new_frame)
                     self._set_frame_content_height(new_frame)
 

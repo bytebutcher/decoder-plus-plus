@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QRadioButton
 
 from core import Context
@@ -31,6 +31,8 @@ from ui.widget.status_widget import StatusWidget
 
 
 class CodecFrame(CollapsibleFrame):
+
+    openInNewTab = pyqtSignal(str)
 
     def __init__(self, parent, context: Context, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
         super(__class__, self).__init__(parent)
@@ -68,6 +70,7 @@ class CodecFrame(CollapsibleFrame):
         frame_layout = QVBoxLayout()
         self._plain_view_widget = PlainView(self, text)
         self._plain_view_widget.textChanged.connect(self._text_changed_event)
+        self._plain_view_widget.openSelectionInNewTab.connect(self.openInNewTab.emit)
         self._plain_view_widget = self._plain_view_widget
         self.setMetaData(text)
         frame_layout.addWidget(self._plain_view_widget)

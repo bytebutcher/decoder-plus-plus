@@ -96,6 +96,7 @@ class MainWindowTabsWidget(QTabWidget):
         name = "Tab {}".format(self._current_tab_number)
         self._current_tab_number += 1
         codec_tab = CodecTab(self, self._context, self._plugins)
+        codec_tab.openInNewTab.connect(self.newTab)
         self.insertTab(self.count() - 1, codec_tab, name)
         index = self.count() - 2
         self.setCurrentIndex(index)

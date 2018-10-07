@@ -30,6 +30,7 @@ class PlainView(QFrame):
     """
 
     textChanged = pyqtSignal()
+    openSelectionInNewTab = pyqtSignal(str)
 
     def __init__(self, parent, text):
         """
@@ -68,6 +69,19 @@ class PlainView(QFrame):
         if not point:
             point = QCursor.pos()
         context_menu = self._plain_text.createStandardContextMenu()
+
+        textSelected = len(self._plain_text.textCursor().selectedText()) > 0
+
+        open_selection_in_new_tab_action = QAction(self)
+        open_selection_in_new_tab_action.setText("Open Selection In New Tab")
+        open_selection_in_new_tab_action.setEnabled(textSelected)
+        open_selection_in_new_tab_action.triggered.connect(self._on_plain_text_context_menu_open_selection_in_new_tab)
+        context_menu.insertAction(context_menu.actions()[0], open_selection_in_new_tab_action)
+
+        separator_action = QAction(self)
+        separator_action.setSeparator(True)
+        context_menu.insertAction(context_menu.actions()[1], separator_action)
+
         context_menu.addSeparator()
         wrap_lines_action = QAction(self)
         wrap_lines_action.setText("Wrap Lines")
@@ -83,6 +97,12 @@ class PlainView(QFrame):
             self._plain_text.setLineWrapMode(QPlainTextEdit.WidgetWidth)
         else:
             self._plain_text.setLineWrapMode(QPlainTextEdit.NoWrap)
+
+    def _on_plain_text_context_menu_open_selection_in_new_tab(self, e: QEvent):
+        """ Fires a signal that context-menu entry to open selection in new tab was triggered. """
+        selectedText = self._plain_text.textCursor().selectedText()
+        self.openSelectionInNewTab.emit(selectedText)
+
 
     def _on_plain_text_drag_enter_event(self, e):
         """ Catches the drag-enter-event which is triggered when media is dragged into the plain text area. """
