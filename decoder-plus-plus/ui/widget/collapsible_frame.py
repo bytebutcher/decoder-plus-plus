@@ -21,6 +21,7 @@ from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QFrame, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QBoxLayout, QSizePolicy
 
 from ui import HSpacer
+from ui.widget.elided_label import ElidedLabel
 
 
 class CollapsibleFrame(QFrame):
@@ -155,11 +156,13 @@ class CollapsibleFrame(QFrame):
             self.setLayout(self._hlayout)
 
             self._title = QLabel("")
+            self._title.setTextFormat(Qt.PlainText)
             inner_title_layout.addWidget(self._title)
 
             content_preview_label = QLabel("")
             inner_title_layout.addWidget(content_preview_label)
-            self._content_preview_text = QLabel("")
+            self._content_preview_text = ElidedLabel("")
+            self._content_preview_text.setTextFormat(Qt.PlainText)
             self._content_preview_text.setStyleSheet("QLabel { color: gray }");
             inner_title_layout.addWidget(self._content_preview_text)
 
@@ -194,10 +197,7 @@ class CollapsibleFrame(QFrame):
 
         def setMetaData(self, content: str=None):
             if content:
-                max_size = 75
-                joined_lines = "\\n".join(content.split('\n'))
-                data = (joined_lines[:max_size] + ' ..') if len(joined_lines) > max_size else joined_lines
-                self._content_preview_text.setText(data)
+                self._content_preview_text.setText(content)
 
                 length = str(len(content))
                 self._content_length_text.setText(length)
