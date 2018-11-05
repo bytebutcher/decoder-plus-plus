@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import ctypes
 import datetime
 import os
 from typing import List
@@ -143,3 +143,10 @@ class MainWindow(QMainWindow):
         self._context.config().setSize(self.size())
         self._context.config().setPosition(self.pos())
         e.accept()
+
+    def setWindowIcon(self, icon: QIcon):
+        """ Sets the window icon of the main window. """
+        super(__class__, self).setWindowIcon(icon)
+        if os.name == 'nt':
+            # Set explicit app id to show decoder-plus-plus icon in the taskbar.
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self._context.getAppID())
