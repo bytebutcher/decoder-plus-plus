@@ -17,6 +17,7 @@
 
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import List, Dict
@@ -71,13 +72,15 @@ class Context(QObject):
         SELECT_HEX_VIEW = "select_hex_view"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
 
-    def __init__(self):
+    def __init__(self, app_id):
         super(__class__, self).__init__()
+        self._app_id = app_id
         self._logger = {}
         self._config = self._init_config()
         self._plugins = None
         self._plugin_loader = PluginLoader(self)
         self._shortcuts = {}
+        self._installed_packages = []
 
     def _init_config(self):
         """ Returns the configuration. Might return None when initialization fails. """
@@ -89,7 +92,7 @@ class Context(QObject):
 
     def _init_logger(self, log_format):
         """ Returns the logger. """
-        logger = logging.getLogger('decoder_plusplus')
+        logger = logging.getLogger(self._app_id)
         logging.root.setLevel(logging.DEBUG)
         hdlr = logging.StreamHandler(sys.stderr)
         hdlr.setFormatter(logging.Formatter(log_format))
@@ -126,6 +129,10 @@ class Context(QObject):
         pathname = os.path.dirname(sys.argv[0])
         return pathname
 
+    def getAppID(self):
+        """ Returns the ID of the application. """
+        return self._app_id
+
     def config(self):
         """ Returns the main configuration of the application. """
         return self._config
@@ -143,6 +150,18 @@ class Context(QObject):
         if not self._plugins:
             self._plugins = self._init_plugins()
         return self._plugins
+
+    def checkDependency(self, package):
+        """
+        Checks whether the desired package is already installed.
+        :param package: the package to check.
+        :return: True, when the package is already installed, otherwise False.
+        """
+        if not self._installed_packages:
+            # lazy initialize installed packages.
+            reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+            self._installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+        return package in self._installed_packages
 
     def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget) -> QAction:
         """

@@ -101,7 +101,7 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
 if __name__ == '__main__':
     try:
         # Loads logger, config and plugins.
-        context = Context()
+        context = Context("net.bytebutcher.decoder_plus_plus")
 
         # Builders can be used in interactive shell or within the ui's code-view.
         plugins = context.plugins()
@@ -139,7 +139,7 @@ if __name__ == '__main__':
             # Start GUI when no other parameters were used.
             try:
                 app = QApplication(sys.argv)
-                instance = SingleInstance(app, "decoder-plus-plus")
+                instance = SingleInstance(app, context.getAppID())
                 if instance.isAlreadyRunning():
                     context.logger().info("Application is already running...")
                     if args.new_instance:

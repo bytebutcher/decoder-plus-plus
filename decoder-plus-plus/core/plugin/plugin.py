@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import importlib
+import importlib.util
 import os
 from typing import List
 
@@ -105,6 +106,10 @@ class AbstractPlugin(object):
 
     def check_dependency(self, dependency):
         try:
+            if self._context.checkDependency(dependency):
+                return True
+            if importlib.util.find_spec(dependency) is not None:
+                return True
             importlib.import_module(dependency)
             return True
         except Exception as e:
@@ -135,6 +140,26 @@ class AbstractPlugin(object):
         parameters (e.g. by displaying dialogs).
         """
         return self.run(*args)
+
+    def _join_options_as_human_readable_string(self, options: List[str]):
+        """
+        Returns the list of options as human readable string.
+
+        Examples:
+            [] => ''
+            ['a'] => 'a'
+            ['a', 'b'] => 'a and b'
+            ['a', 'b', 'c'] => 'a, b and c'
+
+        :param options: a list of options.
+        :return: the list of options as human readable string.
+        """
+        if not options:
+            return ''
+        elif len(options) == 1:
+            return options[0]
+        else:
+            return ' and '.join([','.join(options[:-1]), options[-1]])
 
     def is_enabled(self) -> bool:
         """ Returns whether the plugin is enabled/disabled. """
