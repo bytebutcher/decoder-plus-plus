@@ -44,8 +44,7 @@ class Plugin(DecoderPlugin):
             return ""
 
     def can_decode_input(self, input):
-        if len(input) % 4 == 0:
-            contains_hex = re.findall(r'\\[Xx][0-9a-fA-F][0-9a-fA-F]', input)
-            if contains_hex:
-                return True
+        contains_hex = re.findall(r'\\[Xx][0-9a-fA-F][0-9a-fA-F]', input)
+        if contains_hex:
+            return True
         return False
