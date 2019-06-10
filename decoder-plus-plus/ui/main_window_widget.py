@@ -273,35 +273,39 @@ class MainWindowWidget(QWidget):
         hidden_dialog.exec_()
 
     def _open_file(self):
-        # TODO: Handle Exception
-        # TODO: Message when ok, error
         filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
         if filename:
-            with open(filename) as f:
-                save_file = json.loads(f.read())
-                for tab_config in save_file:
-                    index, tab = self.newTab()
-                    self._tabs.renameTab(index, tab_config["name"])
-                    previous_frame = None
-                    for frame_config in tab_config["frames"]:
-                        if previous_frame is None:
-                            # New tabs contain one empty frame
-                            frame = tab.getFrames()[0]
-                            frame.setInputText(frame_config["text"])
-                        else:
-                            frame = tab.newFrame(frame_config["text"], frame_config["title"], previous_frame)
-                        frame.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
-                        plugin = PluginBuilder(self._context).build(frame_config["plugin"])
-                        if plugin:
-                            frame.selectComboBoxEntryByPlugin(plugin)
-                        previous_frame = frame
+            try:
+                with open(filename) as f:
+                    save_file = json.loads(f.read())
+                    for tab_config in save_file:
+                        index, tab = self.newTab()
+                        self._tabs.renameTab(index, tab_config["name"])
+                        previous_frame = None
+                        for frame_config in tab_config["frames"]:
+                            if previous_frame is None:
+                                # New tabs contain one empty frame
+                                frame = tab.getFrames()[0]
+                                frame.setInputText(frame_config["text"])
+                            else:
+                                frame = tab.newFrame(frame_config["text"], frame_config["title"], previous_frame)
+                            frame.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
+                            plugin = PluginBuilder(self._context).build(frame_config["plugin"])
+                            if plugin:
+                                frame.selectComboBoxEntryByPlugin(plugin)
+                            previous_frame = frame
+                self._context.logger().info("Successfully loaded {}!".format(filename))
+            except Exception as e:
+                self._context.logger().error("Unexpected error loading file. {}".format(e))
 
     def _save_as_file(self):
-        # TODO: Handle Exception
-        # TODO: Message when ok, error
         filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
         if filename:
-            self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
+            try:
+                self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
+                self._context.logger().info("Successfully saved session in {}!".format(filename))
+            except Exception as e:
+                self._context.logger().error("Unexpected error saving file. {}".format(e))
 
     def _tab_added_event(self, index, name):
         if 0 <= index < len(self._tabs_select_action):

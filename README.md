@@ -43,6 +43,7 @@ python3 dpp.py -i
     * **Scripts:** Caesar, Little/Big-Endian Transform, Search and Replace, Split and Rejoin, Unescape/Escape String
 * Smart-Decode
 * Plugin System
+* Load & Save Current Session
 * Platforms:
     * Windows
     * Linux
