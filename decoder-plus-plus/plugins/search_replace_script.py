@@ -14,13 +14,31 @@ class Plugin(ScriptPlugin):
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Search & Replace', "Thomas Engel", [], context)
+        self._search_term = ""
+        self._replace_term = ""
+        self._should_match_case = True
+        self._is_regex = False
         self._dialog = None
-        self._dialog_return_code = None
+        self._dialog_return_code = QDialog.Accepted
+
+    def config(self) -> dict:
+        return {
+            "_search_term": self._search_term,
+            "_replace_term": self._replace_term,
+            "_should_match_case": self._should_match_case,
+            "_is_regex": self._is_regex,
+            "_dialog_return_case": self._dialog_return_code
+        }
 
     def select(self, text):
         if not self._dialog:
             self._dialog = SearchAndReplaceDialog()
+
         self._dialog_return_code = self._dialog.exec_()
+        self._search_term = self._dialog.getSearchTerm()
+        self._replace_term =  self._dialog.getReplaceTerm()
+        self._match_case = self._dialog.shouldMatchCase()
+        self._is_regex = self._dialog.isRegex()
         return self.run(text)
 
     def title(self):
@@ -36,16 +54,16 @@ class Plugin(ScriptPlugin):
             return 'Ignore Case'
 
     def _getSearchTerm(self):
-        return self._dialog.getSearchTerm()
+        return self._search_term
 
     def _getReplaceTerm(self):
-        return self._dialog.getReplaceTerm()
+        return self._replace_term
 
     def _shouldMatchCase(self):
-        return self._dialog.shouldMatchCase()
+        return self._should_match_case
 
     def _isRegex(self):
-        return self._dialog.isRegex()
+        return self._is_regex
 
     def run(self, text):
         if self._dialog_return_code == QDialog.Accepted:

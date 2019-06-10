@@ -25,7 +25,7 @@ from typing import List, Dict
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction
 
-from core.plugin.plugins import Plugins
+from core.plugin.plugins import AbstractPlugin, Plugins
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
 
@@ -46,6 +46,8 @@ class Context(QObject):
         EDIT_CUT = "edit_cut"
         EDIT_COPY = "edit_copy"
         EDIT_PASTE = "edit_paste"
+        OPEN_FILE = "open_file"
+        SAVE_AS_FILE = "save_as_file"
         TAB_NEW = "tab_new"
         TAB_RENAME = "tab_rename"
         TAB_NEXT = "tab_next"
@@ -209,6 +211,9 @@ class Context(QObject):
             return NullShortcut()
         return self._shortcuts[the_id]
 
+    def getPluginByName(self, name: str, type: str) -> AbstractPlugin:
+        return self.plugins().plugin(name, type)
+
     def getPluginsUnresolvedDependencies(self, filter_enabled_plugins: bool=True) -> Dict[str, str]:
         """ Returns all unresolved dependencies in a dict.
         :param filter_enabled_plugins: when True, returns only unresolved dependencies of enabled plugins.
@@ -218,3 +223,7 @@ class Context(QObject):
     def getPluginsErrors(self) -> Dict[str, str]:
         """ Returns all errors which happened while loading plugins. """
         return self._plugin_loader.get_errors()
+
+    def saveAsFile(self, filename: str, content: str):
+        with open(filename, "w") as f:
+            f.write(content)

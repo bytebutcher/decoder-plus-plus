@@ -31,7 +31,6 @@ from ui.single_instance import SingleInstance
 
 
 def init_builder(plugins, clazz, type):
-
     def list(self) -> List[str]:
         return [method for method in dir(self) if not method.startswith("_") and
                 method not in ["list", "decode", "encode", "hash", "script", "run"]]
@@ -74,7 +73,6 @@ def required_length(nmin,nmax):
 
 
 def get_input(context, args):
-    assert bool(args.file) != bool(args.input), "Either file or input should be used."
     if args.file:
         try:
             with open(args.file, "r") as f:
@@ -94,7 +92,8 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
     try:
         return getattr(action_type_method(), method_name)
     except Exception as e:
-        context.logger().error('No {type}-method named "{name}". Aborting ...'.format(type=action_type_name, name=method_name))
+        context.logger().error(
+            'No {type}-method named "{name}". Aborting ...'.format(type=action_type_name, name=method_name))
         sys.exit(1)
 
 
@@ -140,19 +139,20 @@ if __name__ == '__main__':
             try:
                 app = QApplication(sys.argv)
                 instance = SingleInstance(app, context.getAppID())
+                input = get_input(context, args)
                 if instance.isAlreadyRunning():
                     context.logger().info("Application is already running...")
                     if args.new_instance:
                         context.logger().info("Starting Decoder++ GUI in new instance...")
-                        ex = MainWindow(context, args.input)
+                        ex = MainWindow(context, input)
                         sys.exit(app.exec_())
                     else:
                         context.logger().info("Opening new tab in already running instance...")
-                        instance.newTab(args.input)
+                        instance.newTab(input)
                         sys.exit(0)
                 else:
                     context.logger().info("Starting Decoder++ GUI...")
-                    ex = MainWindow(context, args.input)
+                    ex = MainWindow(context, input)
                     instance.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:
@@ -162,7 +162,8 @@ if __name__ == '__main__':
         if args.interactive:
             setup_syntax_completion()
             import code
-            print("Loading {app_name} ({app_version})".format(app_name=context.config().getName(), app_version=context.config().getVersion()))
+            print("Loading {app_name} ({app_version})".format(app_name=context.config().getName(),
+                                                              app_version=context.config().getVersion()))
             code.InteractiveConsole(locals=globals()).interact()
             sys.exit(0)
 
@@ -190,4 +191,3 @@ if __name__ == '__main__':
         print(builder.run())
     except Exception as e:
         context.logger().error(e)
-

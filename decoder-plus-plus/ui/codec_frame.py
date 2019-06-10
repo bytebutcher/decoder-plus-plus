@@ -150,7 +150,8 @@ class CodecFrame(CollapsibleFrame):
 
         if len(decoders) > 1:
             decoder_titles = [decoder.title() for decoder in decoders]
-            self._logger.error("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
+            self._logger.warning("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
+            self.selectComboBoxEntryByPlugin(decoders[0])
             return None
 
         decoder = decoders[0]
@@ -194,7 +195,7 @@ class CodecFrame(CollapsibleFrame):
 
     def _execute(self):
         plugin = self._combo_box_frame.selectedPlugin()
-        if plugin:
+        if plugin.is_runnable():
             self._execute_plugin_run(plugin)
 
     def _execute_plugin_run(self, plugin):
@@ -288,3 +289,15 @@ class CodecFrame(CollapsibleFrame):
 
     def focusComboBox(self, type):
         self._combo_box_frame.focusType(type)
+
+    def toDict(self):
+        status_type, status_message = self._status_widget.status()
+        return {
+            "text": self.getInputText(),
+            "title": self.getTitle(),
+            "status": {
+                "type": status_type,
+                "message": status_message
+            },
+            "plugin": self._combo_box_frame.selectedPlugin().toDict()
+        }

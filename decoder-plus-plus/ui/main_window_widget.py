@@ -15,17 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction
+import json
+
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
 from core import Context
 from core.plugin.plugin import PluginType
+from core.plugin.plugin_builder import PluginBuilder
+from ui import CodecTab
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
 
 
 class MainWindowWidget(QWidget):
 
-    def __init__(self, parent, context: 'core.context.Context', input: str=None):
+    def __init__(self, parent, context: 'core.context.Context', input: str = None):
         super(QWidget, self).__init__(parent)
         self._parent = parent
         self._context = context
@@ -55,7 +59,8 @@ class MainWindowWidget(QWidget):
     def _init_help_menu(self, main_menu):
         help_menu = main_menu.addMenu('&Help')
         keyboard_shortcuts_action = QAction("&Keyboard Shortcuts", self)
-        keyboard_shortcuts_action.triggered.connect(lambda: self._show_hidden_dialog(HiddenDialog.TAB_KEYBOARD_SHORTCUTS))
+        keyboard_shortcuts_action.triggered.connect(
+            lambda: self._show_hidden_dialog(HiddenDialog.TAB_KEYBOARD_SHORTCUTS))
         help_menu.addAction(keyboard_shortcuts_action)
         about_action = QAction("&About", self)
         about_action.triggered.connect(self._show_hidden_dialog)
@@ -189,6 +194,15 @@ class MainWindowWidget(QWidget):
                                 lambda: self._tabs.closeTab(),
                                 file_menu)
         file_menu.addSeparator()
+        self._register_shortcut(Context.Shortcut.OPEN_FILE,
+                                "Open File", "Ctrl+O",
+                                lambda: self._open_file(),
+                                file_menu)
+        self._register_shortcut(Context.Shortcut.SAVE_AS_FILE,
+                                "Save as File", "Ctrl+S",
+                                lambda: self._save_as_file(),
+                                file_menu)
+        file_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.FILE_EXIT,
                                 "E&xit",
                                 "Ctrl+Q",
@@ -258,17 +272,48 @@ class MainWindowWidget(QWidget):
         hidden_dialog = HiddenDialog(self, self._context, tab_select)
         hidden_dialog.exec_()
 
+    def _open_file(self):
+        # TODO: Handle Exception
+        # TODO: Message when ok, error
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
+        if filename:
+            with open(filename) as f:
+                save_file = json.loads(f.read())
+                for tab_config in save_file:
+                    index, tab = self.newTab()
+                    self._tabs.renameTab(index, tab_config["name"])
+                    previous_frame = None
+                    for frame_config in tab_config["frames"]:
+                        if previous_frame is None:
+                            # New tabs contain one empty frame
+                            frame = tab.getFrames()[0]
+                            frame.setInputText(frame_config["text"])
+                        else:
+                            frame = tab.newFrame(frame_config["text"], frame_config["title"], previous_frame)
+                        frame.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
+                        plugin = PluginBuilder(self._context).build(frame_config["plugin"])
+                        if plugin:
+                            frame.selectComboBoxEntryByPlugin(plugin)
+                        previous_frame = frame
+
+    def _save_as_file(self):
+        # TODO: Handle Exception
+        # TODO: Message when ok, error
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
+        if filename:
+            self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
+
     def _tab_added_event(self, index, name):
         if 0 <= index < len(self._tabs_select_action):
             self._tabs_select_action[index].setVisible(True)
 
     def _tab_closed_event(self, index, name):
         for index in range(0, len(self._tabs_select_action)):
-            self._tabs_select_action[index].setVisible(index  < self._tabs.tabCount())
+            self._tabs_select_action[index].setVisible(index < self._tabs.tabCount())
 
-    def newTab(self, input: str=None):
+    def newTab(self, input: str = None) -> (int, CodecTab):
         """
         Opens a new tab and writes input into first codec-frame.
         :param input: The input which should be placed into the first codec-frame.
         """
-        self._tabs.newTab(input)
+        return self._tabs.newTab(input)

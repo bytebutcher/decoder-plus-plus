@@ -21,6 +21,20 @@ class Plugin(ScriptPlugin):
         # Name, Author, Dependencies
         super().__init__('Filter Lines', "Thomas Engel", [], context)
         self._dialog = None
+        self._filter_term = ""
+        self._should_match_case = True
+        self._should_invert_match = False
+        self._is_regex = False
+        self._dialog_return_code = QDialog.Accepted
+
+    def config(self):
+        return {
+            "_filter_term": self._filter_term,
+            "_should_match_case": self._should_match_case,
+            "_should_invert_match": self._should_invert_match,
+            "_is_regex": self._is_regex,
+            "_dialog_return_case": self._dialog_return_code
+        }
 
     def select(self, text):
         if not self._dialog:
@@ -29,6 +43,10 @@ class Plugin(ScriptPlugin):
             self._dialog.setInput(text)
 
         self._dialog_return_code = self._dialog.exec_()
+        self._filter_term = self._dialog.getFilterTerm()
+        self._should_match_case = self._dialog.shouldMatchCase()
+        self._should_invert_match = self._dialog.shouldInvertMatch()
+        self._is_regex = self._dialog.isRegex()
         return self.run(text)
 
     def title(self):
@@ -49,16 +67,16 @@ class Plugin(ScriptPlugin):
         return self._join_options_as_human_readable_string(options)
 
     def _getFilterTerm(self):
-        return self._dialog.getFilterTerm()
+        return self._filter_term
 
     def _shouldInvertMatch(self):
-        return self._dialog.shouldInvertMatch()
+        return self._should_invert_match
 
     def _shouldMatchCase(self):
-        return self._dialog.shouldMatchCase()
+        return self._should_match_case
 
     def _isRegex(self):
-        return self._dialog.isRegex()
+        return self._is_regular_expression
 
     def run(self, text, shift=None):
         if self._dialog_return_code == QDialog.Accepted:

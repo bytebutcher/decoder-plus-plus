@@ -44,9 +44,13 @@ class StatusWidget(QWidget):
     def setStatus(self, status_name, message=None):
         if status_name not in self._status:
             raise Exception("Unknown status name {}!".format(status_name))
-        self._current_status = self._status[status_name]
-        self._widget.setStyleSheet(self._current_status)
+        self._current_status_name = status_name
+        self._current_status_message = message
+        self._widget.setStyleSheet(self._status[self._current_status_name])
         if message:
             self.setToolTip(message)
         else:
             self.setToolTip("")
+
+    def status(self) -> (str, str):
+        return self._current_status_name, self._current_status_message

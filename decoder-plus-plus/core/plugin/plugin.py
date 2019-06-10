@@ -41,10 +41,6 @@ class AbstractPlugin(object):
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         :param context: the application context.
         """
-        assert(name is not None and len(name) > 0), "Name is required and should not be None or Empty"
-        assert(type in [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]), \
-            "Type is required and should be either 'DECODER', 'ENCODER', 'HASHER' or 'SCRIPT'"
-        assert(author is not None and len(author) > 0), "Author is required and should not be None or Empty"
         self._name = name
         self._type = type
         self._author = author
@@ -52,21 +48,37 @@ class AbstractPlugin(object):
         self._context = context
         self._aborted = False
 
+    def setup(self, config: dict):
+        """ Injects a given configuration into the plugin. """
+        for name, value in config:
+            setattr(self, name, value)
+
+    def config(self) -> dict:
+        """
+        Returns the current configuration of the plugin.
+        :returns empty dictionary since most plugins do not possess any special configuration.
+        """
+        return {}
+
     def name(self) -> str:
-        """ Returns the name of the plugin (e.g. "URL+"). """
+        """ :returns the name of the plugin (e.g. "URL+"). """
         return self._name
 
     def full_name(self) -> str:
-        """ Returns the full name of the plugin including name and type (e.g. "URL+" -> "URL+-Decoder"). """
+        """ :returns the full name of the plugin including name and type (e.g. "URL+" -> "URL+-Decoder"). """
         return "{}-{}".format(self.name(), self.type())
 
     def safe_name(self) -> str:
         """
-        Returns the safe name of the plugin (e.g. "URL+" -> "url_").
-        * Name is transformed to lower-case,
-        * None-alphanumeric characters are transformed to underscore.
-        This name is e.g. used in the Decoder++ command-line. To prevent name-collisions and have somewhat better
-        looking names it is recommended to override this method.
+        Name for usage in the Decoder++ command-line (lower-case, none-alphanumeric chars to underscores)
+
+        NOTE:
+            It is recommended to override this method to prevent naming-collisions and use better names.
+
+            "URL+" -> "url_"        (not so good)
+            "URL+" -> "url_plus"    (good)
+
+        :returns the safe name of the plugin (e.g. "URL+" -> "url_").
         """
         safe_name = ""
         for char in self._name.lower():
@@ -77,25 +89,25 @@ class AbstractPlugin(object):
         return safe_name
 
     def full_safe_name(self) -> str:
-        """ Returns the full name of the plugin including name and type (e.g. "URL+" -> "url_-decoder"). """
+        """ :returns the full name of the plugin including name and type (e.g. "URL+" -> "url_-decoder"). """
         return "{}-{}".format(self.safe_name(), self.type()).lower()
 
     def type(self) -> str:
-        """ Returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
+        """ :returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
         return self._type
 
     def title(self) -> str:
-        """ Returns the title of the plugin which is usually displayed to the user. """
+        """ :returns the title of the plugin which is usually displayed to the user. """
         return "{} {}".format(self._name, self._type.capitalize())
 
     def author(self) -> str:
-        """ Returns the author of the plugin. """
+        """ :returns the author of the plugin. """
         return self._author
 
     def check_dependencies(self) -> List[str]:
         """
         Checks whether all specified dependencies can be loaded.
-        :return: a list of unresolved dependencies, or an empty list if all dependencies could be resolved.
+        :returns a list of unresolved dependencies, or an empty list if all dependencies could be resolved.
         """
         unresolved_dependencies = []
         if self._dependencies:
@@ -104,7 +116,11 @@ class AbstractPlugin(object):
                     unresolved_dependencies.append(dependency)
         return unresolved_dependencies
 
-    def check_dependency(self, dependency):
+    def check_dependency(self, dependency) -> bool:
+        """
+        Checks whether the given dependency is met.
+        :returns True when given dependency is met, otherwise False.
+        """
         try:
             if self._context.checkDependency(dependency):
                 return True
@@ -116,6 +132,7 @@ class AbstractPlugin(object):
             return False
 
     def dependencies(self) -> List[str]:
+        """ :returns all dependencies in a list. """
         return self._dependencies
 
     def run(self, *args, **kwargs) -> str:
@@ -152,7 +169,7 @@ class AbstractPlugin(object):
             ['a', 'b', 'c'] => 'a, b and c'
 
         :param options: a list of options.
-        :return: the list of options as human readable string.
+        :returns the list of options as human readable string.
         """
         if not options:
             return ''
@@ -162,8 +179,12 @@ class AbstractPlugin(object):
             return ' and '.join([','.join(options[:-1]), options[-1]])
 
     def is_enabled(self) -> bool:
-        """ Returns whether the plugin is enabled/disabled. """
+        """ :returns whether the plugin is enabled/disabled. """
         return self._context.config().getPluginStatus(self.full_safe_name())
+
+    def is_runnable(self) -> bool:
+        """ :returns whether the plugin can be run. Usually true, except for NullPlugin. """
+        return True
 
     def set_enabled(self, status):
         """ Sets the status of the plugin to enabled/disabled. """
@@ -174,8 +195,12 @@ class AbstractPlugin(object):
         self._aborted = status
 
     def was_aborted(self) -> bool:
-        """ Returns whether the execution of the plugin was aborted by the user. """
+        """ :returns whether the execution of the plugin was aborted by the user. """
         return self._aborted
+
+    def _set(self, name, config):
+        """ Sets a fields value according to its configuration. """
+        setattr(self, name, config[name])
 
     def __key(self):
         return (self._name, self._type)
@@ -186,6 +211,12 @@ class AbstractPlugin(object):
     def __hash__(self):
         return hash(self.__key())
 
+    def toDict(self):
+        return {
+            "name": self.name(),
+            "type": self.type(),
+            "config": self.config()
+        }
 
 class DecoderPlugin(AbstractPlugin):
 
@@ -260,3 +291,6 @@ class NullPlugin(AbstractPlugin):
 
     def run(self, *args, **kwargs):
         pass
+
+    def is_runnable(self) -> bool:
+        return False

@@ -38,8 +38,10 @@ class TabBar(QTabBar):
             self.tabDoubleClicked.emit(tab_index)
             self.start_rename(tab_index)
 
-    def renameTab(self):
-        self.start_rename(self.currentIndex())
+    def renameTab(self, index=None):
+        if not index:
+            index = self.currentIndex()
+        self.start_rename(index)
 
     def start_rename(self, tab_index):
         if not self.isTabEnabled(tab_index):

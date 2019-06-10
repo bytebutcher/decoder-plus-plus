@@ -37,6 +37,9 @@ class Plugin(ScriptPlugin):
         super().__init__('Split & Rejoin', "Thomas Engel", [], context)
         self._dialog = None
         self._dialog_return_code = None
+        self._split_by_length = 0
+        self._split_by_option = SplitAndRejoinDialog.SPLIT_BY_CHARACTER
+        self._split_by_char = ""
 
     def title(self):
         if self._dialog.getSplitByOption() == SplitAndRejoinDialog.SPLIT_BY_LENGTH:
@@ -52,20 +55,31 @@ class Plugin(ScriptPlugin):
     def safe_name(self):
         return "split_and_rejoin"
 
+    def config(self) -> dict:
+        return {
+            "_dialog_return_code": self._dialog_return_code,
+            "_split_by_option": self._split_by_option,
+            "_split_by_length": self._split_by_length,
+            "_split_by_char": self._split_by_char
+        }
+
     def select(self, text):
         if not self._dialog:
             self._dialog = SplitAndRejoinDialog()
         self._dialog_return_code = self._dialog.exec_()
+        self._split_by_option = self._dialog.getSplitByOption()
+        self._split_by_length = self._dialog.getSplitByLength()
+        self._split_by_char = self._dialog.getSplitByText()
         return self.run(text)
 
     def run(self, text):
         if text:
             if self._dialog_return_code == QDialog.Accepted:
                 input = ""
-                if self._dialog.getSplitByOption() == SplitAndRejoinDialog.SPLIT_BY_LENGTH:
-                    input = self._chunk_string(text, self._dialog.getSplitByLength())
-                elif self._dialog.getSplitByOption() == SplitAndRejoinDialog.SPLIT_BY_CHARACTER:
-                    input = text.split(self._dialog.getSplitByText())
+                if self._split_by_option == SplitAndRejoinDialog.SPLIT_BY_LENGTH:
+                    input = self._chunk_string(text, self._split_by_length)
+                elif self._split_by_option == SplitAndRejoinDialog.SPLIT_BY_CHARACTER:
+                    input = text.split(self._split_by_char)
                 return self._dialog.getJoinWithText().join(input)
             else:
                 # User clicked the Cancel-Button.

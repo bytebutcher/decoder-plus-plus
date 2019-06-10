@@ -21,9 +21,12 @@ class Plugin(ScriptPlugin):
         self._shift = None
         self._dialog = None
 
+    def config(self):
+        return {"_shift": self._shift}
+
     def select(self, text):
         if not self._dialog:
-            self._dialog = CaesarCipherDialog(text, self._do_caesar)
+            self._dialog = CaesarCipherDialog(text, self._shift or 0, self._do_caesar)
         else:
             self._dialog.setInput(text)
 
@@ -135,8 +138,9 @@ class CaesarCipherOffsetCalculator:
 
 class CaesarCipherDialog(QDialog):
 
-    def __init__(self, input, callback):
+    def __init__(self, input, shift, callback):
         super(CaesarCipherDialog, self).__init__()
+        self._shift = shift
         main_layout = QVBoxLayout()
         main_layout.addWidget(self._init_editor_frame())
         main_layout.addWidget(self._init_button_box())
@@ -186,7 +190,7 @@ class CaesarCipherDialog(QDialog):
         self._shift_slider = QSlider(Qt.Horizontal)
         self._shift_slider.setMinimum(0)
         self._shift_slider.setMaximum(26)
-        self._shift_slider.setValue(0)
+        self._shift_slider.setValue(self._shift)
         self._shift_slider.valueChanged.connect(self._shift_slider_changed)
         slider_frame_layout.addWidget(self._shift_slider)
 

@@ -18,6 +18,5 @@
 # Config is imported within the init_config method of the context-object.
 # This makes it possible to use the command-line-version of Decoder++ without any QtDependencies.
 
-from core.plugin.plugins import Plugins
+from core.plugin.plugins import AbstractPlugin, Plugins
 from core.context import Context
-from core.plugin.plugin import AbstractPlugin

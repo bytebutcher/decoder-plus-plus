@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from typing import List
+
 import qtawesome
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu
@@ -77,7 +79,7 @@ class MainWindowTabsWidget(QTabWidget):
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Rename Tab")
-                       .callback(self.renameTab).build())
+                       .callback(self.tabBar().renameTab).build())
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Close Tab")
@@ -88,7 +90,7 @@ class MainWindowTabsWidget(QTabWidget):
                        .callback(lambda: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
-    def newTab(self, input: str=None):
+    def newTab(self, input: str=None) -> (int, CodecTab):
         """
         Opens a new tab and writes input into first codec-frame.
         :param input: The input which should be placed into the first codec-frame.
@@ -105,9 +107,10 @@ class MainWindowTabsWidget(QTabWidget):
         # BUG: Input-text of newly added codec-tab is not focused correctly.
         # FIX: Refocus input-text.
         codec_tab.getFocussedFrame().focusInputText()
+        return index, codec_tab
 
-    def renameTab(self):
-        self.tabBar().renameTab()
+    def renameTab(self, index, title):
+        self.tabBar().setTabText(index, title)
 
     def selectTab(self, index):
         if index < 0 or index > self.count() - 2:
@@ -151,6 +154,15 @@ class MainWindowTabsWidget(QTabWidget):
         self.setCurrentIndex(new_index)
         self.tabMovedToPrevious.emit(old_index, new_index, name)
 
+    def tab(self, index) -> CodecTab:
+        return self.widget(index)
+
     def tabCount(self):
         # do not count the "Add new Tab"-Tab.
         return self.count() - 1
+
+    def toDict(self) -> List[dict]:
+        return [ {
+            "name": self.tabBar().tabText(tabIndex),
+            "frames": self.tab(tabIndex).toDict()
+        } for tabIndex in range(0, self.tabCount()) ]
