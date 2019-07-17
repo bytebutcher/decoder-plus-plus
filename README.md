@@ -40,7 +40,7 @@ python3 dpp.py -i
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
-    * **Scripts:** Caesar, Little/Big-Endian Transform, Search and Replace, Split and Rejoin, Unescape/Escape String
+    * **Scripts:** Caesar, JS-Beautifier, HTML-Beautifier, Little/Big-Endian Transform, Search and Replace, Split and Rejoin, Unescape/Escape String
 * Smart-Decode
 * Plugin System
 * Load & Save Current Session
@@ -168,4 +168,3 @@ to start Decoder++ using the Windows Commandline.
 ## Powered By
 * PyQt5
 * QtAwesome
-* QScintilla

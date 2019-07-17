@@ -1,6 +1,4 @@
 PyQt5
 QtAwesome
-QScintilla
 pysha3
-cryptodome
 passlib
