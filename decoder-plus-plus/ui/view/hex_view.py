@@ -39,7 +39,6 @@ class HexView(QTableView):
         super(HexView, self).__init__(parent)
         self._context = context
         self._frame_id = frame_id
-        self._logger = context.logger()
         self._init_item_font()
         self._input_text = input_text
         chunks = self._chunk_string(self._input_text, 16)

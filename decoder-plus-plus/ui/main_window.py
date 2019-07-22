@@ -27,6 +27,7 @@ from core.logging.log_entry import LogEntry
 from core.logging.log_filter import LogFilter
 from ui import MainWindowWidget, IconLabel
 from ui.dialog.hidden_dialog import HiddenDialog
+from ui.dock.hex_dock import HexDock
 from ui.dock.log_dock import LogDock
 from ui.widget.message_widget import MessageWidget
 
@@ -37,6 +38,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._context = context
         self._logger = context.logger()
+        self._hex_dock = HexDock(self, self._context)
+        self._hex_dock.setHidden(True)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
         self._message_widget = self._init_message_widget()
         self._log_entries = []
         self._log_dock = LogDock(self, self._log_entries)
@@ -133,6 +137,10 @@ class MainWindow(QMainWindow):
         if self._log_dock.isVisible():
             for filter in self._log_dock.getFilters():
                 self._log_dock.setFilterChecked(filter, filter in filters)
+
+    def _toggle_hex_dock(self):
+        """ Shows/Hides the hex dock. """
+        self._hex_dock.setVisible(self._hex_dock.isHidden())
 
     def newTab(self, input: str):
         """ Opens a new tab. """

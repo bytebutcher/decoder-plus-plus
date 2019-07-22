@@ -15,16 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QRadioButton
+from PyQt5.QtWidgets import QFrame, QVBoxLayout
 
 from core import Context
 from core.plugin.plugin import PluginType
 from core.plugin.plugins import Plugins
-from core.exception import AbortedException
 from ui import VSpacer
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
-from ui.view.hex_view import HexView
 from ui.widget.collapsible_frame import CollapsibleFrame
 from ui.widget.smart_decode_button import SmartDecodeButton
 from ui.widget.status_widget import StatusWidget
@@ -32,11 +30,12 @@ from ui.widget.status_widget import StatusWidget
 
 class CodecFrame(CollapsibleFrame):
 
-    openInNewTab = pyqtSignal(str)
+    pluginSelected = pyqtSignal(str, str, 'PyQt_PyObject')  # frame_id, input_text, plugin
 
     def __init__(self, parent, context: Context, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
         super(__class__, self).__init__(parent)
         self._context = context
+        self._listener = self._context.listener()
         self._context.shortcutUpdated.connect(self._shortcut_updated_event)
         self._init_logger(context, frame_id)
         self._frame_id = frame_id
@@ -68,18 +67,10 @@ class CodecFrame(CollapsibleFrame):
     def _init_input_frame(self, text):
         input_frame = QFrame(self)
         frame_layout = QVBoxLayout()
-        self._plain_view_widget = PlainView(self, text)
-        self._plain_view_widget.textChanged.connect(self._text_changed_event)
-        self._plain_view_widget.openSelectionInNewTab.connect(self.openInNewTab.emit)
-        self._plain_view_widget = self._plain_view_widget
+        self._plain_view_widget = PlainView(self, self._context, self._frame_id, text)
         self.setMetaData(text)
         frame_layout.addWidget(self._plain_view_widget)
         frame_layout.setContentsMargins(0, 6, 6, 6)
-
-        self._hex_view_widget = HexView(self, self._context, self._frame_id, self.getInputText())
-        self._hex_view_widget.textChanged.connect(self._hex_view_text_changed_event)
-        self._hex_view_widget.setHidden(True)
-        frame_layout.addWidget(self._hex_view_widget)
         input_frame.setLayout(frame_layout)
         return input_frame
 
@@ -88,28 +79,14 @@ class CodecFrame(CollapsibleFrame):
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
         self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
-        self._combo_box_frame.pluginSelected.connect(self._execute_plugin_select)
+        self._combo_box_frame.pluginSelected.connect(lambda plugin: self.pluginSelected.emit(self.id(), self.getInputText(), plugin))
         button_frame_layout.addWidget(self._combo_box_frame)
         self._smart_decode_button = SmartDecodeButton(self, self._plugins.filter(type=PluginType.DECODER))
         self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
         button_frame_layout.addWidget(self._smart_decode_button)
-        button_frame_layout.addWidget(self._init_radio_frame())
         button_frame_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_frame_layout)
         return button_frame
-
-    def _init_radio_frame(self):
-        radio_frame = QFrame(self)
-        radio_frame_layout = QHBoxLayout()
-        self._plain_radio = QRadioButton("Plain")
-        self._plain_radio.setChecked(True)
-        self._plain_radio.toggled.connect(self._view_radio_button_toggle_event)
-        self._hex_radio = QRadioButton("Hex")
-        self._hex_radio.toggled.connect(self._view_radio_button_toggle_event)
-        radio_frame_layout.addWidget(self._plain_radio)
-        radio_frame_layout.addWidget(self._hex_radio)
-        radio_frame.setLayout(radio_frame_layout)
-        return radio_frame
 
     def _shortcut_updated_event(self, shortcut):
         id = shortcut.id()
@@ -122,10 +99,6 @@ class CodecFrame(CollapsibleFrame):
         }
         if id in combo_box_shortcut_map:
             self._combo_box_frame.setToolTipByPluginType(combo_box_shortcut_map[id], tooltip)
-        elif id == Context.Shortcut.SELECT_PLAIN_VIEW:
-            self._plain_radio.setToolTip(tooltip)
-        elif id == Context.Shortcut.SELECT_HEX_VIEW:
-            self._hex_radio.setToolTip(tooltip)
         else:
             return
         self._logger.debug("Updated tooltip within codec-frame for {id} to {tooltip}".format(id=id, tooltip=tooltip))
@@ -143,6 +116,7 @@ class CodecFrame(CollapsibleFrame):
 
     def _smart_decode_button_click_event(self):
         input = self._plain_view_widget.toPlainText()
+        # TODO: Split Button and Processing
         decoders = self._smart_decode_button.get_possible_decoders(input)
         if not decoders:
             self._logger.error("No matching decoders detected.")
@@ -162,68 +136,8 @@ class CodecFrame(CollapsibleFrame):
         self._codec_tab.removeFrames(self._next_frame)
         self.focusInputText()
 
-    def _view_radio_button_toggle_event(self):
-        self._plain_view_widget.setVisible(self._plain_radio.isChecked())
-        self._hex_view_widget.setVisible(self._hex_radio.isChecked())
-        # BUG: Performance Issue When Updating Multiple HexView-Frames During Input Text Changes
-        # FIX: Do only update HexView when it's visible
-        if self._hex_radio.isChecked():
-            input = self._plain_view_widget.toPlainText()
-            self._hex_view_widget.blockSignals(True)
-            self._hex_view_widget.setData(input)
-            self._hex_view_widget.blockSignals(False)
-
-    def _text_changed_event(self):
-        # BUG: Performance Issue When Updating Multiple HexView-Frames When Input Text Changes
-        # FIX: Do only update HexView when it's visible
-        input = self._plain_view_widget.toPlainText()
-        if self._hex_view_widget.isVisible():
-            self._hex_view_widget.blockSignals(True)
-            self._hex_view_widget.setData(input)
-            self._hex_view_widget.blockSignals(False)
-        self._status_widget.setStatus("DEFAULT")
-        self.setMetaData(input)
-        self._execute()
-
-    def _hex_view_text_changed_event(self, new_text):
-        input = new_text
-        self._plain_view_widget.blockSignals(True)
-        self._plain_view_widget.setPlainText(input)
-        self._plain_view_widget.blockSignals(False)
-        self._status_widget.setStatus("DEFAULT")
-        self._execute()
-
-    def _execute(self):
-        plugin = self._combo_box_frame.selectedPlugin()
-        if plugin.is_runnable():
-            self._execute_plugin_run(plugin)
-
-    def _execute_plugin_run(self, plugin):
-        input = self.getInputText()
-        output = ""
-        try:
-            output = plugin.run(input)
-            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.SUCCESS)
-        except Exception as e:
-            error = str(e)
-            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), str(e)))
-            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.ERROR, msg=error)
-
-    def _execute_plugin_select(self, plugin):
-        output = ""
-        try:
-            plugin.set_aborted(False)
-            input = self.getInputText()
-            output = plugin.select(input)
-            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.SUCCESS)
-        except AbortedException as e:
-            # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
-            self._logger.debug(str(e))
-            plugin.set_aborted(True)
-        except Exception as e:
-            error = str(e)
-            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
-            self._codec_tab.newFrame(output, plugin.title(), self, status=StatusWidget.ERROR, msg=error)
+    def id(self):
+        return self._frame_id
 
     def flashStatus(self, status, message):
         self._title_frame.indicateError(status is "ERROR")
@@ -231,13 +145,7 @@ class CodecFrame(CollapsibleFrame):
 
     def selectComboBoxEntryByPlugin(self, plugin):
         self._combo_box_frame.selectItem(plugin.type(), plugin.name(), block_signals=True)
-        self._execute_plugin_run(plugin)
-
-    def selectPlainView(self):
-        self._plain_radio.setChecked(True)
-
-    def selectHexView(self):
-        self._hex_radio.setChecked(True)
+        self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
 
     def toggleSearchField(self):
         self._plain_view_widget.toggleSearchField()
@@ -286,6 +194,12 @@ class CodecFrame(CollapsibleFrame):
 
     def focusInputText(self):
         self._plain_view_widget.setFocus()
+
+    def hasFocus(self):
+        # BUG: There is a difference between an active window and a focused window, so when you click on some other
+        #      window making it active, the focus is moved with it on Linux but not on Windows.
+        # FIX: Always use isActiveWindow instead.
+        return self.isActiveWindow()
 
     def focusComboBox(self, type):
         self._combo_box_frame.focusType(type)

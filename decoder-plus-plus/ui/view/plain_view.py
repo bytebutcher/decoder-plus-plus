@@ -21,6 +21,7 @@ from PyQt5.QtCore import pyqtSignal, QRegExp, QPoint, QEvent
 from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QAction
 
+from core import Context
 from ui import SearchField
 
 
@@ -29,15 +30,26 @@ class PlainView(QFrame):
     Represents the plain-view of the Decoder++ application.
     """
 
-    textChanged = pyqtSignal()
-    openSelectionInNewTab = pyqtSignal(str)
+    class EventFilter(QtCore.QObject):
 
-    def __init__(self, parent, text):
+        def __init__(self, parent, context: 'core.context.Context', callback):
+            QtCore.QObject.__init__(self, parent)
+            self._context = context
+            self._callback = callback
+
+        def eventFilter(self, obj, event):
+            self._callback(obj, event)
+            return QtCore.QObject.eventFilter(self, obj, event)
+
+    def __init__(self, parent, context: Context, frame_id, text: str):
         """
         Initializes the plain view.
         :param text: the text to be shown in the plain-text-edit.
         """
         super(PlainView, self).__init__(parent)
+        self._context = context
+        self._listener = context.listener()
+        self._frame_id = frame_id
         self._logger = logging.getLogger('decoder_plusplus')
 
         self._plain_text = QPlainTextEdit(text)
@@ -45,8 +57,13 @@ class PlainView(QFrame):
         self._plain_text.dragEnterEvent = self._on_plain_text_drag_enter_event
         self._plain_text.dropEvent = self._on_plain_text_drop_event
         self._plain_text.textChanged.connect(self._on_plain_text_changed_event)
+        self._plain_text.selectionChanged.connect(self._on_plain_text_selection_changed_event)
         self._plain_text.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._plain_text.customContextMenuRequested.connect(self.showContextMenu)
+        self._plain_text.installEventFilter(PlainView.EventFilter(self, self._context, self._on_plain_text_focus_changed_event))
+
+        self._last_plain_text = self.toPlainText()
+        self._last_selected_plain_text = self.toPlainText()
 
         self._search_field = SearchField()
         self._search_field.setClosable(True)
@@ -63,6 +80,9 @@ class PlainView(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(layout)
+
+    def id(self) -> str:
+        return self._frame_id
 
     def showContextMenu(self, point: QPoint=None):
         """ Displays a customized context menu for the plain view. """
@@ -101,7 +121,7 @@ class PlainView(QFrame):
     def _on_plain_text_context_menu_open_selection_in_new_tab(self, e: QEvent):
         """ Fires a signal that context-menu entry to open selection in new tab was triggered. """
         selectedText = self._plain_text.textCursor().selectedText()
-        self.openSelectionInNewTab.emit(selectedText)
+        self._listener.newTabRequested.emit(selectedText)
 
 
     def _on_plain_text_drag_enter_event(self, e):
@@ -136,9 +156,24 @@ class PlainView(QFrame):
 
     def _on_plain_text_changed_event(self):
         """ Signals that text has changed and highlights text when search field is active. """
-        self.textChanged.emit()
-        if self._search_field.isVisible():
-            self._do_highlight_text()
+        if self._last_plain_text != self.toPlainText():
+            self._last_plain_text = self.toPlainText()
+            if self._search_field.isVisible():
+                self._do_highlight_text()
+
+            self._context.listener().textChanged.emit(self._frame_id, self.toPlainText())
+
+    def _on_plain_text_selection_changed_event(self):
+        cursor = self._plain_text.textCursor()
+        selected_text = cursor.selectedText()
+        if selected_text and selected_text != self._last_selected_plain_text:
+            self._last_selected_plain_text = selected_text
+            self._context.listener().textSelectionChanged.emit(self._frame_id, selected_text)
+
+    def _on_plain_text_focus_changed_event(self, obj, event):
+        if event.type() == QtCore.QEvent.FocusIn and event.reason() == QtCore.Qt.MouseFocusReason:
+            if self._plain_text.hasFocus():
+                self._context.listener().selectedFrameChanged.emit(self._frame_id, self.toPlainText())
 
     def _on_search_field_escape_pressed_event(self):
         """ Closes the search field when search field is focused. """

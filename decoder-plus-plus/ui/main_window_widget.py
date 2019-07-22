@@ -26,7 +26,6 @@ from ui import CodecTab
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
 
-
 class MainWindowWidget(QWidget):
 
     def __init__(self, parent, context: 'core.context.Context', input: str = None):
@@ -94,15 +93,15 @@ class MainWindowWidget(QWidget):
 
     def _init_view_menu(self, main_menu):
         view_menu = main_menu.addMenu('&View')
-        self._register_shortcut(Context.Shortcut.SELECT_PLAIN_VIEW,
-                                "Show Plain View",
-                                "Alt+Shift+P",
-                                lambda: self._select_plain_view(),
+        self._register_shortcut(Context.Shortcut.SELECT_LOG_DOCK,
+                                "Log View",
+                                "Alt+Shift+L",
+                                lambda: self._show_log_dock(),
                                 view_menu)
-        self._register_shortcut(Context.Shortcut.SELECT_HEX_VIEW,
-                                "Show Hex View",
+        self._register_shortcut(Context.Shortcut.SELECT_HEX_DOCK,
+                                "Hex View",
                                 "Alt+Shift+X",
-                                lambda: self._select_hex_view(),
+                                lambda: self._show_hex_dock(),
                                 view_menu)
         return view_menu
 
@@ -258,11 +257,11 @@ class MainWindowWidget(QWidget):
     def _copy_selected_plain_view(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.copySelectedInputText())
 
-    def _select_plain_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.selectPlainView())
+    def _show_log_dock(self):
+        self._main_window._toggle_log_dock()
 
-    def _select_hex_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.selectHexView())
+    def _show_hex_dock(self):
+        self._main_window._toggle_hex_dock()
 
     def _toggle_search_field(self):
         self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())

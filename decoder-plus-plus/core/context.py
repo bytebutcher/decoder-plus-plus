@@ -25,6 +25,8 @@ from typing import List, Dict
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction
 
+from core.config import Config
+from core.listener import Listener
 from core.plugin.plugins import AbstractPlugin, Plugins
 from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
@@ -71,13 +73,15 @@ class Context(QObject):
         FOCUS_INPUT_TEXT_NEXT = "focus_input_text_next"
         FOCUS_INPUT_TEXT_PREVIOUS = "focus_input_text_previous"
         SELECT_PLAIN_VIEW = "select_plain_view"
-        SELECT_HEX_VIEW = "select_hex_view"
+        SELECT_HEX_DOCK = "select_hex_dock"
+        SELECT_LOG_DOCK = "select_log_dock"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
 
     def __init__(self, app_id):
         super(__class__, self).__init__()
         self._app_id = app_id
         self._logger = {}
+        self._listener = Listener(self)
         self._config = self._init_config()
         self._plugins = None
         self._plugin_loader = PluginLoader(self)
@@ -135,9 +139,12 @@ class Context(QObject):
         """ Returns the ID of the application. """
         return self._app_id
 
-    def config(self):
+    def config(self) -> Config:
         """ Returns the main configuration of the application. """
         return self._config
+
+    def listener(self) -> Listener:
+        return self._listener
 
     def logger(self, log_format="%(module)s: %(lineno)d: %(msg)s", log_fields=None):
         """ Returns the logger of the application. """

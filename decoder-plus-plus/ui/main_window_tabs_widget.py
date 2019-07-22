@@ -41,6 +41,7 @@ class MainWindowTabsWidget(QTabWidget):
     def __init__(self, context, plugins, parent=None):
         super(__class__, self).__init__(parent)
         self._context = context
+        self._init_listener(context)
         self._plugins = plugins
         self._current_tab_number = 1
         bar = TabBar()
@@ -62,6 +63,10 @@ class MainWindowTabsWidget(QTabWidget):
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
+
+    def _init_listener(self, context):
+        self._listener = context.listener()
+        self._listener.newTabRequested.connect(self.newTab)
 
     def _show_context_menu(self, point):
         if not point:
@@ -98,7 +103,6 @@ class MainWindowTabsWidget(QTabWidget):
         name = "Tab {}".format(self._current_tab_number)
         self._current_tab_number += 1
         codec_tab = CodecTab(self, self._context, self._plugins)
-        codec_tab.openInNewTab.connect(self.newTab)
         self.insertTab(self.count() - 1, codec_tab, name)
         index = self.count() - 2
         self.setCurrentIndex(index)
