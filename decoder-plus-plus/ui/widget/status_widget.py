@@ -52,5 +52,8 @@ class StatusWidget(QWidget):
         else:
             self.setToolTip("")
 
+    def hasStatus(self, status_name):
+        return self._current_status_name == status_name
+
     def status(self) -> (str, str):
         return self._current_status_name, self._current_status_message

@@ -60,14 +60,14 @@ class HexDock(QDockWidget):
             return "{0:02x}".format(ord(str_char))[:2]
         return [get_hex_char(string[i]) for i in range(0, len(string))]
 
-    def _update_view(self, frame_id: str, input_text: str):
+    def _update_view(self, tab_id: str, frame_id: str, input_text: str):
         if self._selected_frame_id == frame_id and self._last_input_text != input_text:
             self._last_input_text = input_text
             self._hex_dock_view.setData(input_text)
 
-    def _selected_frame_changed(self, frame_id: str, input_text: str):
+    def _selected_frame_changed(self, tab_id: str, frame_id: str, input_text: str):
         self._selected_frame_id = frame_id
-        self._update_view(frame_id, input_text)
+        self._update_view(tab_id, frame_id, input_text)
 
 
     def closeEvent(self, QCloseEvent):

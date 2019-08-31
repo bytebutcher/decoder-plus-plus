@@ -32,7 +32,7 @@ class PluginType(object):
 class AbstractPlugin(object):
     """ Base-class to all plugins. Should not be used directly. Instead use one of its abstract implementations. """
 
-    def __init__(self, name: str, type: str, author: str, dependencies: List[str], context: 'Context'):
+    def __init__(self, name: str, type: str, author: str, dependencies: List[str], context: 'core.context.Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
@@ -50,7 +50,7 @@ class AbstractPlugin(object):
 
     def setup(self, config: dict):
         """ Injects a given configuration into the plugin. """
-        for name, value in config:
+        for name, value in config.items():
             setattr(self, name, value)
 
     def config(self) -> dict:
@@ -59,6 +59,13 @@ class AbstractPlugin(object):
         :returns empty dictionary since most plugins do not possess any special configuration.
         """
         return {}
+
+    def isConfigurable(self) -> bool:
+        """
+        Returns whether the plugin can be configured.
+        :return: True, when configurable, otherwise False.
+        """
+        return bool(self.config())
 
     def name(self) -> str:
         """ :returns the name of the plugin (e.g. "URL+"). """
@@ -220,7 +227,7 @@ class AbstractPlugin(object):
 
 class DecoderPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str], context):
+    def __init__(self, name: str, author: str, dependencies: List[str], context: 'core.context.Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
@@ -243,7 +250,7 @@ class DecoderPlugin(AbstractPlugin):
 
 class EncoderPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str], context):
+    def __init__(self, name: str, author: str, dependencies: List[str], context: 'core.context.Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
@@ -256,7 +263,7 @@ class EncoderPlugin(AbstractPlugin):
 
 class HasherPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str], context):
+    def __init__(self, name: str, author: str, dependencies: List[str], context: 'core.context.Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
@@ -269,7 +276,7 @@ class HasherPlugin(AbstractPlugin):
 
 class ScriptPlugin(AbstractPlugin):
 
-    def __init__(self, name: str, author: str, dependencies: List[str], context):
+    def __init__(self, name: str, author: str, dependencies: List[str], context: 'core.context.Context'):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
@@ -283,7 +290,7 @@ class ScriptPlugin(AbstractPlugin):
 class NullPlugin(AbstractPlugin):
     """ Implements a plugin which can be used as a Null-Object. """
 
-    def __init__(self, context):
+    def __init__(self, context=None):
         super(NullPlugin, self).__init__("", "", "", [], context)
 
     def select(self, *args, **kwargs):

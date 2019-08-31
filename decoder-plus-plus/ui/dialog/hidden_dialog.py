@@ -32,7 +32,7 @@ class HiddenDialog(QDialog):
     TAB_PLUGINS = "Plugins"
     TAB_KEYBOARD_SHORTCUTS = "Keyboard Shortcuts"
 
-    def __init__(self, parent, context, select_tab_name: str=None):
+    def __init__(self, parent, context: 'core.context.Context', select_tab_name: str=None):
         """
         Initializes the hidden dialog.
         :param parent: the widget which is calling the dialog.
@@ -77,6 +77,7 @@ class HiddenDialog(QDialog):
         icon_frame = QFrame()
         icon_layout = QHBoxLayout()
         icon_label = IconLabel(self, QIcon(logo))
+        icon_label.mouseDoubleClickEvent = lambda evt: self._context.toggleDebugMode()
         icon_label.setFixedSize(QSize(180, 180))
         icon_layout.setAlignment(QtCore.Qt.AlignLeft)
         icon_layout.setContentsMargins(10, 10, 10, 10)
@@ -118,7 +119,7 @@ class HiddenDialog(QDialog):
     def _init_keyboard_shortcuts_tab(self):
         frame = QFrame(self)
         frame_layout = QVBoxLayout(self)
-        shortcut_filter = SearchField()
+        shortcut_filter = SearchField(self)
         shortcut_filter.setPlaceholderText("Search keyboard shortcut...")
         shortcut_filter.setIcon(qtawesome.icon("fa.search"))
         frame_layout.addWidget(shortcut_filter)

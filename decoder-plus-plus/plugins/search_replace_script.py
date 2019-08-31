@@ -35,6 +35,11 @@ class Plugin(ScriptPlugin):
             self._dialog = SearchAndReplaceDialog()
 
         self._dialog_return_code = self._dialog.exec_()
+
+        if self._dialog_return_code != QDialog.Accepted:
+            # User clicked the Cancel-Button.
+            raise AbortedException("Aborted")
+
         self._search_term = self._dialog.getSearchTerm()
         self._replace_term =  self._dialog.getReplaceTerm()
         self._match_case = self._dialog.shouldMatchCase()
@@ -66,18 +71,14 @@ class Plugin(ScriptPlugin):
         return self._is_regex
 
     def run(self, text):
-        if self._dialog_return_code == QDialog.Accepted:
-            if self._isRegex() and self._shouldMatchCase():
-                return re.sub(self._getSearchTerm(), self._getReplaceTerm(), text, flags=re.IGNORECASE)
-            elif self._isRegex():
-                return re.sub(self._getSearchTerm(), self._getReplaceTerm(), text)
-            elif self._shouldMatchCase():
-                return text.replace(self._getSearchTerm(), self._getReplaceTerm())
-            else:
-                return self._replace_ignore_case(text)
+        if self._isRegex() and self._shouldMatchCase():
+            return re.sub(self._getSearchTerm(), self._getReplaceTerm(), text, flags=re.IGNORECASE)
+        elif self._isRegex():
+            return re.sub(self._getSearchTerm(), self._getReplaceTerm(), text)
+        elif self._shouldMatchCase():
+            return text.replace(self._getSearchTerm(), self._getReplaceTerm())
         else:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
+            return self._replace_ignore_case(text)
 
     def _replace_ignore_case(self, text):
         regexp = re.compile(re.escape(self._getSearchTerm()), re.IGNORECASE)

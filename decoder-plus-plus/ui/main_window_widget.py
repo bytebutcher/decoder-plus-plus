@@ -21,10 +21,11 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
 from core import Context
 from core.plugin.plugin import PluginType
-from core.plugin.plugin_builder import PluginBuilder
 from ui import CodecTab
+from ui.codec_frame import CodecFrame
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
+
 
 class MainWindowWidget(QWidget):
 
@@ -68,26 +69,27 @@ class MainWindowWidget(QWidget):
 
     def _init_edit_menu(self, main_menu):
         edit_menu = main_menu.addMenu('&Edit')
+
         self._register_shortcut(Context.Shortcut.EDIT_CUT,
                                 "C&ut",
                                 "Ctrl+X",
-                                lambda: self._cut_selected_plain_view(),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.cutSelectedInputText()),
                                 edit_menu)
         self._register_shortcut(Context.Shortcut.EDIT_COPY,
                                 "&Copy",
                                 "Ctrl+C",
-                                lambda: self._copy_selected_plain_view(),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.copySelectedInputText()),
                                 edit_menu)
         self._register_shortcut(Context.Shortcut.EDIT_PASTE,
                                 "&Paste",
                                 "Ctrl+P",
-                                lambda: self._paste_selected_plain_view(),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.pasteSelectedInputText()),
                                 edit_menu)
         edit_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                 "Toggle Search Field",
                                 "Ctrl+F",
-                                lambda: self._toggle_search_field(),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.toggleSearchField()),
                                 edit_menu)
         return edit_menu
 
@@ -96,36 +98,41 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.SELECT_LOG_DOCK,
                                 "Log View",
                                 "Alt+Shift+L",
-                                lambda: self._show_log_dock(),
+                                lambda: self._main_window._toggle_log_dock(),
                                 view_menu)
         self._register_shortcut(Context.Shortcut.SELECT_HEX_DOCK,
                                 "Hex View",
                                 "Alt+Shift+X",
-                                lambda: self._show_hex_dock(),
+                                lambda: self._main_window._toggle_hex_dock(),
                                 view_menu)
         return view_menu
 
     def _init_select_menu(self, main_menu):
         select_menu = main_menu.addMenu('&Select')
+        #self._register_shortcut(Context.Shortcut.FOCUS_CODEC_SEARCH,
+        #                        "Select Codec Search",
+        #                        "Ctrl+Space",
+        #                        lambda: self._tabs.focusCodecSearch(),
+        #                        select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_DECODER,
                                 "Select Decoder",
                                 "Alt+Shift+D",
-                                lambda: self._focus_combo_box(PluginType.DECODER),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_ENCODER,
                                 "Select Encoder",
                                 "Alt+Shift+E",
-                                lambda: self._focus_combo_box(PluginType.ENCODER),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_HASHER,
                                 "Select Hasher",
                                 "Alt+Shift+H",
-                                lambda: self._focus_combo_box(PluginType.HASHER),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_SCRIPT,
                                 "Select Script",
                                 "Alt+Shift+S",
-                                lambda: self._focus_combo_box(PluginType.SCRIPT),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT)),
                                 select_menu)
 
         select_menu.addSeparator()
@@ -133,17 +140,17 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
                                 "Select Text Field",
                                 "Alt+Shift+I",
-                                lambda: self._focus_input_text(),
+                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusInputText()),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
                                 "Select Next Text Field",
                                 "Alt+Down",
-                                lambda: self._focus_input_text_next(),
+                                lambda: self._focus_input_text(lambda frame: frame.next()),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS,
                                 "Select Previous Text Field",
                                 "Alt+Up",
-                                lambda: self._focus_input_text_previous(),
+                                lambda: self._focus_input_text(lambda frame: frame.previous()),
                                 select_menu)
         return select_menu
 
@@ -214,57 +221,20 @@ class MainWindowWidget(QWidget):
         menu.addAction(action)
         return action
 
-    def _call_focussed_frame(self, callback):
-        focussed_frame = self._get_focussed_frame()
-        if focussed_frame:
-            callback(focussed_frame)
+    def _call_focused_frame(self, callback):
+        focused_frame = self._get_focused_frame()
+        if focused_frame:
+            callback(focused_frame)
 
-    def _get_focussed_frame(self):
-        return self._tabs.currentWidget().getFocussedFrame()
+    def _get_focused_frame(self) -> CodecFrame:
+        return self._tabs.currentWidget().getFocusedFrame()
 
-    def _focus_combo_box(self, type):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.focusComboBox(type))
-
-    def _focus_input_text(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.focusInputText())
-
-    def _focus_input_text_next(self):
-        focussed_frame = self._get_focussed_frame()
-        if focussed_frame:
-            if focussed_frame.next():
-                focus_frame = focussed_frame.next()
-            else:
-                focus_frame = focussed_frame
-            focus_frame.focusInputText()
-            self._tabs.currentWidget().ensureWidgetVisible(focus_frame)
-
-    def _focus_input_text_previous(self):
-        focussed_frame = self._get_focussed_frame()
-        if focussed_frame:
-            if focussed_frame.previous():
-                focus_frame = focussed_frame.previous()
-            else:
-                focus_frame = focussed_frame
-            focus_frame.focusInputText()
-            self._tabs.currentWidget().ensureWidgetVisible(focus_frame)
-
-    def _paste_selected_plain_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.pasteSelectedInputText())
-
-    def _cut_selected_plain_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.cutSelectedInputText())
-
-    def _copy_selected_plain_view(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.copySelectedInputText())
-
-    def _show_log_dock(self):
-        self._main_window._toggle_log_dock()
-
-    def _show_hex_dock(self):
-        self._main_window._toggle_hex_dock()
-
-    def _toggle_search_field(self):
-        self._call_focussed_frame(lambda focussed_frame: focussed_frame.toggleSearchField())
+    def _focus_input_text(self, callback):
+        frame = self._get_focused_frame()
+        if frame:
+            frame = callback(frame) or frame
+            frame.focusInputText()
+            self._tabs.currentWidget().ensureWidgetVisible(frame)
 
     def _show_hidden_dialog(self, tab_select: str=None):
         """ Shows the hidden dialog. """
@@ -288,10 +258,7 @@ class MainWindowWidget(QWidget):
                                 frame.setInputText(frame_config["text"])
                             else:
                                 frame = tab.newFrame(frame_config["text"], frame_config["title"], previous_frame)
-                            frame.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
-                            plugin = PluginBuilder(self._context).build(frame_config["plugin"])
-                            if plugin:
-                                frame.selectComboBoxEntryByPlugin(plugin)
+                            frame.fromDict(frame_config)
                             previous_frame = frame
                 self._context.logger().info("Successfully loaded {}!".format(filename))
             except Exception as e:

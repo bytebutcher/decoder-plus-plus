@@ -19,10 +19,12 @@ from typing import List
 
 import qtawesome
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu
+from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
-from ui import TabBar, CodecTab
+from ui import CodecTab, TabBar
 from ui.builder.action_builder import ActionBuilder
+from ui.widget.search_field import SearchField
+from ui.widget.separater_widget import VSep
 
 
 class MainWindowTabsWidget(QTabWidget):
@@ -40,6 +42,7 @@ class MainWindowTabsWidget(QTabWidget):
 
     def __init__(self, context, plugins, parent=None):
         super(__class__, self).__init__(parent)
+        self._parent = parent
         self._context = context
         self._init_listener(context)
         self._plugins = plugins
@@ -63,6 +66,31 @@ class MainWindowTabsWidget(QTabWidget):
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
+        #
+        # >> CornerWidget with search field (Preview)
+        #
+        # self.setCornerWidget(self._init_search_field(), QtCore.Qt.TopRightCorner)
+
+    def _init_search_field(self):
+        search_field_frame = QFrame()
+        search_field_layout = QHBoxLayout()
+        search_field_layout.addWidget(VSep(self))
+
+        self._search_field = SearchField(self)
+        self._search_field.setIcon(qtawesome.icon("fa.search"))
+        self._search_field.setPlaceholderText("Search codec")
+        self._search_field.textChanged.connect(lambda text: {})
+        search_field_layout.addWidget(self._search_field)
+
+        self._search_field_button = QToolButton()
+        self._search_field_button.setIcon(qtawesome.icon("fa.arrow-circle-right"))
+        self._search_field_button.setContentsMargins(0, 0, 0, 0)
+        search_field_layout.addWidget(self._search_field_button)
+
+        search_field_frame.setLayout(search_field_layout)
+        search_field_frame.setContentsMargins(5, 0, 5, 5) # left, top, right, bottom
+        search_field_frame.layout().setContentsMargins(0, 0, 0, 0)
+        return search_field_frame
 
     def _init_listener(self, context):
         self._listener = context.listener()
@@ -107,10 +135,10 @@ class MainWindowTabsWidget(QTabWidget):
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
-        codec_tab.getFocussedFrame().setInputText(input)
+        codec_tab.getFocusedFrame().setInputText(input)
         # BUG: Input-text of newly added codec-tab is not focused correctly.
         # FIX: Refocus input-text.
-        codec_tab.getFocussedFrame().focusInputText()
+        codec_tab.getFocusedFrame().focusInputText()
         return index, codec_tab
 
     def renameTab(self, index, title):
@@ -164,6 +192,9 @@ class MainWindowTabsWidget(QTabWidget):
     def tabCount(self):
         # do not count the "Add new Tab"-Tab.
         return self.count() - 1
+
+    def focusCodecSearch(self):
+        self._search_field.setFocus()
 
     def toDict(self) -> List[dict]:
         return [ {

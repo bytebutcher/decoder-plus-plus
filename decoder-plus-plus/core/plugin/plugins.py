@@ -27,7 +27,7 @@ class Plugins(object):
     def __init__(self, context: 'core.context.Context', plugin_list: List[AbstractPlugin]):
         self._context = context
         self._logger = context.logger()
-        self._plugin_list = plugin_list
+        self._plugin_list = sorted(plugin_list, key=lambda x: (getattr(x, '_name'), getattr(x, '_type')))
         self._index = 0
 
     def names(self, type: str=None, author: str=None) -> List[str]:

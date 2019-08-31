@@ -50,7 +50,7 @@ class PluginSelectionFrame(QFrame):
 
         base_layout = QVBoxLayout()
 
-        self._search_field = SearchField()
+        self._search_field = SearchField(self)
         self._search_field.setPlaceholderText("Search plugin...")
         self._search_field.setIcon(qtawesome.icon("fa.search"))
         self._search_field.enterPressed.connect(self._on_search_field_enter_key_pressed)
@@ -83,7 +83,7 @@ class PluginSelectionFrame(QFrame):
 
     def _init_list_items(self):
         """ Add all plugins into a list. """
-        for plugin in self._plugins:
+        for plugin in sorted(self._plugins, key=lambda x: getattr(x, '_name')):
             name = plugin.full_name()
             item = QStandardItem(name)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
@@ -194,7 +194,7 @@ class PluginTab(QFrame):
         self._plugin_selection_frame.selectionChanged.connect(self._select_frame)
 
         inner_layout.addWidget(self._plugin_selection_frame)
-        self._dynamic_frame = DynaFrame(self._get_frame_by_selection(None))
+        self._dynamic_frame = DynaFrame(self, self._get_frame_by_selection(None))
         inner_layout.addWidget(self._dynamic_frame)
         inner_widget.setLayout(inner_layout)
         base_layout.addWidget(inner_widget)

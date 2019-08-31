@@ -22,6 +22,7 @@ from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter
 
 from core import Context
 from core.exception import AbortedException
+from core.plugin.plugin_builder import PluginBuilder
 from core.plugin.plugins import Plugins
 from ui.codec_frame import CodecFrame
 from ui.widget.spacer import VSpacer
@@ -34,12 +35,13 @@ class CodecTab(QScrollArea):
 
     def __init__(self, parent, context: Context, plugins: Plugins):
         super(QWidget, self).__init__(parent)
+        self._tab_id = uuid.uuid4().hex
         self._context = context
         self._init_listener(context)
         self._logger = context.logger()
         self._plugins = plugins
 
-        self._focussed_frame = None
+        self._focused_frame = None
         self._next_frame_id = uuid.uuid4().hex
         self._frames = QFrame()
         self._frames_layout = QVBoxLayout()
@@ -60,34 +62,61 @@ class CodecTab(QScrollArea):
 
     def _init_listener(self, context):
         self._listener = context.listener()
-        def selected_frame_changed(frame_id, input_text):
-            self._focussed_frame = self.getFrameById(frame_id)
 
-        # Always remember the currently focussed frame
+        def selected_frame_changed(tab_id, frame_id, input_text):
+            # Always remember the currently focused frame (e.g. used for finding the currently selected frame when
+            # using keyboard-shortcuts)
+            if self.id() == tab_id:
+                self._focused_frame = self.getFrameById(frame_id)
+
         self._listener.selectedFrameChanged.connect(selected_frame_changed)
+        self._listener.textChanged.connect(lambda tab_id, frame_id, text: self.id() == tab_id and self._text_changed_event(frame_id, text))
 
-        def text_changed_event(frame_id, input_text):
-            frame = self.getFrameById(frame_id)
-            if frame:
-                frame._status_widget.setStatus("DEFAULT")
-                frame.setMetaData(input_text)
-                plugin = frame._combo_box_frame.selectedPlugin()
-                if plugin.is_runnable():
-                    self._execute_plugin_run(frame.id(), input_text, plugin)
+    # ------------------------------------------------------------------------------------------------------------------
 
-        self._listener.textChanged.connect(text_changed_event)
+    def _set_frame_content_height(self, new_frame):
+        # BUG: Frame height is only calculated correctly for first frame.
+        # FIX: Cache and use frame height of first frame for all other frames.
+        if not self.FRAME_HEIGHT:
+            new_frame.show()
+            self.FRAME_HEIGHT = new_frame.getContentHeight()
+        new_frame.setContentHeight(self.FRAME_HEIGHT)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # TODO: Move the following code into the codec-frame
+    # ------------------------------------------------------------------------------------------------------------------
 
-    def _execute_plugin_run(self, frame_id, input_text, plugin):
+    def _text_changed_event(self, frame_id, text, is_user_action=True, do_preserve_state=False):
+        frame = self.getFrameById(frame_id)
+        if is_user_action:
+            frame._status_widget.setStatus("DEFAULT")
+        while frame:
+            if do_preserve_state and frame.hasNext() and frame.next()._status_widget.hasStatus("DEFAULT"):
+                # Do not overwrite content of frames which are in default-state.
+                # Usually done when moving frames to a new position whereby custom user-input should not be
+                # overwritten.
+                frame = frame.next()
+                continue
+
+            input_text = frame.getInputText()
+            frame.header().refresh()
+            plugin = frame._combo_box_frame.selectedPlugin()
+            if not plugin.is_runnable():
+                break
+
+            frame = self._execute_plugin_run(frame.id(), input_text, plugin)
+
+    def _execute_plugin_run(self, frame_id, input_text, plugin) -> CodecFrame:
         frame = self.getFrameById(frame_id)
         output_text = ""
         try:
             output_text = plugin.run(input_text)
-            self.newFrame(output_text, plugin.title(), frame, status=StatusWidget.SUCCESS)
-        except Exception as e:
+            return self.newFrame(output_text, plugin.title(), frame, status=StatusWidget.SUCCESS)
+        except BaseException as e:
             error = str(e)
-            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), str(e)))
-            self.newFrame(output_text, plugin.title(), frame, status=StatusWidget.ERROR, msg=error)
+            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
+            return self.newFrame(output_text, plugin.title(), frame, status=StatusWidget.ERROR, msg=error)
+
 
     def _execute_plugin_select(self, frame_id, input_text, plugin):
         frame = self.getFrameById(frame_id)
@@ -100,10 +129,25 @@ class CodecTab(QScrollArea):
             # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
             self._logger.debug(str(e))
             plugin.set_aborted(True)
-        except Exception as e:
+        except BaseException as e:
             error = str(e)
             self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
             self.newFrame(output, plugin.title(), frame, status=StatusWidget.ERROR, msg=error)
+
+    def _get_plugin_config(self, frame_id: str):
+        # Remember: We press the config-button of a frame, but want the plugin-config of the previous frame ...
+        frame = self.getFrameById(frame_id).previous()
+        if frame:
+            plugin = frame.getPlugin()
+            input_text = frame.getInputText()
+            self._execute_plugin_select(frame.id(), input_text, plugin)
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def id(self):
+        return self._tab_id
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     def newFrame(self, text, title, previous_frame=None, status=None, msg=None) -> CodecFrame:
         # BUG: Setting complex default values is not possible in python
@@ -112,53 +156,47 @@ class CodecTab(QScrollArea):
             status = StatusWidget.DEFAULT
 
         if previous_frame and previous_frame.hasNext():
-            try:
-                next_frame = previous_frame.next()
-                next_frame.setTitle(title)
+            next_frame = previous_frame.next()
+            if status == StatusWidget.ERROR:
                 finished = False
-                if status == StatusWidget.ERROR:
-                    while not finished:
-                        next_frame.flashStatus(status, msg)
-                        # Display error only for the first frame.
-                        msg = None
-                        finished = not next_frame.hasNext()
-                        next_frame = next_frame.next()
-                else:
-                    next_frame.setInputText(text, msg is not None and len(msg) > 0)
+                while not finished:
                     next_frame.flashStatus(status, msg)
+                    next_frame.header().refresh()
+                    # Display error only for the first frame.
+                    msg = None
+                    finished = not next_frame.hasNext()
+                    next_frame = next_frame.next()
+            else:
+                next_frame.setInputText(text)
+                next_frame.header().refresh()
+                next_frame.flashStatus(status, msg)
 
-                previous_frame.focusInputText()
-                return next_frame
-            except Exception as e:
-                self._logger.error("Error Resetting Codec Frame: {}".format(str(e)))
+            return next_frame
         else:
-            try:
-                new_frame = CodecFrame(self, self._context, self._next_frame_id, self, self._plugins, previous_frame, text)
-                new_frame.pluginSelected.connect(self._execute_plugin_select)
-                self._next_frame_id = uuid.uuid4().hex
-                if self._frames.layout().count() == 0:
-                    # First frame has no title and should not be collapsible.
-                    new_frame._title_frame.setHidden(True)
-                if self._frames.layout().count() > 0:
-                    # Every frame (except the first frame) should signal success/error.
-                    new_frame.flashStatus(status, msg)
-                if self._frames.layout().count() > 1:
-                    # Auto-collapse previous frames (except first frame and when previous frame had focus).
-                    previous_frame.setCollapsed(not (self._focussed_frame and self._focussed_frame == previous_frame))
-                new_frame.setTitle(title)
-                new_frame.setContentsMargins(0, 0, 0, 0)
-                new_frame.layout().setContentsMargins(0, 0, 0, 0)
-                self._frames_layout.addWidget(new_frame)
-                self._set_frame_content_height(new_frame)
-                return new_frame
-            except Exception as e:
-                self._logger.error("Error Initializing New Codec Frame: {}".format(str(e)))
+            new_frame = CodecFrame(self, self._context, self._tab_id, self._next_frame_id, self, self._plugins, previous_frame, text)
+            new_frame.pluginSelected.connect(self._execute_plugin_select)
+            new_frame.configButtonClicked.connect(lambda frame_id: self._get_plugin_config(frame_id))
+            self._next_frame_id = uuid.uuid4().hex
+            if self._frames.layout().count() == 0:
+                # First frame has no title and should not be collapsible.
+                new_frame._header_frame.setHidden(True)
+            if self._frames.layout().count() > 0:
+                # Every frame (except the first frame) should signal success/error.
+                new_frame.flashStatus(status, msg)
+            if self._frames.layout().count() > 1:
+                # Auto-collapse previous frames (except first frame and when previous frame had focus).
+                previous_frame.setCollapsed(not (self._focused_frame and self._focused_frame == previous_frame))
+            new_frame.header().refresh()
+            new_frame.setContentsMargins(0, 0, 0, 0)
+            new_frame.layout().setContentsMargins(0, 0, 0, 0)
+            new_frame.upButtonClicked.connect(self.moveFrameUp)
+            new_frame.downButtonClicked.connect(self.moveFrameDown)
+            new_frame.closeButtonClicked.connect(self.closeFrame)
+            self._frames_layout.addWidget(new_frame)
+            self._set_frame_content_height(new_frame)
+            return new_frame
 
-    def getFrames(self) -> List[CodecFrame]:
-        frames = []
-        for frameIndex in range(0, self._frames_layout.count()):
-            frames.append(self._frames_layout.itemAt(frameIndex).widget())
-        return frames
+    # ------------------------------------------------------------------------------------------------------------------
 
     def getFrameById(self, frame_id):
         frame = None
@@ -168,33 +206,109 @@ class CodecTab(QScrollArea):
                 break
         return frame
 
-    def _set_frame_content_height(self, new_frame):
-        # BUG: Frame height is only calculated correctly for first frame.
-        # FIX: Cache and use frame height of first frame for all other frames.
-        if not self.FRAME_HEIGHT:
-            new_frame.show()
-            self.FRAME_HEIGHT = new_frame.getContentHeight()
-        new_frame.setContentHeight(self.FRAME_HEIGHT)
-
-    def removeFrames(self, frame):
-        if frame:
-            if frame.previous():
-                frame.previous().setNext(None)
-
-            frames_to_remove = [frame]
-            while frame.next():
-                frames_to_remove.append(frame.next())
-                frame = frame.next()
-            for frame_to_remove in reversed(frames_to_remove):
-                frame_to_remove.deleteLater()
-
-    def getFocussedFrame(self) -> CodecFrame:
+    def getFocusedFrame(self) -> CodecFrame:
         widget = self._frames.focusWidget()
         while widget:
             if isinstance(widget, CodecFrame):
                 return widget
             widget = widget.parent()
         return self._frames_layout.itemAt(0).widget()
+
+    def getFrames(self) -> List[CodecFrame]:
+        frames = []
+        for frameIndex in range(0, self._frames_layout.count()):
+            frames.append(self._frames_layout.itemAt(frameIndex).widget())
+        return frames
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def closeFrame(self, frame_id):
+        """
+        Closes/Removes the frame with the specified frame-id.
+
+        This is done by caching the config of all frames (except the frame specified), removing the last frame and
+        rebuilding everything from scratch (top to bottom).
+
+        There might be better ways removing a frame but this one works as expected.
+        """
+
+        # Caching the config of all frames (except the frame specified)
+        frame_config_list = []
+        frames = self.getFrames()
+        uncollapse_last_frame = False
+        for frame in frames:
+            if frame.id() != frame_id:
+                frame_config_list.append(frame.toDict())
+            else:
+                # We need to move the plugin of the to-be-removed frame to the previous frame.
+                frame_config_list[-1]["plugin"] = frame.toDict()["plugin"]
+                if not frame.hasNext(): # it is the last frame
+                    uncollapse_last_frame = not frame.isCollapsed()
+
+        # Remove the last frame
+        self.removeFrames(frames[-1])
+
+        # Rebuilding everything from scratch (starting at frame 1)
+        frame = frames[0]
+        for frame_config in frame_config_list:
+            frame.fromDict(frame_config)
+            frame = frame.next()
+
+        if uncollapse_last_frame:
+            frames[-2].setCollapsed(False)
+
+    def removeFrames(self, frame):
+        """ Remove all frames below the frame specified """
+        if frame:
+            if frame.hasPrevious():
+                frame.previous().setNext(None)
+
+            frames_to_remove = [frame]
+            while frame.hasNext():
+                frames_to_remove.append(frame.next())
+                frame = frame.next()
+            for frame_to_remove in reversed(frames_to_remove):
+                frame_to_remove.deleteLater()
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def moveFrameUp(self, frame_id: str):
+        codec_frame = self.getFrameById(frame_id)
+        if not codec_frame or not codec_frame.previous() or not codec_frame.previous().previous():
+            self._logger.debug('moveFrameUp({}): invalid move'.format(frame_id))
+            return
+
+        self.switchFrameStates(codec_frame, codec_frame.previous())
+        self.switchFrames(codec_frame.previous(), codec_frame.previous().previous())
+
+    def moveFrameDown(self, frame_id: str):
+        codec_frame = self.getFrameById(frame_id)
+        if not codec_frame or not codec_frame.previous() or not codec_frame.next():
+            self._logger.debug('moveFrameDown({}): invalid move'.format(frame_id))
+            return
+
+        self.switchFrameStates(codec_frame, codec_frame.next())
+        self.switchFrames(codec_frame, codec_frame.previous())
+
+    def switchFrameStates(self, frame: CodecFrame, another_frame: CodecFrame):
+        frame_state = frame._status_widget.status()
+        frame_text = frame.getInputText()
+        another_frame_state = another_frame._status_widget.status()
+        another_frame_text = another_frame.getInputText()
+        another_frame._status_widget.setStatus(*frame_state)
+        another_frame.setInputText(frame_text)
+        frame._status_widget.setStatus(*another_frame_state)
+        frame.setInputText(another_frame_text)
+
+
+    def switchFrames(self, frame: CodecFrame, another_frame: CodecFrame):
+        frame_plugin = PluginBuilder(self._context).build(frame.toDict()["plugin"])
+        another_frame_plugin = PluginBuilder(self._context).build(another_frame.toDict()["plugin"])
+        another_frame.setPlugin(frame_plugin, blockSignals=True)
+        frame.setPlugin(another_frame_plugin, blockSignals=True)
+        self._text_changed_event(frame.previous().id(), frame.previous().getInputText(), is_user_action=False, do_preserve_state=True)
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     def toDict(self) -> List[dict]:
         return [ frame.toDict() for frame in self.getFrames() ]

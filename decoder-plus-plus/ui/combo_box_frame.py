@@ -143,6 +143,10 @@ class ComboBoxFrame(QFrame):
             return NullPlugin(self._context)
 
     def selectItem(self, type, plugin_name, block_signals=False):
+        if not type and not plugin_name:
+            self.resetAll()
+            return
+
         self.resetExceptType(type)
         combo_box = self._combo_boxes[type]
         for i in range(combo_box.count()):

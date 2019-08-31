@@ -20,13 +20,14 @@ class Plugin(ScriptPlugin):
         super().__init__('Caesar Cipher', "Thomas Engel", [], context)
         self._shift = None
         self._dialog = None
+        self._codec = CaesarCipher()
 
     def config(self):
         return {"_shift": self._shift}
 
     def select(self, text):
         if not self._dialog:
-            self._dialog = CaesarCipherDialog(text, self._shift or 0, self._do_caesar)
+            self._dialog = CaesarCipherDialog(text, self._shift or 0, self._codec)
         else:
             self._dialog.setInput(text)
 
@@ -35,31 +36,17 @@ class Plugin(ScriptPlugin):
             return self.run(text)
         else:
             # User clicked the Cancel-Button.
-            self._shift = None
             raise AbortedException("Aborted")
 
     def title(self):
         return "{} shift {}".format("Caesar Cipher", self._shift)
 
     def run(self, text, shift=None):
-        return self._do_caesar(text, self._shift)
+        return self._codec.run(text, self._shift)
 
-    def _do_caesar(self, plaintext, shift):
-        """
-        Applies the caesar cipher.
-        :param plaintext: the input string.
-        :param shift: integer by which the value of the letters should be shifted.
-        :return: String with cipher applied.
-        """
-        alphabet = string.ascii_lowercase
-        shifted_alphabet = alphabet[shift:] + alphabet[:shift]
-        table = str.maketrans(alphabet, shifted_alphabet)
-        return plaintext.translate(table)
-
-
-class CaesarCipherOffsetCalculator:
+class CaesarCipher:
     """
-    Calculates the offset of a Caesar Cipher based on known frequency of English letters.
+    Caesar cipher and offset calculator for Caesar cipher based on known frequency of english letters.
     Based on code from RobSpectre (see https://github.com/RobSpectre/Caesar-Cipher/)
     """
 
@@ -107,17 +94,18 @@ class CaesarCipherOffsetCalculator:
                 total += - math.log(prob) / math.log(2)
         return total
 
-    def _cipher(self, input, offset):
+    def run(self, input, offset):
         """
         Applies the caesar cipher.
         :param input: the input string.
         :param offset: integer by which the value of the letters should be shifted.
         :return: String with cipher applied.
         """
-        alphabet = string.ascii_lowercase
-        shifted_alphabet = alphabet[offset:] + alphabet[:offset]
-        table = str.maketrans(alphabet, shifted_alphabet)
-        return input.translate(table)
+        def translate(input, offset, alphabet):
+            shifted_alphabet = alphabet[offset:] + alphabet[:offset]
+            table = str.maketrans(alphabet, shifted_alphabet)
+            return input.translate(table)
+        return translate(translate(input, offset, string.ascii_lowercase), offset, string.ascii_uppercase)
 
     def calculate_offset(self, input):
         """
@@ -128,7 +116,7 @@ class CaesarCipherOffsetCalculator:
         entropy_values = {}
         for i in range(26):
             offset = i * -1
-            test_cipher = self._cipher(input, offset)
+            test_cipher = self.run(input, offset)
             entropy_values[i] = self._calculate_entropy(test_cipher)
 
         sorted_by_entropy = sorted(entropy_values, key=entropy_values.get)
@@ -138,7 +126,7 @@ class CaesarCipherOffsetCalculator:
 
 class CaesarCipherDialog(QDialog):
 
-    def __init__(self, input, shift, callback):
+    def __init__(self, input, shift, codec):
         super(CaesarCipherDialog, self).__init__()
         self._shift = shift
         main_layout = QVBoxLayout()
@@ -150,8 +138,7 @@ class CaesarCipherDialog(QDialog):
         self._setup_shortcuts()
         self._input = input
         self._text_area.setPlainText(self._input)
-        self._callback = callback
-        self._offset_calculator = CaesarCipherOffsetCalculator()
+        self._codec = codec
 
 
     def _setup_shortcuts(self):
@@ -209,7 +196,7 @@ class CaesarCipherDialog(QDialog):
         return slider_frame
 
     def _shift_calculate_button_clicked(self):
-        offset = self._offset_calculator.calculate_offset(self._input)
+        offset = self._codec.calculate_offset(self._input)
         self._shift_slider.setSliderPosition(offset)
 
     def _shift_slider_changed(self, shift):
@@ -227,7 +214,7 @@ class CaesarCipherDialog(QDialog):
         self._shift_slider.blockSignals(True)
         self._shift_slider.setValue(shift)
         self._shift_text.setText(str(shift))
-        self._text_area.setPlainText(self._callback(self._input, shift))
+        self._text_area.setPlainText(self._codec.run(self._input, shift))
         self._shift_slider.blockSignals(False)
         self._shift_text.blockSignals(False)
 

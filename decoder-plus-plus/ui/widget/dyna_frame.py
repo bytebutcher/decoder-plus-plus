@@ -20,8 +20,8 @@ from PyQt5.QtWidgets import QWidget, QFrame, QHBoxLayout, QStackedWidget
 class DynaFrame(QFrame):
     """ The DynaFrame class wraps one custom widget which can be replaced with another during runtime. """
 
-    def __init__(self, widget: QWidget=None):
-        super(DynaFrame, self).__init__()
+    def __init__(self, parent, widget: QWidget=None):
+        super(__class__, self).__init__(parent)
         layout = QHBoxLayout()
         self._stk_widget = QStackedWidget()
         if widget is not None:

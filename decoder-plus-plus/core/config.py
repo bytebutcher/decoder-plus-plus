@@ -14,17 +14,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 from PyQt5.QtCore import QSettings, QSize
 
 
 class Config(QSettings):
     """ The main settings of the application. """
 
-    def __init__(self, logger):
+    def __init__(self):
         super().__init__('net.bytebutcher', 'decoder++')
-        self._logger = logger
 
     def getName(self) -> str:
         """ Returns the name of the application. """
@@ -32,7 +29,16 @@ class Config(QSettings):
 
     def getVersion(self) -> str:
         """ Returns the version of the application. """
-        return "1.0a"
+        return "1.0b"
+
+    def isDebugModeEnabled(self) -> bool:
+        """ Returns whether debug mode is enabled (True = enabled, False = disabled). """
+        return self.value('debug', "False") == "True"
+
+    def setDebugMode(self, status: bool):
+        """ Enables/Disables debug mode. """
+        # BUG: Storing True/False does not work (see https://github.com/mfitzp/pyqtconfig/issues/18)
+        self.setValue('debug', "True" if status else "False")
 
     def getSize(self) -> QSize:
         """

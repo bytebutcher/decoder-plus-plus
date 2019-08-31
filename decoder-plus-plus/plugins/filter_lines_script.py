@@ -38,11 +38,16 @@ class Plugin(ScriptPlugin):
 
     def select(self, text):
         if not self._dialog:
-            self._dialog = FilterDialog(text, self._do_filter)
+            self._dialog = FilterDialog(text)
         else:
             self._dialog.setInput(text)
 
         self._dialog_return_code = self._dialog.exec_()
+
+        if self._dialog_return_code != QDialog.Accepted:
+            # User clicked the Cancel-Button.
+            raise AbortedException("Aborted")
+
         self._filter_term = self._dialog.getFilterTerm()
         self._should_match_case = self._dialog.shouldMatchCase()
         self._should_invert_match = self._dialog.shouldInvertMatch()
@@ -76,31 +81,27 @@ class Plugin(ScriptPlugin):
         return self._should_match_case
 
     def _isRegex(self):
-        return self._is_regular_expression
+        return self._is_regex
 
     def run(self, text, shift=None):
-        if self._dialog_return_code == QDialog.Accepted:
-            return self._do_filter(text)
-        else:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
+        return self._do_filter(text, self._filter_term)
 
-    def _do_filter(self, text):
+    def _do_filter(self, text: str, filter_term: str):
         lines = []
         for text_line in text.splitlines():
-            if self._should_filter(text_line):
+            if self._should_filter(text_line, filter_term):
                 lines.append(text_line)
         return os.linesep.join(lines)
 
-    def _should_filter(self, text_line):
+    def _should_filter(self, text_line: str, filter_term: str):
         if self._isRegex() and self._shouldMatchCase():
-            result = len(re.match(self._getFilterTerm(), text_line, flags=re.IGNORECASE)) > 0
+            result = len(re.match(filter_term, text_line, flags=re.IGNORECASE)) > 0
         elif self._isRegex():
-            result = len(re.match(self._getFilterTerm(), text_line)) > 0
+            result = len(re.match(filter_term, text_line)) > 0
         elif self._shouldMatchCase():
-            result = self._getFilterTerm() in text_line
+            result = filter_term in text_line
         else:
-            result = self._getFilterTerm().lower() in text_line.lower()
+            result = filter_term.lower() in text_line.lower()
         if self._shouldInvertMatch():
             return not result
         else:
@@ -109,7 +110,7 @@ class Plugin(ScriptPlugin):
 
 class FilterDialog(QDialog):
 
-    def __init__(self, input, callback):
+    def __init__(self, input):
         super(__class__, self).__init__()
         main_layout = QVBoxLayout()
         main_layout.addWidget(self._init_editor_frame())
@@ -120,9 +121,10 @@ class FilterDialog(QDialog):
         self._setup_shortcuts()
         self._input = input
         self._text_area.setPlainText(self._input)
-        self._callback = callback
 
     def _setup_shortcuts(self):
+        return_shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
+        return_shortcut.activated.connect(self._accept)
         ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
         ctrl_return_shortcut.activated.connect(self._accept)
         alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
@@ -143,7 +145,7 @@ class FilterDialog(QDialog):
         filter_frame = self._init_filter_text_frame()
         main_frame_layout.addWidget(filter_frame)
 
-        self._text_area = QPlainTextEdit()
+        self._text_area = QPlainTextEdit(self)
         self._text_area.setReadOnly(True)
         self._text_area.setFixedHeight(126)
         main_frame_layout.addWidget(self._text_area)
@@ -155,7 +157,7 @@ class FilterDialog(QDialog):
         filter_text_frame = QFrame()
         filter_text_frame_layout = QHBoxLayout()
 
-        self._filter_term = SearchField()
+        self._filter_term = SearchField(self)
         self._filter_term.setIcon(qtawesome.icon("fa.filter"))
         self._filter_term.setPlaceholderText("Filter")
         self._filter_term.textChanged.connect(lambda text: self._filter_changed())
@@ -181,8 +183,29 @@ class FilterDialog(QDialog):
         return filter_text_frame
 
     def _filter_changed(self):
-        filter_text = self._callback(self._input)
+        filter_text = self._do_filter(self._input, self.getFilterTerm())
         self._text_area.setPlainText(filter_text)
+
+    def _do_filter(self, text: str, filter_term: str):
+        lines = []
+        for text_line in text.splitlines():
+            if self._should_filter(text_line, filter_term):
+                lines.append(text_line)
+        return os.linesep.join(lines)
+
+    def _should_filter(self, text_line: str, filter_term: str):
+        if self.isRegex() and self.shouldMatchCase():
+            result = len(re.match(filter_term, text_line, flags=re.IGNORECASE)) > 0
+        elif self.isRegex():
+            result = len(re.match(filter_term, text_line)) > 0
+        elif self.shouldMatchCase():
+            result = filter_term in text_line
+        else:
+            result = filter_term.lower() in text_line.lower()
+        if self.shouldInvertMatch():
+            return not result
+        else:
+            return result
 
     def _accept(self):
         self.accept()

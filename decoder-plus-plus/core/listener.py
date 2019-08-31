@@ -19,17 +19,17 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class Listener(QObject):
     newTabRequested = pyqtSignal(str)  # text
-    selectedFrameChanged = pyqtSignal(str, str)  # frame_id, text
-    textChanged = pyqtSignal(str, str)  # frame_id, text
-    textSelectionChanged = pyqtSignal(str, str)  # frame_id, text
+    selectedFrameChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
+    textChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
+    textSelectionChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
 
     def __init__(self, context: 'core.context.Context'):
         super(__class__, self).__init__()
         self.newTabRequested.connect(lambda text:
-                                     context.logger().debug("newTabRequested({})".format(text)))
-        self.selectedFrameChanged.connect(lambda frame_id, text:
-                                          context.logger().debug("selectedFrameChanged({}, {})".format(frame_id, text)))
-        self.textChanged.connect(lambda frame_id, text:
-                                 context.logger().debug("textChanged({}, {})".format(frame_id, text)))
-        self.textSelectionChanged.connect(lambda frame_id, text:
-                                          context.logger().debug("textSelectionChanged({}, {})".format(frame_id, text)))
+            context.logger().debug("newTabRequested({})".format(text)))
+        self.selectedFrameChanged.connect(lambda tab_id, frame_id, text:
+            context.logger().debug("selectedFrameChanged({}, {}, {})".format(tab_id, frame_id, text)))
+        self.textChanged.connect(lambda tab_id, frame_id, text:
+            context.logger().debug("textChanged({}, {}, {})".format(tab_id, frame_id, text)))
+        self.textSelectionChanged.connect(lambda tab_id, frame_id, text:
+            context.logger().debug("textSelectionChanged({}, {}, {})".format(tab_id, frame_id, text)))

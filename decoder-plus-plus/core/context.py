@@ -65,6 +65,7 @@ class Context(QObject):
         TAB_SELECT_7 = "tab_select_7"
         TAB_SELECT_8 = "tab_select_8"
         TAB_SELECT_9 = "tab_select_9"
+        FOCUS_CODEC_SEARCH = "focus_codec_search"
         FOCUS_ENCODER = "focus_encoder"
         FOCUS_DECODER = "focus_decoder"
         FOCUS_HASHER = "focus_hasher"
@@ -81,8 +82,8 @@ class Context(QObject):
         super(__class__, self).__init__()
         self._app_id = app_id
         self._logger = {}
-        self._listener = Listener(self)
         self._config = self._init_config()
+        self._listener = Listener(self)
         self._plugins = None
         self._plugin_loader = PluginLoader(self)
         self._shortcuts = {}
@@ -92,14 +93,14 @@ class Context(QObject):
         """ Returns the configuration. Might return None when initialization fails. """
         try:
             from core.config import Config
-            return Config(self.logger())
+            return Config()
         except:
             return None
 
     def _init_logger(self, log_format):
         """ Returns the logger. """
         logger = logging.getLogger(self._app_id)
-        logging.root.setLevel(logging.DEBUG)
+        logging.root.setLevel(logging.DEBUG if self._config.isDebugModeEnabled() else logging.WARN)
         hdlr = logging.StreamHandler(sys.stderr)
         hdlr.setFormatter(logging.Formatter(log_format))
         logger.addHandler(hdlr)
@@ -138,6 +139,12 @@ class Context(QObject):
     def getAppID(self):
         """ Returns the ID of the application. """
         return self._app_id
+
+    def toggleDebugMode(self):
+        """ Toggles the debug-mode on/off. """
+        self._config.setDebugMode(not self._config.isDebugModeEnabled())
+        logging.root.setLevel(logging.DEBUG if self._config.isDebugModeEnabled() else logging.INFO)
+        self.logger().info("Debug Mode: {}".format("enabled" if self._config.isDebugModeEnabled() else "disabled"))
 
     def config(self) -> Config:
         """ Returns the main configuration of the application. """

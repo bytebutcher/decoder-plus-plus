@@ -92,7 +92,7 @@ class MessageWidget(QFrame):
         layout.addWidget(line, 0, Qt.AlignLeft)
 
         self._log_message_icon_label = IconLabel(self, self._get_icon(self.ICON_READY))
-        self._log_message_icon_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
+        self._log_message_icon_label.mouseDoubleClicked = lambda e: self.messageClicked.emit()
         self._log_message_text_label = QLabel("Ready.")
         self._log_message_text_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
         layout.addWidget(self._log_message_icon_label)
@@ -157,6 +157,8 @@ class MessageWidget(QFrame):
         :param max_length: the max length of the message.
         :return: the shortened message.
         """
+        if not message:
+            return ""
         merged_lines = " ".join(message.splitlines())
         if len(merged_lines) > (max_length - 3):
             return merged_lines[:(max_length - 3)] + "..."

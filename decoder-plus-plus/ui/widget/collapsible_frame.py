@@ -14,47 +14,59 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import json
-
+import qtawesome
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QFrame, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
 
+from core import Context
 from ui import HSpacer
-from ui.widget.elided_label import ElidedLabel
+from ui.widget.frame import Frame
+from ui.widget.separater_widget import VSep
 
 
-class CollapsibleFrame(QFrame):
+class CollapsibleFrame(Frame):
     """
     Frame with ability to un-/collapse content via clickable arrow-handles.
     """
 
-    def __init__(self, parent=None, title=None, content=None, direction=QBoxLayout.LeftToRight):
+    arrowClicked = pyqtSignal()
+    upButtonClicked = pyqtSignal()
+    downButtonClicked = pyqtSignal()
+    configButtonClicked = pyqtSignal()
+    closeButtonClicked = pyqtSignal()
+
+    def __init__(self, parent, context: Context, frame_id: str, previous_frame: Frame, next_frame: Frame):
         """
         Initializes the collapsible frame.
-        :param parent: the parent widget of this frame (default=None).
-        :param title: the title to be displayed (default=None).
-        :param direction: the direction in which content should be aligned (default=QBoxLayout.LeftToRight).
+        :param parent: the parent widget of this frame
         """
-        super(__class__, self).__init__(parent)
+        super(__class__, self).__init__(parent, context, frame_id, previous_frame, next_frame)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._is_collasped = False
-        self._title_frame = None
+        self._header_frame = None
         self._content, self._content_layout = (None, None)
+        self._init_frame_style()
 
         self._layout = QVBoxLayout()
         self._layout.setAlignment(Qt.AlignTop)
 
-        self._layout.addWidget(self._init_title_frame(title, content, self._is_collasped))
-        self._layout.addWidget(self._init_content(direction, self._is_collasped))
+        self._layout.addWidget(self._init_header_frame())
+        self._layout.addWidget(self._init_content(QBoxLayout.LeftToRight, self._is_collasped))
 
-        self._init_collapsable()
         self.setLayout(self._layout)
 
-    def _init_title_frame(self, title, content, collapsed):
-        self._title_frame = CollapsibleFrame.TitleFrame(self, title=title, content=content, collapsed=collapsed)
-        return self._title_frame
+    def _init_frame_style(self):
+        background_color = self.palette().color(self.backgroundRole())
+        self.setStyleSheet(
+            "CollapsibleFrame { border:1px solid " + background_color.lighter(
+                90).name() + "; background:" + background_color.lighter(99).name() + "; }")
+
+    def _init_header_frame(self):
+        self._header_frame = CollapsibleFrame.HeaderFrame(self)
+        self._header_frame.arrowClicked.connect(self.toggleCollapsed)
+        return self._header_frame
 
     def _init_content(self, direction, collapsed):
         self._content = QFrame(self)
@@ -63,9 +75,6 @@ class CollapsibleFrame(QFrame):
         self._content.setLayout(self._content_layout)
         self._content.setVisible(not collapsed)
         return self._content
-
-    def _init_collapsable(self):
-        self._title_frame.clicked.connect(self.toggleCollapsed)
 
     def addWidget(self, widget):
         """
@@ -82,27 +91,23 @@ class CollapsibleFrame(QFrame):
         """ Toggles collapsing of the frame. """
         self._content.setVisible(self._is_collasped)
         self._is_collasped = not self._is_collasped
-        self._title_frame._arrow.setArrow(int(self._is_collasped))
+        self._header_frame._arrow.setArrow(int(self._is_collasped))
 
     def setCollapsed(self, status):
         """ Un-/collapses the frame. """
         self._content.setVisible(not status)
         self._is_collasped = status
-        self._title_frame._arrow.setArrow(int(self._is_collasped))
+        self._header_frame._arrow.setArrow(int(self._is_collasped))
 
-    def setTitle(self, title: str=None):
-        """ Sets the title of the frame. """
-        self._title_frame.setTitle(title)
+    def isCollapsed(self) -> bool:
+        return self._is_collasped
 
-    def getTitle(self):
-        return self._title_frame.getTitle()
-
-    def setMetaData(self, content: str=None):
-        self._title_frame.setMetaData(content)
+    def header(self) -> 'ui.collapsible_frame.CollapsibleFrame.HeaderFrame':
+        return self._header_frame
 
     def indicateError(self, status: bool):
         """ Indicates that there was an error during encoding/decoding/hashing/scripting. """
-        self._title_frame.indicateError(status)
+        self._header_frame.indicateError(status)
 
     def getContentHeight(self) -> int:
         """ Returns the height of the content when uncollapsed. """
@@ -112,14 +117,54 @@ class CollapsibleFrame(QFrame):
         """ Sets the height of the content when uncollapsed. """
         self._content.setFixedHeight(height)
 
-    class TitleFrame(QFrame):
+    class HeaderFrame(QFrame):
         """ Clickable frame with title. """
 
-        clicked = pyqtSignal()
+        class AbstractHeaderFrameItem(QFrame):
 
-        def __init__(self, parent=None, title="", content="", collapsed=False):
+            def __init__(self, parent):
+                super(__class__, self).__init__(parent)
+                self._parent = parent
+                self.setContentsMargins(0, 0, 0, 0)
+                self.setLayout(QHBoxLayout())
+                self.layout().setContentsMargins(0, 0, 0, 0)
+                self.layout().setSpacing(0)
+
+            def clearLayout(self):
+                while self.layout().count():
+                    child = self.layout().takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+
+            def setCentralWidget(self, widget: QWidget):
+                self.clearLayout()
+                self.layout().addWidget(widget)
+
+            def refresh(self):
+                pass
+
+        class VSepItem(AbstractHeaderFrameItem):
+
+            def __init__(self, parent):
+                super(__class__, self).__init__(parent)
+                self.setCentralWidget(VSep(self))
+
+        class HSpacerItem(AbstractHeaderFrameItem):
+
+            def __init__(self, parent):
+                super(__class__, self).__init__(parent)
+                self.setCentralWidget(HSpacer(self))
+
+        arrowClicked = pyqtSignal()
+        upButtonClicked = pyqtSignal()
+        downButtonClicked = pyqtSignal()
+        configButtonClicked = pyqtSignal()
+        closeButtonClicked = pyqtSignal()
+
+        def __init__(self, parent: 'ui.widget.CollapsibleFrame'):
             super(__class__, self).__init__(parent)
 
+            self._parent = parent
             self.setMinimumHeight(26)
             self.setMaximumHeight(26)
             self.indicateError(False)
@@ -129,14 +174,21 @@ class CollapsibleFrame(QFrame):
             self._hlayout.setSpacing(0)
 
             self._arrow = None
-            self._title = None
-            self._content_preview_text = None
-            self._line_count_text = None
-            self._content_length_text = None
 
-            self._hlayout.addWidget(self._init_arrow(collapsed))
-            self._init_title(title, content)
+            self._hlayout.addWidget(self._init_header_frame(parent.isCollapsed()))
+            self.setLayout(self._hlayout)
 
+        def _init_header_frame(self, collapsed: bool):
+            self._frm_header = QFrame(self)
+            self._frm_header.setMinimumHeight(24)
+            self._frm_header.setMaximumHeight(24)
+            frm_header_layout = QHBoxLayout(self)
+            frm_header_layout.setContentsMargins(0, 0, 0, 0)
+            frm_header_layout.addWidget(self._init_arrow(collapsed))
+            background_color = self._frm_header.palette().color(self._frm_header.backgroundRole())
+            self._frm_header.setStyleSheet("QFrame { border:0px; background:" + background_color.darker(96).name() + "; }")
+            self._frm_header.setLayout(frm_header_layout)
+            return self._frm_header
 
         def _init_arrow(self, collapsed):
             self._arrow = CollapsibleFrame.Arrow(self, collapsed=collapsed)
@@ -145,74 +197,28 @@ class CollapsibleFrame(QFrame):
             self._arrow.setStyleSheet("border:0px")
             return self._arrow
 
-        def _init_title(self, title=None, content=None):
-            inner_title_frame = QFrame(self)
-            inner_title_layout = QHBoxLayout(self)
-            inner_title_layout.setContentsMargins(0, 0, 0, 0)
-            inner_title_frame.setLayout(inner_title_layout)
-            inner_title_frame.setStyleSheet("border:0px")
-            inner_title_frame.setMinimumHeight(24)
-            inner_title_frame.setMaximumHeight(24)
-            self._hlayout.addWidget(inner_title_frame)
-            self.setLayout(self._hlayout)
+        def addWidget(self, header_item: AbstractHeaderFrameItem):
+            self._frm_header.layout().addWidget(header_item)
 
-            self._title = QLabel("")
-            self._title.setTextFormat(Qt.PlainText)
-            inner_title_layout.addWidget(self._title)
-
-            content_preview_label = QLabel("")
-            inner_title_layout.addWidget(content_preview_label)
-            self._content_preview_text = ElidedLabel("")
-            self._content_preview_text.setTextFormat(Qt.PlainText)
-            self._content_preview_text.setStyleSheet("QLabel { color: gray }");
-            inner_title_layout.addWidget(self._content_preview_text)
-
-            inner_title_layout.addWidget(HSpacer(self))
-
-            line_count_label = QLabel("lines: ")
-            inner_title_layout.addWidget(line_count_label)
-
-            self._line_count_text = QLabel("0")
-            inner_title_layout.addWidget(self._line_count_text)
-
-            content_length_label = QLabel("length: ")
-            inner_title_layout.addWidget(content_length_label)
-            self._content_length_text = QLabel("0")
-            inner_title_layout.addWidget(self._content_length_text)
-            inner_title_layout.addWidget(QLabel(""))
-
-            self.setTitle(title)
-            self.setMetaData(content)
-            return inner_title_frame
+        def refresh(self):
+            """ Refreshes the header data (e.g. line-count, character-count, etc.). """
+            for i in range(self._frm_header.layout().count()):
+                widget = self._frm_header.layout().itemAt(i).widget()
+                if isinstance(widget, CollapsibleFrame.HeaderFrame.AbstractHeaderFrameItem):
+                    widget.refresh()
 
         def indicateError(self, status: bool):
             """ Indicates an error by painting the title-border red. Otherweise black. """
             if status:
-                self.setStyleSheet("border:1px solid red; ")
+                self.setStyleSheet("QFrame { border:1px solid red; }")
             else:
-                self.setStyleSheet("border:1px solid rgb(41, 41, 41); ")
-
-        def setTitle(self, title: str=None):
-            """ Sets the title of the frame. """
-            self._title.setText(title)
-
-        def setMetaData(self, content: str=None):
-            if content:
-                self._content_preview_text.setText(content)
-
-                length = str(len(content))
-                self._content_length_text.setText(length)
-
-                line_count = str(len(content.split('\n')))
-                self._line_count_text.setText(line_count)
-
-        def getTitle(self) -> str:
-            return self._title.text()
+                self.setStyleSheet("QFrame { border:1px solid rgb(41, 41, 41); }")
 
         def mousePressEvent(self, event):
-            """ Initiates the un-/collapse event. """
-            self.clicked.emit()
-            return super(CollapsibleFrame.TitleFrame, self).mousePressEvent(event)
+            if self.underMouse():
+                # The arrow (or something non-button like) was clicked
+                self.arrowClicked.emit()
+            return super(CollapsibleFrame.HeaderFrame, self).mousePressEvent(event)
 
     class Arrow(QFrame):
 
@@ -242,8 +248,6 @@ class CollapsibleFrame(QFrame):
 
         def paintEvent(self, event):
             painter = QPainter(self)
-            painter.begin(self)
             painter.setBrush(QColor(192, 192, 192))
             painter.setPen(QColor(64, 64, 64))
             painter.drawPolygon(*self._arrow)
-            painter.end()

@@ -28,11 +28,14 @@ class SearchField(QLineEdit):
     arrowPressed = pyqtSignal()
     closeEvent = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super(__class__, self).__init__(parent)
         self._icon = None
         self._suppress_enter_key = False
         self._closable = False
+        self._icon = None
+        self._close_icon = None
+        self._do_repaint = False
         self.installEventFilter(self)
 
     def suppressEnterKey(self, suppress=True):
@@ -75,6 +78,8 @@ class SearchField(QLineEdit):
     def setClosable(self, closable):
         """ When True, this adds a close button to the search field. """
         self._closable = closable
+        self._close_icon = qtawesome.icon("fa.times").pixmap(self.height() - 12, self.height() - 12)
+        self._do_repaint = True
 
     def isClosable(self):
         """ Returns whether the search field has a close button. """
@@ -91,7 +96,8 @@ class SearchField(QLineEdit):
         """ Sets the specified icon in front of the text. """
         if icon is None:
             self.setTextMargins(1, 1, 1, 1)
-        self._icon = icon
+        self._icon = icon.pixmap(self.height() - 12, self.height() - 12)
+        self._do_repaint = True
 
     def hasIcon(self):
         return self._icon is not None
@@ -104,11 +110,10 @@ class SearchField(QLineEdit):
             left, top, right, bottom = 1, 1, 1, 1
             if self.hasIcon():
                 left = self.height()
-                pxm = self._icon.pixmap(self.height() - 10, self.height() - 10)
-                painter.drawPixmap(5, 5, pxm)
+                painter.drawPixmap(5, 5, self._icon)
             if self.isClosable():
                 right = self.height()
-                close_icon = qtawesome.icon("fa.times")
-                pxm = close_icon.pixmap(self.height() - 10, self.height() - 10)
-                painter.drawPixmap(self.width() - self.height(), 5, pxm)
-            self.setTextMargins(left, top, right, bottom)
+                painter.drawPixmap(self.width() - self.height(), 5, self._close_icon)
+            if self._do_repaint:
+                self._do_repaint = False
+                self.setTextMargins(left, top, right, bottom)
