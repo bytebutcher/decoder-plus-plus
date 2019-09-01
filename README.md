@@ -12,7 +12,7 @@ An extensible application for penetration testers and software developers to dec
 python3 dpp.py
 ```
 
-![Decoder++ Screenshot](images/dpp-screencast-001.gif)
+![Decoder++ Screenshot](images/dpp-preview-001.png)
 
 ### Command Line Interface
 
@@ -40,7 +40,7 @@ python3 dpp.py -i
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
-    * **Scripts:** Caesar, JS-Beautifier, HTML-Beautifier, Little/Big-Endian Transform, Search and Replace, Split and Rejoin, Unescape/Escape String
+    * **Scripts:** CSS-Minify, Caesar, Filter-Lines, JS-Beautifier, JS-to-XML, HTML-Beautifier, Little/Big-Endian Transform, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String
 * Smart-Decode
 * Plugin System
 * Load & Save Current Session
@@ -51,16 +51,10 @@ python3 dpp.py -i
 
 ## Setup
 
-### Manual Installation
 ```bash
 git clone https://github.com/bytebutcher/decoder-plus-plus
 cd decoder-plus-plus
 pip3 install -r requirements.txt
-```
-
-### Automatic Installation
-```bash
-pip3 install decoder-plus-plus
 ```
 
 ## Advanced Usage
