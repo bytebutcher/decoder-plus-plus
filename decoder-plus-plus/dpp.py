@@ -26,7 +26,8 @@ from core.argparse.single_args import SingleArgs
 from core.context import Context
 from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
 from core.plugin.plugin import PluginType
-from ui import MainWindow
+
+from ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
 from ui.single_instance import SingleInstance
 
 
@@ -120,6 +121,8 @@ if __name__ == '__main__':
                             help="drops into an interactive python shell")
         parser.add_argument('--new-instance', action='store_true',
                             help="opens new instance instead of new tab in already running instance.")
+        parser.add_argument('--dialog', action='store_true',
+                            help="opens a dialog which returns the transformed text when done.")
         parser.add_argument('-e', '--encode', dest="encode", action=OrderedMultiArgs,
                             help="encodes the input using the specified codec(s).")
         parser.add_argument('-d', '--decode', action=OrderedMultiArgs,
@@ -140,11 +143,15 @@ if __name__ == '__main__':
                 app = QApplication(sys.argv)
                 instance = SingleInstance(app, context.getAppID())
                 input = get_input(context, args)
+                if args.dialog:
+                    context.logger().info("Starting Decoder++ Dialog...")
+                    ex = DecoderPlusPlusDialog(context, input)
+                    sys.exit(app.exec_())
                 if instance.isAlreadyRunning():
                     context.logger().info("Application is already running...")
                     if args.new_instance:
                         context.logger().info("Starting Decoder++ GUI in new instance...")
-                        ex = MainWindow(context, input)
+                        ex = DecoderPlusPlusWindow(context, input)
                         sys.exit(app.exec_())
                     else:
                         context.logger().info("Opening new tab in already running instance...")
@@ -152,7 +159,7 @@ if __name__ == '__main__':
                         sys.exit(0)
                 else:
                     context.logger().info("Starting Decoder++ GUI...")
-                    ex = MainWindow(context, input)
+                    ex = DecoderPlusPlusWindow(context, input)
                     instance.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:

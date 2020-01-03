@@ -55,9 +55,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
-        self._main_window_widget = MainWindowWidget(self, self._context, input)
-        self.setCentralWidget(self._main_window_widget)
-        self.show()
 
     def _log_plugins_unresolved_dependencies(self, context: 'core.context.Context'):
         """ Show unresolved dependencies of plugins in LogDock. """
@@ -141,10 +138,6 @@ class MainWindow(QMainWindow):
     def _toggle_hex_dock(self):
         """ Shows/Hides the hex dock. """
         self._hex_dock.setVisible(self._hex_dock.isHidden())
-
-    def newTab(self, input: str):
-        """ Opens a new tab. """
-        self._main_window_widget.newTab(input)
 
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """
