@@ -21,11 +21,11 @@ from typing import List
 
 from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QDockWidget, QTabBar
 
 from core.logging.log_entry import LogEntry
 from core.logging.log_filter import LogFilter
-from ui import MainWindowWidget, IconLabel
+from ui import IconLabel
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.dock.hex_dock import HexDock
 from ui.dock.log_dock import LogDock
@@ -38,14 +38,17 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._context = context
         self._logger = context.logger()
+        self._empty_dock = QDockWidget("", self)
+        self._empty_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._empty_dock)
         self._hex_dock = HexDock(self, self._context)
-        self._hex_dock.setHidden(True)
+        self._hex_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
         self._message_widget = self._init_message_widget()
         self._log_entries = []
         self._log_dock = LogDock(self, self._log_entries)
-        self._log_dock.setHidden(True)
         self._log_dock.clearEvent.connect(self._message_widget.resetCount)
+        self._log_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
         self._logger.handlers[0].addFilter(self._init_log_filter())
         self.statusBar().addWidget(self._message_widget)
         self.statusBar().addPermanentWidget(self._init_hidden_dialog())
@@ -53,6 +56,13 @@ class MainWindow(QMainWindow):
         self._log_plugins_unresolved_dependencies(context)
         self._init_window_size()
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
+        self.tabifyDockWidget(self._empty_dock, self._log_dock)
+        self.tabifyDockWidget(self._log_dock, self._hex_dock)
+        self._empty_dock.raise_()
+        self._empty_dock.visibilityChanged.connect(self.show_dock)
+        self._log_dock.visibilityChanged.connect(self.show_dock)
+        self._hex_dock.visibilityChanged.connect(self.show_dock)
+        self.findChild(QTabBar, "").tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
 
@@ -130,14 +140,31 @@ class MainWindow(QMainWindow):
 
     def _toggle_log_dock(self, *filters: List[str], **kwargs):
         """ Shows/Hides the log dock. """
-        self._log_dock.setVisible(self._log_dock.isHidden())
-        if self._log_dock.isVisible():
+        is_log_dock_visible = not self._log_dock.visibleRegion().isEmpty()
+        if not is_log_dock_visible:
+            self._log_dock.raise_()
             for filter in self._log_dock.getFilters():
                 self._log_dock.setFilterChecked(filter, filter in filters)
+        else:
+            self._empty_dock.raise_()
 
     def _toggle_hex_dock(self):
         """ Shows/Hides the hex dock. """
-        self._hex_dock.setVisible(self._hex_dock.isHidden())
+        is_hex_dock_visible = not self._hex_dock.visibleRegion().isEmpty()
+        if not is_hex_dock_visible:
+            self._hex_dock.raise_()
+        else:
+            self._empty_dock.raise_()
+
+    def show_dock(self, e: QEvent):
+        """ Shows/Hides the docks. """
+        is_empty_dock_visible = not self._empty_dock.visibleRegion().isEmpty()
+        if is_empty_dock_visible:
+            self._hex_dock.hide()
+            self._log_dock.hide()
+        else:
+            self._hex_dock.show()
+            self._log_dock.show()
 
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """

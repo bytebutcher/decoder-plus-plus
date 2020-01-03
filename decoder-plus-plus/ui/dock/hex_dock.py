@@ -35,11 +35,11 @@ class HexDock(QDockWidget):
         self._last_input_text = ""
 
         self._init_listener(context.listener())
-        dock_frame = QFrame()
-        dock_layout = QHBoxLayout()
-        dock_layout.addWidget(self._init_hex_widget())
-        dock_frame.setLayout(dock_layout)
-        self.setWidget(dock_frame)
+        self._dock_frame = QFrame()
+        self._dock_layout = QHBoxLayout()
+        self._dock_layout.addWidget(self._init_hex_widget())
+        self._dock_frame.setLayout(self._dock_layout)
+        self.setWidget(self._dock_frame)
 
     def _init_listener(self, listener: Listener):
         listener.textChanged.connect(self._update_view)
@@ -72,3 +72,9 @@ class HexDock(QDockWidget):
 
     def closeEvent(self, QCloseEvent):
         self.hide()
+
+    def hide(self):
+        self._dock_frame.setVisible(False)
+
+    def show(self):
+        self._dock_frame.setVisible(True)

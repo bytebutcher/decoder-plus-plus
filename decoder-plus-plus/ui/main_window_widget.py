@@ -96,12 +96,12 @@ class MainWindowWidget(QWidget):
     def _init_view_menu(self, main_menu):
         view_menu = main_menu.addMenu('&View')
         self._register_shortcut(Context.Shortcut.SELECT_LOG_DOCK,
-                                "Log View",
+                                "&Log",
                                 "Alt+Shift+L",
                                 lambda: self._main_window._toggle_log_dock(),
                                 view_menu)
         self._register_shortcut(Context.Shortcut.SELECT_HEX_DOCK,
-                                "Hex View",
+                                "He&x",
                                 "Alt+Shift+X",
                                 lambda: self._main_window._toggle_hex_dock(),
                                 view_menu)

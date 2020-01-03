@@ -71,14 +71,14 @@ class LogDock(QDockWidget):
 
     def __init__(self, parent: QWidget, log_entries: List[LogEntry]):
         super(LogDock, self).__init__("Logs", parent)
-        dock_frame = QFrame()
+        self._dock_frame = QFrame()
         dock_layout = QHBoxLayout()
         self._init_button_frame()
         self._init_table_frame(log_entries)
         dock_layout.addWidget(self._button_frame)
         dock_layout.addWidget(self._table_frame)
-        dock_frame.setLayout(dock_layout)
-        self.setWidget(dock_frame)
+        self._dock_frame.setLayout(dock_layout)
+        self.setWidget(self._dock_frame)
 
     def _init_button_frame(self):
         self._button_frame = QFrame()
@@ -192,3 +192,9 @@ class LogDock(QDockWidget):
 
     def closeEvent(self, QCloseEvent):
         self.hide()
+
+    def hide(self):
+        self._dock_frame.setVisible(False)
+
+    def show(self):
+        self._dock_frame.setVisible(True)
