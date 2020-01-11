@@ -133,8 +133,8 @@ class Context(QObject):
 
     def getAppPath(self):
         """ Returns the path where the main application is located. """
-        pathname = os.path.dirname(sys.argv[0])
-        return pathname
+        pathname = os.path.realpath(sys.argv[0])
+        return os.path.dirname(pathname)
 
     def getAppID(self):
         """ Returns the ID of the application. """

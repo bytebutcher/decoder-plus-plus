@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # vim: ts=8:sts=8:sw=8:noexpandtab
 #
 # This file is part of Decoder++
