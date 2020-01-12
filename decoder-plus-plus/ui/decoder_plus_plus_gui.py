@@ -16,15 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QFrame, QShortcut, QDialogButtonBox
+from PyQt5.QtWidgets import QVBoxLayout, QFrame, QShortcut, QDialogButtonBox
 
-from ui import MainWindow, MainWindowWidget, CodecTab, HSpacer
+from ui import MainWindow, MainWindowWidget, CodecTab
 
 
 class DecoderPlusPlusDialog(MainWindow):
 
     def __init__(self, context: 'core.context.Context', input: str=None):
         super().__init__(context, input)
+        self._user_input = input
+        self._application_was_canceled = True
         layout = QVBoxLayout()
         self._codec_tab_widget = CodecTab(self, self._context, context.plugins())
         self._codec_tab_widget.getFocusedFrame().setInputText(input)
@@ -51,12 +53,19 @@ class DecoderPlusPlusDialog(MainWindow):
         return button_box
 
     def _accept(self):
-        codec_frames = self._codec_tab_widget.getFrames()
-        print(codec_frames[-1].getInputText(), end = '')
+        self._application_was_canceled = False
         self.close()
 
     def _reject(self):
         self.close()
+
+    def closeEvent(self, event):
+        if self._application_was_canceled:
+            print(self._user_input, end='')
+        else:
+            codec_frames = self._codec_tab_widget.getFrames()
+            print(codec_frames[-1].getInputText(), end = '')
+        event.accept()
 
 class DecoderPlusPlusWindow(MainWindow):
 
