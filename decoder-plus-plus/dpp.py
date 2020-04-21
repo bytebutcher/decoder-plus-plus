@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import signal
 import sys
 import argparse
 from typing import List
@@ -30,6 +30,9 @@ from core.plugin.plugin import PluginType
 
 from ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
 from ui.single_instance import SingleInstance
+
+# Abort program execution on ctrl+c
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 def init_builder(plugins, clazz, type):
@@ -100,9 +103,10 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
 
 
 if __name__ == '__main__':
+    # Loads logger, config and plugins.
+    context = Context("net.bytebutcher.decoder_plus_plus")
+
     try:
-        # Loads logger, config and plugins.
-        context = Context("net.bytebutcher.decoder_plus_plus")
 
         # Builders can be used in interactive shell or within the ui's code-view.
         plugins = context.plugins()

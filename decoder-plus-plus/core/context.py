@@ -19,6 +19,7 @@ import logging
 import os
 import subprocess
 import sys
+from collections import namedtuple
 from pathlib import Path
 from typing import List, Dict
 
@@ -83,6 +84,7 @@ class Context(QObject):
         self._app_id = app_id
         self._logger = {}
         self._config = self._init_config()
+        self._init_excepthook()
         self._listener = Listener(self)
         self._plugins = None
         self._plugin_loader = PluginLoader(self)
@@ -100,11 +102,48 @@ class Context(QObject):
     def _init_logger(self, log_format):
         """ Returns the logger. """
         logger = logging.getLogger(self._app_id)
-        logging.root.setLevel(logging.DEBUG if self._config.isDebugModeEnabled() else logging.WARN)
-        hdlr = logging.StreamHandler(sys.stderr)
-        hdlr.setFormatter(logging.Formatter(log_format))
-        logger.addHandler(hdlr)
+        log_level = logging.DEBUG if self._config.isDebugModeEnabled() else logging.WARN
+
+        logging.root.setLevel(log_level)
+        console_logger = logging.StreamHandler(sys.stderr)
+        console_logger.setFormatter(logging.Formatter(log_format))
+        logger.addHandler(console_logger)
+
+        file_logger = logging.FileHandler(os.path.join(self.getAppPath(), "dpp.log"))
+        file_logger.setLevel(log_level)
+        file_logger_formatter = logging.Formatter(
+            '%(asctime)s - %(module)s: %(lineno)d: %(msg)s',
+            datefmt='%m/%d/%Y %I:%M:%S %p')
+        file_logger.setFormatter(file_logger_formatter)
+        logger.addHandler(file_logger)
+
         return logger
+
+    def _init_excepthook(self):
+        """
+        Initializes an excepthook which handles uncaught exceptions.
+        @see https://fman.io/blog/pyqt-excepthook/
+        """
+
+        def excepthook(exc_type, exc_value, exc_tb):
+            enriched_tb = _add_missing_frames(exc_tb) if exc_tb else exc_tb
+            # Note: sys.__excepthook__(...) would not work here.
+            # We need to use print_exception(...):
+            self.logger().error("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
+
+        def _add_missing_frames(tb):
+            result = fake_tb(tb.tb_frame, tb.tb_lasti, tb.tb_lineno, tb.tb_next)
+            frame = tb.tb_frame.f_back
+            while frame:
+                result = fake_tb(frame, frame.f_lasti, frame.f_lineno, result)
+                frame = frame.f_back
+            return result
+
+        fake_tb = namedtuple(
+            'fake_tb', ('tb_frame', 'tb_lasti', 'tb_lineno', 'tb_next')
+        )
+
+        sys.excepthook = excepthook
 
     def _init_plugins(self) -> Plugins:
         """ Returns standard and user plugins which could be loaded successfully. """

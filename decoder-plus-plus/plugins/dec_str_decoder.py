@@ -1,26 +1,22 @@
-from core.plugin.plugin import EncoderPlugin
+from core.plugin.plugin import DecoderPlugin
 
-class Plugin(EncoderPlugin):
+class Plugin(DecoderPlugin):
     """
-    Encodes a string to a comma separated decimal string.
+    Decodes a string of comma separated decimals to its character representation.
 
     Example:
 
         Input:
+            97,98,99,100,101,102,103,104,\\
+            105,106,107,108,109,110,111,112,\\
+            ...
+            10,48,49,50,51,52,53,54,\\
+            55,56,57
+
+        Output:
             abcdefghijklmnopqrstuvwxyz
             ^°!"§$%&/()=?´`<>| ,.-;:_#+'*~
             0123456789
-
-        Output:
-            97,98,99,100,101,102,103,104,\\
-            105,106,107,108,109,110,111,112,\\
-            113,114,115,116,117,118,119,120,\\
-            121,122,10,94,176,33,34,167,36,\\
-            37,38,47,40,41,61,63,180,\\
-            96,60,62,124,32,44,46,45,\\
-            59,58,95,35,43,39,42,126,\\
-            10,48,49,50,51,52,53,54,\\
-            55,56,57
     """
 
     def __init__(self, context):
@@ -31,4 +27,4 @@ class Plugin(EncoderPlugin):
         return "dec_str"
 
     def run(self, text):
-        return ",".join(str(ord(c)) for c in text)
+        return "".join(chr(int(c)) for c in text.split(","))
