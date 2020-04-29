@@ -23,9 +23,6 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('HEX (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "hex_str"
-
     def run(self, text):
         return self._run_lines(text, lambda text_part: bytes.fromhex(text_part).decode('ascii'))
 

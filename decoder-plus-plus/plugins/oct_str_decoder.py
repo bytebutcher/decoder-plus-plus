@@ -26,9 +26,6 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('OCT (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "oct_str"
-
     def run(self, text):
         return ''.join([chr(int(chunk, 8)) for chunk in self._chunk_string(text, 3)])
 

@@ -35,24 +35,33 @@ from ui.single_instance import SingleInstance
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
-def init_builder(plugins, clazz, type):
-    def list(self) -> List[str]:
-        return [method for method in dir(self) if not method.startswith("_") and
-                method not in ["list", "decode", "encode", "hash", "script", "run"]]
+def init_builder(context: 'core.context.Context'):
 
-    # Add list method to clazz.
-    setattr(clazz, "list", lambda this: list(this))
+    def _init_builder(plugin: 'core.plugin.plugins.PluginHolder', clazz):
+        def list(self) -> List[str]:
+            return [method for method in dir(self) if not method.startswith("_") and
+                    method not in ["list", "decode", "encode", "hash", "script", "run"]]
 
-    # Add plugins to clazz.
-    for plugin in plugins.filter(type=type):
-        if not plugin.name():
-            continue
-        def runner(plugin):
+        # Add list method to clazz.
+        setattr(clazz, "list", lambda this: list(this))
+
+        # Add plugins to clazz.
+        def runner(_plugin):
             def _runner(self):
-                self._input = plugin.run(self._input)
+                self._input = _plugin.run(self._input)
                 return self
             return _runner
-        setattr(clazz, plugin.safe_name(), runner(plugin))
+
+        setattr(clazz, plugin.method_name(), runner(plugin))
+
+    plugins = context.plugins()
+    clazz_map = {PluginType.ENCODER: Encoder, PluginType.DECODER: Decoder, PluginType.HASHER: Hasher, PluginType.SCRIPT: Script}
+    for plugin in plugins.plugins():
+        if not plugin.type() in clazz_map:
+            context.logger().debug("Can not load plugin '{}'! Invalid type '{}'!".format(plugin.name(), plugin.type()))
+            continue
+
+        _init_builder(plugin, clazz_map[plugin.type()])
 
 
 def setup_syntax_completion():
@@ -109,11 +118,7 @@ if __name__ == '__main__':
     try:
 
         # Builders can be used in interactive shell or within the ui's code-view.
-        plugins = context.plugins()
-        init_builder(plugins, Decoder, PluginType.DECODER)
-        init_builder(plugins, Encoder, PluginType.ENCODER)
-        init_builder(plugins, Hasher, PluginType.HASHER)
-        init_builder(plugins, Script, PluginType.SCRIPT)
+        init_builder(context)
 
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument('-?', '--help', action='store_true',
@@ -136,11 +141,18 @@ if __name__ == '__main__':
                             help="transforms the input using the specified hash-functions")
         parser.add_argument('-s', '--script', nargs='+', action=required_length(1, 2),
                             help="transforms the input using the specified script (optional arguments)")
+        parser.add_argument('--debug', action='store_true',
+                            help="activates debug mode with extensive logging. Output will be written into dpp.log "
+                                 "inside the application directory.")
 
         args = parser.parse_args()
         if args.help:
             parser.print_help()
             sys.exit(0)
+
+        if args.debug:
+            # Enable debug mode for current session.
+            context.setDebugMode(True, temporary=True)
 
         if not args.encode and not args.decode and not args.script and not args.hash and not args.interactive:
             # Start GUI when no other parameters were used.
@@ -168,7 +180,7 @@ if __name__ == '__main__':
                     instance.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:
-                context.logger().error("Unexpected Exception: {}".format(e))
+                context.logger().exception("Unexpected Exception: {}".format(e), exc_info=context.isDebugModeEnabled())
                 sys.exit(1)
 
         if args.interactive:
@@ -202,4 +214,4 @@ if __name__ == '__main__':
 
         print(builder.run())
     except Exception as e:
-        context.logger().error(e)
+        context.logger().exception(e, exc_info=context.isDebugModeEnabled())

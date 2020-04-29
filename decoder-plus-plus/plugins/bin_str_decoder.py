@@ -22,9 +22,6 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('BIN (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "bin_str"
-
     def run(self, text):
         n = int(text.replace(' ', ''), 2)
         return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode("utf-8", "surrogateescape") or '\0'

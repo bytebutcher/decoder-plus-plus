@@ -18,6 +18,7 @@
 import importlib
 import importlib.util
 import os
+import sys
 from typing import List
 
 
@@ -42,10 +43,13 @@ class AbstractPlugin(object):
         :param context: the application context.
         """
         self._name = name
+        self._safe_name, _ = os.path.splitext(os.path.basename(sys.modules[self.__class__.__module__].__file__))
+        self._method_name = self._safe_name[:self._safe_name.rfind("_")]
         self._type = type
         self._author = author
         self._dependencies = dependencies
         self._context = context
+        self._logger = context.logger()
         self._aborted = False
 
     def setup(self, config: dict):
@@ -76,28 +80,12 @@ class AbstractPlugin(object):
         return "{}-{}".format(self.name(), self.type())
 
     def safe_name(self) -> str:
-        """
-        Name for usage in the Decoder++ command-line (lower-case, none-alphanumeric chars to underscores)
+        """ :returns the safe name of the plugin parsed from the file name (e.g. url_plus_encoder). """
+        return self._safe_name
 
-        NOTE:
-            It is recommended to override this method to prevent naming-collisions and use better names.
-
-            "URL+" -> "url_"        (not so good)
-            "URL+" -> "url_plus"    (good)
-
-        :returns the safe name of the plugin (e.g. "URL+" -> "url_").
-        """
-        safe_name = ""
-        for char in self._name.lower():
-            if char.isalnum():
-                safe_name += char
-            else:
-                safe_name += "_"
-        return safe_name
-
-    def full_safe_name(self) -> str:
-        """ :returns the full name of the plugin including name and type (e.g. "URL+" -> "url_-decoder"). """
-        return "{}-{}".format(self.safe_name(), self.type()).lower()
+    def method_name(self) -> str:
+        """ :returns the safe name of the plugin without type-information (e.g. url_plus). """
+        return self._method_name
 
     def type(self) -> str:
         """ :returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
@@ -116,6 +104,7 @@ class AbstractPlugin(object):
         Checks whether all specified dependencies can be loaded.
         :returns a list of unresolved dependencies, or an empty list if all dependencies could be resolved.
         """
+        self._logger.debug("Checking dependencies for {} {}".format(self.name(), self.type()))
         unresolved_dependencies = []
         if self._dependencies:
             for dependency in self._dependencies:
@@ -187,7 +176,7 @@ class AbstractPlugin(object):
 
     def is_enabled(self) -> bool:
         """ :returns whether the plugin is enabled/disabled. """
-        return self._context.config().getPluginStatus(self.full_safe_name())
+        return self._context.config().getPluginStatus(self.full_name())
 
     def is_runnable(self) -> bool:
         """ :returns whether the plugin can be run. Usually true, except for NullPlugin. """
@@ -195,7 +184,7 @@ class AbstractPlugin(object):
 
     def set_enabled(self, status):
         """ Sets the status of the plugin to enabled/disabled. """
-        self._context.config().setPluginStatus(self.full_safe_name(), status)
+        self._context.config().setPluginStatus(self.full_name(), status)
 
     def set_aborted(self, status):
         """ Sets whether the execution of the plugin was aborted by the user. """

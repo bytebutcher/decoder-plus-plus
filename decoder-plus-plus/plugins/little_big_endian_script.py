@@ -18,9 +18,6 @@ class Plugin(ScriptPlugin):
         # Name, Author, Dependencies
         super().__init__('Little/Big Endian', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return 'little_big_endian'
-
     def title(self):
         return "Little/Big Endian Transform"
 

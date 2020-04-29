@@ -21,9 +21,6 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('HEX (str)', "Thomas Engel", ["codecs"], context)
 
-    def safe_name(self):
-        return "hex_str"
-
     def run(self, text):
         import codecs
         return codecs.encode(text.encode('utf-8', errors='surrogateescape'), 'hex').decode('utf-8', errors='surrogateescape')

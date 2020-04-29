@@ -21,9 +21,6 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('URL+', "Thomas Engel", ["urllib"], context)
 
-    def safe_name(self):
-        return "url_plus"
-
     def run(self, text):
         import urllib.parse
         return urllib.parse.quote_plus(text.encode('utf-8', errors='surrogateescape'))

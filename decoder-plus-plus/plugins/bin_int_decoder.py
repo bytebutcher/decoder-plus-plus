@@ -19,8 +19,5 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('BIN (int)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "bin_int"
-
     def run(self, text):
         return self._run_lines(text, lambda text_part: str(int(text_part, 2)))

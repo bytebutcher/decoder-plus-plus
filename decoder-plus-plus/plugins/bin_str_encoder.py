@@ -22,9 +22,6 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('BIN (str)', "Thomas Engel", ["codecs"], context)
 
-    def safe_name(self):
-        return "bin_str"
-
     def run(self, text):
         bits = bin(int.from_bytes(text.encode('utf-8', 'surrogateescape'), 'big'))[2:]
         return ' '.join(self._chunk_string(bits.zfill(8 * ((len(bits) + 7) // 8)), 8))

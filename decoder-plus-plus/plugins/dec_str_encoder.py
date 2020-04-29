@@ -23,8 +23,5 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('DEC (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "dec_str"
-
     def run(self, text):
         return ",".join(str(ord(c)) for c in text)

@@ -25,8 +25,5 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('OCT (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "oct_str"
-
     def run(self, text):
         return ''.join(['{:03o}'.format(ord(char)) for char in text])

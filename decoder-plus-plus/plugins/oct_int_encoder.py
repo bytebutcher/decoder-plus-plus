@@ -17,8 +17,5 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('OCT (int)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "oct_int"
-
     def run(self, text):
         return self._run_lines(text, lambda text_part: format(int(text_part), "o"))

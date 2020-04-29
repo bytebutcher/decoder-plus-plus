@@ -19,15 +19,17 @@ import collections
 from typing import List
 
 from core.plugin.plugin import PluginType, AbstractPlugin
+from core.plugin.plugin_loader import PluginLoader
 
 
 class Plugins(object):
     """ Defines a list of plugins and additional helper methods for working with them. """
 
-    def __init__(self, context: 'core.context.Context', plugin_list: List[AbstractPlugin]):
+    def __init__(self, plugin_paths: List['str'], context: 'core.context.Context'):
         self._context = context
         self._logger = context.logger()
-        self._plugin_list = sorted(plugin_list, key=lambda x: (getattr(x, '_name'), getattr(x, '_type')))
+        self._plugin_loader = PluginLoader(context)
+        self._plugin_list = self._plugin_loader.load(plugin_paths)
         self._index = 0
 
     def names(self, type: str=None, author: str=None) -> List[str]:
@@ -48,6 +50,9 @@ class Plugins(object):
     def types(self) -> List[str]:
         """ Returns all possible plugin types in a list. """
         return [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]
+
+    def plugins(self) -> List[AbstractPlugin]:
+        return self._plugin_list
 
     def plugin(self, name: str, type: str) -> AbstractPlugin:
         """
@@ -88,7 +93,9 @@ class Plugins(object):
         raise Exception("Unknown Error '{}::{}'!".format(name, type))
 
     def __getitem__(self, item):
+        """ Returns the specified plugin. """
         return self._plugin_list[item]
 
     def __len__(self):
+        """ Returns the number of plugins. """
         return len(self._plugin_list)

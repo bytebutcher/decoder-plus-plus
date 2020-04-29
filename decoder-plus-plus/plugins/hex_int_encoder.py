@@ -17,8 +17,5 @@ class Plugin(EncoderPlugin):
         # Name, Author, Dependencies
         super().__init__('HEX (int)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "hex_int"
-
     def run(self, text):
         return self._run_lines(text, lambda text_part: hex(int(text_part)))

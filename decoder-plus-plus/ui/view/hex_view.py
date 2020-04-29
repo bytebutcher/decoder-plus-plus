@@ -60,8 +60,15 @@ class HexView(QTableView):
         #   This is still not optimal but I couldn't figure out how to make columns even smaller.
         #
         #   Here's a list of things I've tried:
-        #       * self.setStyleSheet("QTableView::item { border: 0px; padding: 0px; margin: 0px; }")
+        #       * removing QLineEdit from HexValidatorDelegate
         #       * setting font size
+        #       * setting section resize and using a bunch of stylesheets
+        #       self.setStyleSheet("""
+        #           QTableView::item { border: 0px; padding: 0px; margin: 0px; }
+        #           QTableWidget::item { border: 0px; padding: 0px; margin: 0px; }
+        #           QTableView { border: 0px; padding: 0px; margin: 0px; }
+        #       """)
+        #       self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         #
         for i in range(0, 16):
             self.resizeColumnToContents(i)

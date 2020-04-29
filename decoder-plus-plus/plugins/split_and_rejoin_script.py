@@ -52,9 +52,6 @@ class Plugin(ScriptPlugin):
             )
         return "Split by '{}' and Rejoin with '{}'".format(self._dialog.getSplitByText(), self._dialog.getJoinWithText())
 
-    def safe_name(self):
-        return "split_and_rejoin"
-
     def config(self) -> dict:
         return {
             "_dialog_return_code": self._dialog_return_code,

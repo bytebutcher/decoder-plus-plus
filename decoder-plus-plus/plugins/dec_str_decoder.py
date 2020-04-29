@@ -23,8 +23,5 @@ class Plugin(DecoderPlugin):
         # Name, Author, Dependencies
         super().__init__('DEC (str)', "Thomas Engel", [], context)
 
-    def safe_name(self):
-        return "dec_str"
-
     def run(self, text):
         return "".join(chr(int(c)) for c in text.split(","))

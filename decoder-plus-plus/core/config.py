@@ -37,7 +37,8 @@ class Config(QSettings):
 
     def setDebugMode(self, status: bool):
         """ Enables/Disables debug mode. """
-        # BUG: Storing True/False does not work (see https://github.com/mfitzp/pyqtconfig/issues/18)
+        # BUG: Storing boolean True/False does not work (see https://github.com/mfitzp/pyqtconfig/issues/18)
+        # FIX: String string "True"/"False" instead.
         self.setValue('debug', "True" if status else "False")
 
     def getSize(self) -> QSize:

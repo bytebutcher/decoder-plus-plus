@@ -52,8 +52,6 @@ class MainWindow(QMainWindow):
         self._logger.handlers[0].addFilter(self._init_log_filter())
         self.statusBar().addWidget(self._message_widget)
         self.statusBar().addPermanentWidget(self._init_hidden_dialog())
-        self._log_plugins_errors(context)
-        self._log_plugins_unresolved_dependencies(context)
         self._init_window_size()
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.tabifyDockWidget(self._empty_dock, self._log_dock)
@@ -65,28 +63,6 @@ class MainWindow(QMainWindow):
         self.findChild(QTabBar, "").tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
-
-    def _log_plugins_unresolved_dependencies(self, context: 'core.context.Context'):
-        """ Show unresolved dependencies of plugins in LogDock. """
-        try:
-            unresolved_dependencies = context.getPluginsUnresolvedDependencies(filter_enabled_plugins=False)
-            for plugin_name in unresolved_dependencies:
-                self._message_widget.showError(
-                    "{}: Unresolved dependencies {}".format(plugin_name, ", ".join(unresolved_dependencies[plugin_name]))
-                )
-        except Exception as e:
-            self._logger.error(e)
-
-    def _log_plugins_errors(self, context: 'core.context.Context'):
-        """ Show unresolved dependencies of plugins in LogDock. """
-        try:
-            plugin_errors = context.getPluginsErrors()
-            for plugin_name in plugin_errors:
-                self._message_widget.showError(
-                    "{}: Error loading plugin. {}".format(plugin_name, plugin_errors[plugin_name])
-                )
-        except Exception as e:
-            self._logger.error(e)
 
     def _init_log_filter(self):
         """ Initializes the log filter which catches log events to be shown in the statusbar. """

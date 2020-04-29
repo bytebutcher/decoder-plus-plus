@@ -29,7 +29,6 @@ from PyQt5.QtWidgets import QAction
 from core.config import Config
 from core.listener import Listener
 from core.plugin.plugins import AbstractPlugin, Plugins
-from core.plugin.plugin_loader import PluginLoader
 from core.shortcut import Shortcut, NullShortcut
 
 
@@ -86,8 +85,9 @@ class Context(QObject):
         self._config = self._init_config()
         self._init_excepthook()
         self._listener = Listener(self)
-        self._plugins = None
-        self._plugin_loader = PluginLoader(self)
+        self._plugins = Plugins([
+            os.path.join(self.getAppPath(), "plugins"),
+            os.path.join(str(Path.home()), ".config", "dpp", "plugins")], self)
         self._shortcuts = {}
         self._installed_packages = []
 
@@ -109,13 +109,14 @@ class Context(QObject):
         console_logger.setFormatter(logging.Formatter(log_format))
         logger.addHandler(console_logger)
 
-        file_logger = logging.FileHandler(os.path.join(self.getAppPath(), "dpp.log"))
-        file_logger.setLevel(log_level)
-        file_logger_formatter = logging.Formatter(
-            '%(asctime)s - %(module)s: %(lineno)d: %(msg)s',
-            datefmt='%m/%d/%Y %I:%M:%S %p')
-        file_logger.setFormatter(file_logger_formatter)
-        logger.addHandler(file_logger)
+        if log_level == logging.DEBUG:
+            file_logger = logging.FileHandler(os.path.join(self.getAppPath(), "dpp.log"))
+            file_logger.setLevel(log_level)
+            file_logger_formatter = logging.Formatter(
+                '%(asctime)s - %(module)s: %(lineno)d: %(msg)s',
+                datefmt='%m/%d/%Y %I:%M:%S %p')
+            file_logger.setFormatter(file_logger_formatter)
+            logger.addHandler(file_logger)
 
         return logger
 
@@ -127,8 +128,6 @@ class Context(QObject):
 
         def excepthook(exc_type, exc_value, exc_tb):
             enriched_tb = _add_missing_frames(exc_tb) if exc_tb else exc_tb
-            # Note: sys.__excepthook__(...) would not work here.
-            # We need to use print_exception(...):
             self.logger().error("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
 
         def _add_missing_frames(tb):
@@ -145,31 +144,6 @@ class Context(QObject):
 
         sys.excepthook = excepthook
 
-    def _init_plugins(self) -> Plugins:
-        """ Returns standard and user plugins which could be loaded successfully. """
-        return Plugins(self, self._load_default_plugins() + self._load_user_plugins())
-
-    def _load_default_plugins(self):
-        """ Returns all standard plugins located at ${APPPATH}/plugins which could be loaded successfully. """
-        try:
-            self.logger().info("Loading default plugins ...")
-            return list(self._plugin_loader.load(os.path.join(self.getAppPath(), "plugins")).values())
-        except Exception as e:
-            self.logger().error("Error loading default plugins: {}".format(str(e)))
-            return []
-
-    def _load_user_plugins(self):
-        """ Returns all user plugins located at ${HOME}/.config/dpp/plugins which could be loaded successfully. """
-        try:
-            user_plugin_folder = os.path.join(str(Path.home()), ".config", "dpp", "plugins")
-            if not os.path.exists(user_plugin_folder):
-                os.makedirs(user_plugin_folder)
-            self.logger().info("Loading user plugins ...")
-            return list(self._plugin_loader.load(user_plugin_folder).values())
-        except Exception as e:
-            self.logger().error("Error loading user defined plugins: {}".format(str(e)))
-            return []
-
     def getAppPath(self):
         """ Returns the path where the main application is located. """
         pathname = os.path.realpath(sys.argv[0])
@@ -179,11 +153,21 @@ class Context(QObject):
         """ Returns the ID of the application. """
         return self._app_id
 
+    def setDebugMode(self, status: bool, temporary=False):
+        """ Enables/Disables debug mode. """
+        if not temporary:
+            self._config.setDebugMode(status)
+        logging.root.setLevel(logging.DEBUG if status else logging.INFO)
+        status_string = "enabled" if status else "disabled"
+        self.logger().info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
+
     def toggleDebugMode(self):
         """ Toggles the debug-mode on/off. """
-        self._config.setDebugMode(not self._config.isDebugModeEnabled())
-        logging.root.setLevel(logging.DEBUG if self._config.isDebugModeEnabled() else logging.INFO)
-        self.logger().info("Debug Mode: {}".format("enabled" if self._config.isDebugModeEnabled() else "disabled"))
+        self.setDebugMode(not self._config.isDebugModeEnabled())
+
+    def isDebugModeEnabled(self):
+        """ Returns whether the debug mode is currently enabled. """
+        return self._config.isDebugModeEnabled()
 
     def config(self) -> Config:
         """ Returns the main configuration of the application. """
@@ -201,9 +185,7 @@ class Context(QObject):
         return self._logger[log_format]
 
     def plugins(self) -> Plugins:
-        """ Returns all plugins which could be loaded successfully. """
-        if not self._plugins:
-            self._plugins = self._init_plugins()
+        """ Returns all plugins. """
         return self._plugins
 
     def checkDependency(self, package):
@@ -266,16 +248,6 @@ class Context(QObject):
 
     def getPluginByName(self, name: str, type: str) -> AbstractPlugin:
         return self.plugins().plugin(name, type)
-
-    def getPluginsUnresolvedDependencies(self, filter_enabled_plugins: bool=True) -> Dict[str, str]:
-        """ Returns all unresolved dependencies in a dict.
-        :param filter_enabled_plugins: when True, returns only unresolved dependencies of enabled plugins.
-        """
-        return self._plugin_loader.get_unresolved_dependencies(filter_enabled_plugins)
-
-    def getPluginsErrors(self) -> Dict[str, str]:
-        """ Returns all errors which happened while loading plugins. """
-        return self._plugin_loader.get_errors()
 
     def saveAsFile(self, filename: str, content: str):
         with open(filename, "w") as f:
