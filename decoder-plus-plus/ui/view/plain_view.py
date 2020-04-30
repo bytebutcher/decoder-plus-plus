@@ -53,7 +53,9 @@ class PlainView(QFrame):
         self._frame_id = frame_id
         self._logger = logging.getLogger('decoder_plusplus')
 
-        self._plain_text = QPlainTextEdit(text)
+
+        self._plain_text = QPlainTextEdit()
+        self.setPlainText(text)
         self._plain_text.setLineWrapMode(QPlainTextEdit.NoWrap)
         self._plain_text.dragEnterEvent = self._on_plain_text_drag_enter_event
         self._plain_text.dropEvent = self._on_plain_text_drop_event
@@ -253,10 +255,19 @@ class PlainView(QFrame):
 
     def setPlainText(self, text):
         """ Sets the text of the text area. """
-        # Avoid triggered textChanged-event when setting text manually
+        # Avoid triggering textChanged-event when setting text manually
         self._plain_text.blockSignals(True)
         self._plain_text.setPlainText(text)
+        # Bug: When setting text the cursor position is set to beginning of plain text field.
+        # Fix: Manually set cursor position to end of plain text field when setting text.
+        self.setCursorPosition(QTextCursor.End)
         self._plain_text.blockSignals(False)
+
+    def setCursorPosition(self, cursor_position: 'QTextCursor.MoveOperation'):
+        """ Sets the cursor to the defined position. """
+        plain_text_cursor = self._plain_text.textCursor()
+        plain_text_cursor.movePosition(cursor_position)
+        self._plain_text.setTextCursor(plain_text_cursor)
 
     def setFocus(self, Qt_FocusReason=None):
         """ Sets the focus to the plain text area. """
