@@ -78,6 +78,9 @@ class PlainView(QFrame):
         self._search_field.closeEvent.connect(self._do_close_search_field)
         self._search_field.setVisible(False)
 
+        # Propagate that a new frame was loaded
+        self._context.listener().selectedFrameChanged.emit(self._tab_id, self._frame_id, self.toPlainText())
+
         layout = QVBoxLayout()
         layout.addWidget(self._plain_text)
         layout.addWidget(self._search_field)
