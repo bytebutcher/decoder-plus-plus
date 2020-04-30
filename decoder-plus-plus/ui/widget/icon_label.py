@@ -32,6 +32,33 @@ class IconLabel(QLabel):
         self._do_repaint = True
         self._icon = icon
 
+    def setHoverEffect(self, status: bool):
+        """ Enables/Disables the hover effect for the IconLabel (default = False). """
+        if status:
+            self.setStyleSheet("""
+            QLabel:hover {
+                background-color: rgb(217, 217, 217);
+            }
+
+            QLabel[pressed="true"] {
+                background-color: rgb(189, 189, 189);     
+            }
+            """)
+        else:
+            self.setStyleSheet("")
+
+    def mousePressEvent(self, event):
+        """ Updates the stylesheet to indicate that the IconLabel is being pressed. """
+        self.setProperty("pressed", True)
+        self.style().polish(self)
+        super(IconLabel, self).mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """ Updates the stylesheet to indicate that the IconLabel is being released. """
+        self.setProperty("pressed", False)
+        self.style().polish(self)
+        super(IconLabel, self).mouseReleaseEvent(event)
+
     def paintEvent(self, event=None):
         """ Paints the specified icon (if any). """
         super(IconLabel, self).paintEvent(event)

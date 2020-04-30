@@ -214,7 +214,7 @@ class CollapsibleFrame(Frame):
             else:
                 self.setStyleSheet("QFrame { border:1px solid rgb(41, 41, 41); }")
 
-        def mousePressEvent(self, event):
+        def mouseReleaseEvent(self, event):
             if self.underMouse():
                 # The arrow (or something non-button like) was clicked
                 self.arrowClicked.emit()

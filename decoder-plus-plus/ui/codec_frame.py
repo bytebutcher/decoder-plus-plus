@@ -145,6 +145,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_up = IconLabel(self, qtawesome.icon("fa.chevron-up"))
+            self._lbl_icon_up.setHoverEffect(True)
             self._lbl_icon_up.setToolTip("Move up")
             self._lbl_icon_up.setEnabled(self._parent.hasPrevious() and self._parent.previous().hasPrevious())
             return self._lbl_icon_up
@@ -160,6 +161,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_down = IconLabel(self, qtawesome.icon("fa.chevron-down"))
+            self._lbl_icon_down.setHoverEffect(True)
             self._lbl_icon_down.setToolTip("Move down")
             self._lbl_icon_down.setEnabled(self._parent.hasNext())
             return self._lbl_icon_down
@@ -175,6 +177,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_config = IconLabel(self, qtawesome.icon("fa.cog"))
+            self._lbl_icon_config.setHoverEffect(True)
             self._lbl_icon_config.setEnabled(self._parent.isConfigurable())
             self._lbl_icon_config.setToolTip("Configure")
             return self._lbl_icon_config
@@ -190,6 +193,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_close = IconLabel(self, qtawesome.icon("fa.times"))
+            self._lbl_icon_close.setHoverEffect(True)
             self._lbl_icon_close.setToolTip("Close")
             return self._lbl_icon_close
 
@@ -226,19 +230,19 @@ class CodecFrame(CollapsibleFrame):
         header.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
 
         up_button_header_item = CodecFrame.UpButtonHeaderItem(self)
-        up_button_header_item.mousePressEvent = lambda evt: self.upButtonClicked.emit(self.id())
+        up_button_header_item.mouseReleaseEvent = lambda evt: self.upButtonClicked.emit(self.id())
         header.addWidget(up_button_header_item)
 
         down_button_header_item = CodecFrame.DownButtonHeaderItem(self)
-        down_button_header_item.mousePressEvent = lambda evt: self.downButtonClicked.emit(self.id())
+        down_button_header_item.mouseReleaseEvent = lambda evt: self.downButtonClicked.emit(self.id())
         header.addWidget(down_button_header_item)
 
         config_button_header_item = CodecFrame.ConfigButtonHeaderItem(self)
-        config_button_header_item.mousePressEvent = lambda evt: self.configButtonClicked.emit(self.id())
+        config_button_header_item.mouseReleaseEvent = lambda evt: self.configButtonClicked.emit(self.id())
         header.addWidget(config_button_header_item)
 
         close_button_header_item = CodecFrame.CloseButtonHeaderItem(self)
-        close_button_header_item.mousePressEvent = lambda evt: self.closeButtonClicked.emit(self.id())
+        close_button_header_item.mouseReleaseEvent = lambda evt: self.closeButtonClicked.emit(self.id())
         header.addWidget(close_button_header_item)
 
     def _init_logger(self, context, frame_id):
