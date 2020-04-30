@@ -57,6 +57,7 @@ class CodecFrame(CollapsibleFrame):
             frm_title_frame_layout.setContentsMargins(0, 0, 0, 0)
             self._title = QLabel(self._parent.getTitle())
             self._title.setTextFormat(Qt.PlainText)
+            self._title.setToolTip(self._parent.getDescription())
             frm_title_frame_layout.addWidget(self._title)
             frm_title_frame.setLayout(frm_title_frame_layout)
             return frm_title_frame
@@ -144,6 +145,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_up = IconLabel(self, qtawesome.icon("fa.chevron-up"))
+            self._lbl_icon_up.setToolTip("Move up")
             self._lbl_icon_up.setEnabled(self._parent.hasPrevious() and self._parent.previous().hasPrevious())
             return self._lbl_icon_up
 
@@ -158,6 +160,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_down = IconLabel(self, qtawesome.icon("fa.chevron-down"))
+            self._lbl_icon_down.setToolTip("Move down")
             self._lbl_icon_down.setEnabled(self._parent.hasNext())
             return self._lbl_icon_down
 
@@ -173,6 +176,7 @@ class CodecFrame(CollapsibleFrame):
         def _init_central_widget(self):
             self._lbl_icon_config = IconLabel(self, qtawesome.icon("fa.cog"))
             self._lbl_icon_config.setEnabled(self._parent.isConfigurable())
+            self._lbl_icon_config.setToolTip("Configure")
             return self._lbl_icon_config
 
         def refresh(self):
@@ -186,6 +190,7 @@ class CodecFrame(CollapsibleFrame):
 
         def _init_central_widget(self):
             self._lbl_icon_close = IconLabel(self, qtawesome.icon("fa.times"))
+            self._lbl_icon_close.setToolTip("Close")
             return self._lbl_icon_close
 
     def __init__(self, parent, context: Context, tab_id: str, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
@@ -314,14 +319,22 @@ class CodecFrame(CollapsibleFrame):
         self._codec_tab.removeFrames(self._next_frame)
         self.focusInputText()
 
-    def id(self):
+    def id(self) -> str:
         return self._frame_id
 
-    def getTitle(self):
+    def getTitle(self) -> str:
         """ Returns the title of the current frame which is either the title of the previous plugin or None. """
         if self.hasPrevious():
             return self.previous().getPlugin().title()
         return None
+
+    def getDescription(self) -> str:
+        """
+        Returns the description of the current frame which is either the description of the previous plugin or None.
+        """
+        if self.hasPrevious():
+            if not isinstance(self.previous().getPlugin(), NullPlugin):
+                return self.previous().getPlugin().__doc__
 
     def getPlugin(self) -> AbstractPlugin:
         """ Returns the currently selected plugin. Might return a NullPlugin when nothing is selected. """
