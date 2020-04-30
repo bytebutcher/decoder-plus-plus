@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QTabBar, QLineEdit
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QPoint
+from PyQt5.QtWidgets import QTabBar, QLineEdit, QWidget
 
 
 class TabBar(QTabBar):
@@ -30,6 +30,32 @@ class TabBar(QTabBar):
         super().__init__(parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.__edit_mode_activated = False
+        self.setMovable(True)
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """ Allow moving tabs under certain conditions. """
+
+        if event.type() == QtCore.QEvent.Type.MouseMove:
+
+            if source.currentIndex() == self.count() - 1:
+                # Block MouseMove for last tab.
+                return True
+            else:
+                last_tab = self.tabRect(self.count() - 1)
+                if event.pos().x() > last_tab.x():
+                    # Block movement beyond last tab.
+                    return True
+
+                # Retrieve pressed tab.
+                # Do not use y-position of event.pos() since mouse may not focus tab all the time.
+                pressed_tab_pos = QPoint(event.pos().x(), self.y())
+                pressed_tab = self.tabRect(self.tabAt(pressed_tab_pos))
+                if (pressed_tab.x() + pressed_tab.width()) >= last_tab.x():
+                    # Block movement of pressed tab when reaching beginning of last tab.
+                    return True
+
+        return QWidget.eventFilter(self, source, event)
 
     def mouseDoubleClickEvent(self, event):
         if not self.__edit_mode_activated:

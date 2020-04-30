@@ -50,12 +50,6 @@ class MainWindowTabsWidget(QTabWidget):
         bar = TabBar()
         bar.customContextMenuRequested.connect(self._show_context_menu)
         bar.tabRenamed.connect(self.tabRenamed.emit)
-        # BUG: Moving tabs beyond last tab breaks program-design (last tab is supposed to be the "add new tab button ('+')").
-        # FIX: ???
-        # NOTES:
-        # * Currently moving tabs is disabled.
-        # * Using an Event-Filter to disable dropping tabs on certain areas did not work.
-        bar.setMovable(False)
         self.setTabBar(bar)
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
