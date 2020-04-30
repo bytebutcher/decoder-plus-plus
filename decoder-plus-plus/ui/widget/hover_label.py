@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from PyQt5 import QtCore
 
 from ui.widget.clickable_label import ClickableLabel
 
@@ -42,12 +43,14 @@ class HoverLabel(ClickableLabel):
 
     def mousePressEvent(self, event):
         """ Updates the stylesheet to indicate that the IconLabel is being pressed. """
-        self.setProperty("pressed", True)
-        self.style().polish(self)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.setProperty("pressed", True)
+            self.style().polish(self)
         super(HoverLabel, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """ Updates the stylesheet to indicate that the IconLabel is being released. """
-        self.setProperty("pressed", False)
-        self.style().polish(self)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.setProperty("pressed", False)
+            self.style().polish(self)
         super(HoverLabel, self).mouseReleaseEvent(event)

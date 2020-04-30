@@ -232,9 +232,21 @@ class MainWindowWidget(QWidget):
     def _focus_input_text(self, callback):
         frame = self._get_focused_frame()
         if frame:
-            frame = callback(frame) or frame
-            frame.focusInputText()
-            self._tabs.currentWidget().ensureWidgetVisible(frame)
+            future_frame = callback(frame) or frame
+            future_frame.focusInputText()
+            # Collapse/Uncollapse frames automatically.
+            if self._tabs.currentWidget().getFramesCount() > 2:
+                if frame != future_frame:
+                    if future_frame.isCollapsed() and not future_frame.wasCollapseStateChangedByUser():
+                        if future_frame.hasPrevious():
+                            # Toggle frame, except the first frame which does not have a header
+                            future_frame.toggleCollapsed()
+                    if not frame.wasCollapseStateChangedByUser():
+                        if frame.hasPrevious():
+                            # Collapse frame, except the first frame which does not have a header
+                            frame.toggleCollapsed()
+
+            self._tabs.currentWidget().ensureWidgetVisible(future_frame)
 
     def _show_hidden_dialog(self, tab_select: str=None):
         """ Shows the hidden dialog. """

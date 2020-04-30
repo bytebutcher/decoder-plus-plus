@@ -45,6 +45,8 @@ class CollapsibleFrame(Frame):
         super(__class__, self).__init__(parent, context, frame_id, previous_frame, next_frame)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._is_collasped = False
+        self._was_collapse_state_changed_by_user = False
+        self.arrowClicked.connect(self._arrow_clicked_event)
         self._header_frame = None
         self._content, self._content_layout = (None, None)
         self._init_frame_style()
@@ -65,7 +67,7 @@ class CollapsibleFrame(Frame):
 
     def _init_header_frame(self):
         self._header_frame = CollapsibleFrame.HeaderFrame(self)
-        self._header_frame.arrowClicked.connect(self.toggleCollapsed)
+        self._header_frame.arrowClicked.connect(self.arrowClicked.emit)
         return self._header_frame
 
     def _init_content(self, direction, collapsed):
@@ -75,6 +77,10 @@ class CollapsibleFrame(Frame):
         self._content.setLayout(self._content_layout)
         self._content.setVisible(not collapsed)
         return self._content
+
+    def _arrow_clicked_event(self):
+        self.toggleCollapsed()
+        self._was_collapse_state_changed_by_user = True
 
     def addWidget(self, widget):
         """
@@ -101,6 +107,10 @@ class CollapsibleFrame(Frame):
 
     def isCollapsed(self) -> bool:
         return self._is_collasped
+
+    def wasCollapseStateChangedByUser(self):
+        """ Returns whether the collapse state was changed by the user. """
+        return self._was_collapse_state_changed_by_user
 
     def header(self) -> 'ui.collapsible_frame.CollapsibleFrame.HeaderFrame':
         return self._header_frame
@@ -215,7 +225,7 @@ class CollapsibleFrame(Frame):
                 self.setStyleSheet("QFrame { border:1px solid rgb(41, 41, 41); }")
 
         def mouseReleaseEvent(self, event):
-            if self.underMouse():
+            if self.underMouse() and event.button() == QtCore.Qt.LeftButton:
                 # The arrow (or something non-button like) was clicked
                 self.arrowClicked.emit()
             return super(CollapsibleFrame.HeaderFrame, self).mousePressEvent(event)

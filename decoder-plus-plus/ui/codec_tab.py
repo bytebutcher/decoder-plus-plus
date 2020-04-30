@@ -220,6 +220,9 @@ class CodecTab(QScrollArea):
             frames.append(self._frames_layout.itemAt(frameIndex).widget())
         return frames
 
+    def getFramesCount(self) -> int:
+        return self._frames_layout.count()
+
     # ------------------------------------------------------------------------------------------------------------------
 
     def closeFrame(self, frame_id):
@@ -299,7 +302,6 @@ class CodecTab(QScrollArea):
         another_frame.setInputText(frame_text)
         frame._status_widget.setStatus(*another_frame_state)
         frame.setInputText(another_frame_text)
-
 
     def switchFrames(self, frame: CodecFrame, another_frame: CodecFrame):
         frame_plugin = PluginBuilder(self._context).build(frame.toDict()["plugin"])

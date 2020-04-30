@@ -229,20 +229,24 @@ class CodecFrame(CollapsibleFrame):
         header.addWidget(CodecFrame.ContentLengthInfoHeaderItem(self))
         header.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
 
+        def mouse_release_event(event, signal):
+            if event.button() == QtCore.Qt.LeftButton:
+                signal.emit(self.id())
+
         up_button_header_item = CodecFrame.UpButtonHeaderItem(self)
-        up_button_header_item.mouseReleaseEvent = lambda evt: self.upButtonClicked.emit(self.id())
+        up_button_header_item.mouseReleaseEvent = lambda evt: mouse_release_event(evt, self.upButtonClicked)
         header.addWidget(up_button_header_item)
 
         down_button_header_item = CodecFrame.DownButtonHeaderItem(self)
-        down_button_header_item.mouseReleaseEvent = lambda evt: self.downButtonClicked.emit(self.id())
+        down_button_header_item.mouseReleaseEvent = lambda evt: mouse_release_event(evt, self.downButtonClicked)
         header.addWidget(down_button_header_item)
 
         config_button_header_item = CodecFrame.ConfigButtonHeaderItem(self)
-        config_button_header_item.mouseReleaseEvent = lambda evt: self.configButtonClicked.emit(self.id())
+        config_button_header_item.mouseReleaseEvent = lambda evt: mouse_release_event(evt, self.configButtonClicked)
         header.addWidget(config_button_header_item)
 
         close_button_header_item = CodecFrame.CloseButtonHeaderItem(self)
-        close_button_header_item.mouseReleaseEvent = lambda evt: self.closeButtonClicked.emit(self.id())
+        close_button_header_item.mouseReleaseEvent = lambda evt: mouse_release_event(evt, self.closeButtonClicked)
         header.addWidget(close_button_header_item)
 
     def _init_logger(self, context, frame_id):
