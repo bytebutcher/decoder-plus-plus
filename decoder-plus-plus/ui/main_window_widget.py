@@ -237,7 +237,7 @@ class MainWindowWidget(QWidget):
             # Collapse/Uncollapse frames automatically.
             if self._tabs.currentWidget().getFramesCount() > 2:
                 if frame != future_frame:
-                    if future_frame.isCollapsed() and not future_frame.wasCollapseStateChangedByUser():
+                    if future_frame.isCollapsed():
                         if future_frame.hasPrevious():
                             # Toggle frame, except the first frame which does not have a header
                             future_frame.toggleCollapsed()
