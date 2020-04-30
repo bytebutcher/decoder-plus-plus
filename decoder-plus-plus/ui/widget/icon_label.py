@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtWidgets import QLabel
+from ui.widget.hover_label import HoverLabel
 
 
-class IconLabel(QLabel):
+class IconLabel(HoverLabel):
     """ A widget for showing an icon. """
 
     def __init__(self, parent, icon):
@@ -26,38 +26,12 @@ class IconLabel(QLabel):
         self._do_repaint = True
         self._icon = icon
         self._last_height = None
+        self.setHoverEffect(False)
 
     def setIcon(self, icon):
         """ Sets the icon. """
         self._do_repaint = True
         self._icon = icon
-
-    def setHoverEffect(self, status: bool):
-        """ Enables/Disables the hover effect for the IconLabel (default = False). """
-        if status:
-            self.setStyleSheet("""
-            QLabel:hover {
-                background-color: rgb(217, 217, 217);
-            }
-
-            QLabel[pressed="true"] {
-                background-color: rgb(189, 189, 189);     
-            }
-            """)
-        else:
-            self.setStyleSheet("")
-
-    def mousePressEvent(self, event):
-        """ Updates the stylesheet to indicate that the IconLabel is being pressed. """
-        self.setProperty("pressed", True)
-        self.style().polish(self)
-        super(IconLabel, self).mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        """ Updates the stylesheet to indicate that the IconLabel is being released. """
-        self.setProperty("pressed", False)
-        self.style().polish(self)
-        super(IconLabel, self).mouseReleaseEvent(event)
 
     def paintEvent(self, event=None):
         """ Paints the specified icon (if any). """

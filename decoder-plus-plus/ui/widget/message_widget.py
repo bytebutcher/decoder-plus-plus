@@ -37,10 +37,14 @@ class MessageWidget(QFrame):
     class CountWidget(QFrame):
         """ A widget with an icon and a counter. """
 
+        icon_clicked = pyqtSignal()
+
         def __init__(self, icon: QIcon, count: int=0, parent=None):
             super(__class__, self).__init__(parent)
             self._icon = IconLabel(parent, icon)
-            self._label = QLabel()
+            self._icon.setHoverEffect(True)
+            self._icon.clicked.connect(lambda: self.icon_clicked.emit())
+            self._label = QLabel(self)
             self.setCount(count)
             layout = QHBoxLayout()
             layout.addWidget(self._icon)
@@ -78,8 +82,10 @@ class MessageWidget(QFrame):
         self._icons[self.ICON_ERROR] = qtawesome.icon("fa.exclamation")
 
         self._log_info_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.info-circle"), 0, self)
+        self._log_info_count_widget.icon_clicked.connect(lambda: self.infoClicked.emit())
         self._log_info_count_widget.mouseDoubleClickEvent = lambda e: self.infoClicked.emit()
         self._log_error_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.exclamation-triangle"), 0, self)
+        self._log_error_count_widget.icon_clicked.connect(lambda: self.errorClicked.emit())
         self._log_error_count_widget.mouseDoubleClickEvent = lambda e: self.errorClicked.emit()
 
         layout.addWidget(self._log_info_count_widget)
@@ -92,8 +98,10 @@ class MessageWidget(QFrame):
         layout.addWidget(line, 0, Qt.AlignLeft)
 
         self._log_message_icon_label = IconLabel(self, self._get_icon(self.ICON_READY))
-        self._log_message_icon_label.mouseDoubleClicked = lambda e: self.messageClicked.emit()
+        self._log_message_icon_label.setHoverEffect(True)
+        self._log_message_icon_label.clicked.connect(lambda: self.messageClicked.emit())
         self._log_message_text_label = QLabel("Ready.")
+        self._log_message_icon_label.setHoverEffect(True)
         self._log_message_text_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
         layout.addWidget(self._log_message_icon_label)
         layout.addWidget(self._log_message_text_label)

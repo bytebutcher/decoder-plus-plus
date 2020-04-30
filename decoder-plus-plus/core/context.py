@@ -83,6 +83,7 @@ class Context(QObject):
         self._app_id = app_id
         self._logger = {}
         self._config = self._init_config()
+        self._debug_mode = self._config.isDebugModeEnabled()
         self._init_excepthook()
         self._listener = Listener(self)
         self._plugins = Plugins([
@@ -157,6 +158,7 @@ class Context(QObject):
         """ Enables/Disables debug mode. """
         if not temporary:
             self._config.setDebugMode(status)
+        self._debug_mode = status
         logging.root.setLevel(logging.DEBUG if status else logging.INFO)
         status_string = "enabled" if status else "disabled"
         self.logger().info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
@@ -166,8 +168,8 @@ class Context(QObject):
         self.setDebugMode(not self._config.isDebugModeEnabled())
 
     def isDebugModeEnabled(self):
-        """ Returns whether the debug mode is currently enabled. """
-        return self._config.isDebugModeEnabled()
+        """ Returns whether the debug mode is currently configured or temporary enabled. """
+        return self._config.isDebugModeEnabled() or self._debug_mode
 
     def config(self) -> Config:
         """ Returns the main configuration of the application. """
