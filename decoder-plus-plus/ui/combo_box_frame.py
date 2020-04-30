@@ -73,6 +73,9 @@ class ComboBoxFrame(QFrame):
         # BUG: combo_box.lineEdit().selectAll when focussing lineEdit will be deselected again by general focus-event.
         # FIX: Delay select-all for a few milliseconds.
         combo_box.focusInEvent = lambda e: QTimer.singleShot(100, lambda: combo_box.lineEdit().selectAll())
+        # BUG: combo_box.lineEdit().deselect does not work correctly when loosing focus.
+        # FIX: Delay deselect for a few milliseconds.
+        combo_box.focusOutEvent = lambda e: QTimer.singleShot(100, lambda: combo_box.lineEdit().deselect())
         combo_box.setModel(model)
         combo_box.setModelColumn(0)
         combo_box.activated.connect(lambda i: self._combo_box_item_selected_event(type, combo_box.currentIndex()))

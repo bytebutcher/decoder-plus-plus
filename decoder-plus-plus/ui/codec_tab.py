@@ -124,7 +124,7 @@ class CodecTab(QScrollArea):
         try:
             plugin.set_aborted(False)
             output = plugin.select(input_text)
-            self.newFrame(output, plugin.title(), frame, status=StatusWidget.SUCCESS)
+            self.newFrame(output, plugin.title(), frame, status=StatusWidget.SUCCESS).focusInputText()
         except AbortedException as e:
             # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
             self._logger.debug(str(e))
