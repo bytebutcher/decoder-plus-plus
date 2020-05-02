@@ -1,4 +1,5 @@
 PyQt5
+qtconsole
 QtAwesome
 pysha3
 passlib

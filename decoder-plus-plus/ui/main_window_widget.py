@@ -105,6 +105,11 @@ class MainWindowWidget(QWidget):
                                 "Alt+Shift+X",
                                 lambda: self._main_window._toggle_hex_dock(),
                                 view_menu)
+        self._register_shortcut(Context.Shortcut.SELECT_IPYTHON_CONSOLE_DOCK,
+                                "I&Python Console",
+                                "Alt+Shift+P",
+                                lambda: self._main_window._toggle_ipython_dock(),
+                                view_menu)
         return view_menu
 
     def _init_select_menu(self, main_menu):
