@@ -21,12 +21,14 @@ import qtawesome
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QTableView, QHBoxLayout, QDockWidget, QToolButton, QVBoxLayout, QFrame, QWidget
+from PyQt5.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
 from core.logging.log_entry import LogEntry
+from ui.widget.dock_widget import DockWidget
 from ui.widget.spacer import VSpacer
 
-class LogDock(QDockWidget):
+class LogDock(DockWidget):
+    """ A widget to show log events. """
 
     clearEvent = pyqtSignal()
 
@@ -70,15 +72,11 @@ class LogDock(QDockWidget):
             self.setEditable(False)
 
     def __init__(self, parent: QWidget, log_entries: List[LogEntry]):
-        super(LogDock, self).__init__("Logs", parent)
-        self._dock_frame = QFrame()
-        dock_layout = QHBoxLayout()
+        super(LogDock, self).__init__("Logs", qtawesome.icon("fa.align-left"), parent)
         self._init_button_frame()
         self._init_table_frame(log_entries)
-        dock_layout.addWidget(self._button_frame)
-        dock_layout.addWidget(self._table_frame)
-        self._dock_frame.setLayout(dock_layout)
-        self.setWidget(self._dock_frame)
+        self.addWidget(self._button_frame)
+        self.addWidget(self._table_frame)
 
     def _init_button_frame(self):
         self._button_frame = QFrame()
@@ -189,12 +187,3 @@ class LogDock(QDockWidget):
 
     def getFilters(self) -> List[str]:
         return [LogDock.Filter.INFO, LogDock.Filter.ERROR, LogDock.Filter.DEBUG]
-
-    def closeEvent(self, QCloseEvent):
-        self.hide()
-
-    def hide(self):
-        self._dock_frame.setVisible(False)
-
-    def show(self):
-        self._dock_frame.setVisible(True)

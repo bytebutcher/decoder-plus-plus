@@ -17,38 +17,32 @@
 
 from typing import List
 
-from PyQt5.QtWidgets import QHBoxLayout, QDockWidget, QFrame, QWidget
+import qtawesome
+from PyQt5.QtWidgets import QHBoxLayout, QFrame, QWidget
 
 from core import Context
 from core.listener import Listener
 from ui.view.hex_view import HexView
+from ui.widget.dock_widget import DockWidget
 
 
-class HexDock(QDockWidget):
-
+class HexDock(DockWidget):
+    """ A widget to show a hex view of a string representation. """
 
     def __init__(self, parent: QWidget, context: Context):
-        super(HexDock, self).__init__("Hex", parent)
+        super(HexDock, self).__init__("Hex", qtawesome.icon("fa.code"), parent)
         self._context = Context
-
         self._selected_frame_id = ""
         self._last_input_text = ""
-
         self._init_listener(context.listener())
-        self._dock_frame = QFrame()
-        self._dock_layout = QHBoxLayout()
-        self._dock_layout.addWidget(self._init_hex_widget())
-        self._dock_frame.setLayout(self._dock_layout)
-        self.setWidget(self._dock_frame)
+        self._hex_dock_view = HexView(self, self._context, 0, "")
+        self.addWidget(self._hex_dock_view)
 
     def _init_listener(self, listener: Listener):
+        """ Initialize change events. """
         listener.textChanged.connect(self._update_view)
         listener.textSelectionChanged.connect(self._update_view)
         listener.selectedFrameChanged.connect(self._selected_frame_changed)
-
-    def _init_hex_widget(self):
-        self._hex_dock_view = HexView(self, self._context, 0, "")
-        return self._hex_dock_view
 
     def _chunk_string(self, string: str, length: int) -> List[str]:
         """ Breaks the string into a list of chunks with a specified max length. """
@@ -68,13 +62,3 @@ class HexDock(QDockWidget):
     def _selected_frame_changed(self, tab_id: str, frame_id: str, input_text: str):
         self._selected_frame_id = frame_id
         self._update_view(tab_id, frame_id, input_text)
-
-
-    def closeEvent(self, QCloseEvent):
-        self.hide()
-
-    def hide(self):
-        self._dock_frame.setVisible(False)
-
-    def show(self):
-        self._dock_frame.setVisible(True)

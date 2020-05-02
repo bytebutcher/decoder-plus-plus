@@ -18,6 +18,7 @@ import ctypes
 import datetime
 import os
 from typing import List
+import qtawesome
 
 from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QIcon
@@ -28,39 +29,52 @@ from core.logging.log_filter import LogFilter
 from ui import IconLabel
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.dock.hex_dock import HexDock
+from ui.dock.ipython_dock import IPythonDock
 from ui.dock.log_dock import LogDock
 from ui.widget.message_widget import MessageWidget
 
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, context: 'core.context.Context', input: str=None):
+    def __init__(self, context: 'core.context.Context', input: str = None):
         super().__init__()
         self._context = context
         self._logger = context.logger()
         self._empty_dock = QDockWidget("", self)
         self._empty_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._empty_dock)
+        self._ipython_dock = IPythonDock(self, self._context)
+        self._ipython_dock.setFeatures(QDockWidget.DockWidgetFloatable)
         self._hex_dock = HexDock(self, self._context)
-        self._hex_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
+        self._hex_dock.setFeatures(QDockWidget.DockWidgetFloatable)
         self._message_widget = self._init_message_widget()
         self._log_entries = []
         self._log_dock = LogDock(self, self._log_entries)
         self._log_dock.clearEvent.connect(self._message_widget.resetCount)
-        self._log_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        self._log_dock.setFeatures(QDockWidget.DockWidgetFloatable)
         self._logger.handlers[0].addFilter(self._init_log_filter())
         self.statusBar().addWidget(self._message_widget)
         self.statusBar().addPermanentWidget(self._init_hidden_dialog())
         self._init_window_size()
+
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._empty_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._ipython_dock)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.tabifyDockWidget(self._empty_dock, self._log_dock)
-        self.tabifyDockWidget(self._log_dock, self._hex_dock)
+        self.tabifyDockWidget(self._empty_dock, self._hex_dock)
+        self.tabifyDockWidget(self._empty_dock, self._ipython_dock)
+
         self._empty_dock.raise_()
         self._empty_dock.visibilityChanged.connect(self.show_dock)
         self._log_dock.visibilityChanged.connect(self.show_dock)
         self._hex_dock.visibilityChanged.connect(self.show_dock)
-        self.findChild(QTabBar, "").tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
+        self._ipython_dock.visibilityChanged.connect(self.show_dock)
+
+        self._ipython_dock.toggleViewAction().setIcon(qtawesome.icon("fa.code"))
+
+        self._tab_bar = self.findChild(QTabBar, "")
+        self._tab_bar.tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
+
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
 
@@ -132,15 +146,23 @@ class MainWindow(QMainWindow):
         else:
             self._empty_dock.raise_()
 
+    def _toggle_ipython_dock(self):
+        """ Shows/Hides the ipython dock. """
+        is_ipython_dock_visible = not self._ipython_dock.visibleRegion().isEmpty()
+        if not is_ipython_dock_visible:
+            self._ipython_dock.raise_()
+        else:
+            self._ipython_dock.raise_()
+
     def show_dock(self, e: QEvent):
         """ Shows/Hides the docks. """
         is_empty_dock_visible = not self._empty_dock.visibleRegion().isEmpty()
-        if is_empty_dock_visible:
-            self._hex_dock.hide()
-            self._log_dock.hide()
-        else:
-            self._hex_dock.show()
-            self._log_dock.show()
+        for dock in [self._log_dock, self._hex_dock, self._ipython_dock]:
+            if is_empty_dock_visible:
+                if not dock.isFloating():
+                    dock.hide()
+            else:
+                dock.show()
 
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """
