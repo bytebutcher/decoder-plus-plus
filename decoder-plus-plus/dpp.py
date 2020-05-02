@@ -113,7 +113,7 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
 
 if __name__ == '__main__':
     # Loads logger, config and plugins.
-    context = Context("net.bytebutcher.decoder_plus_plus")
+    context = Context("net.bytebutcher.decoder_plus_plus", namespace=locals())
 
     try:
 

@@ -58,7 +58,7 @@ class MainWindowWidget(QWidget):
 
     def _init_help_menu(self, main_menu):
         help_menu = main_menu.addMenu('&Help')
-        keyboard_shortcuts_action = QAction("&Keyboard Shortcuts", self)
+        keyboard_shortcuts_action = QAction("&Keyboard Shortcuts...", self)
         keyboard_shortcuts_action.triggered.connect(
             lambda: self._show_hidden_dialog(HiddenDialog.TAB_KEYBOARD_SHORTCUTS))
         help_menu.addAction(keyboard_shortcuts_action)
@@ -87,7 +87,7 @@ class MainWindowWidget(QWidget):
                                 edit_menu)
         edit_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
-                                "Toggle Search Field",
+                                "Toggle &Search Field",
                                 "Ctrl+F",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.toggleSearchField()),
                                 edit_menu)
@@ -120,22 +120,22 @@ class MainWindowWidget(QWidget):
         #                        lambda: self._tabs.focusCodecSearch(),
         #                        select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_DECODER,
-                                "Select Decoder",
+                                "Select &Decoder",
                                 "Alt+Shift+D",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_ENCODER,
-                                "Select Encoder",
+                                "Select &Encoder",
                                 "Alt+Shift+E",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_HASHER,
-                                "Select Hasher",
+                                "Select &Hasher",
                                 "Alt+Shift+H",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_SCRIPT,
-                                "Select Script",
+                                "Select &Script",
                                 "Alt+Shift+S",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT)),
                                 select_menu)
@@ -143,17 +143,17 @@ class MainWindowWidget(QWidget):
         select_menu.addSeparator()
 
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
-                                "Select Text Field",
+                                "Select &Text Field",
                                 "Alt+Shift+I",
                                 lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusInputText()),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
-                                "Select Next Text Field",
+                                "Select &Next Text Field",
                                 "Alt+Down",
                                 lambda: self._focus_input_text(lambda frame: frame.next()),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS,
-                                "Select Previous Text Field",
+                                "Select &Previous Text Field",
                                 "Alt+Up",
                                 lambda: self._focus_input_text(lambda frame: frame.previous()),
                                 select_menu)
@@ -162,17 +162,17 @@ class MainWindowWidget(QWidget):
     def _init_tab_menu(self, main_menu):
         tab_menu = main_menu.addMenu('&Tabs')
         self._register_shortcut(Context.Shortcut.TAB_RENAME,
-                                "Rename Tab",
+                                "&Rename Tab",
                                 "Alt+Shift+R",
                                 lambda: self._tabs.tabBar().renameTab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_NEXT,
-                                "Next Tab",
+                                "&Next Tab",
                                 "Ctrl+Tab",
                                 lambda: self._tabs.nextTab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_PREVIOUS,
-                                "Previous Tab",
+                                "&Previous Tab",
                                 "Ctrl+Shift+Tab",
                                 lambda: self._tabs.previousTab(),
                                 tab_menu)
@@ -185,7 +185,7 @@ class MainWindowWidget(QWidget):
 
         for tab_num in range(1, 10):
             action = self._register_shortcut(Context.Shortcut.TAB_SELECT_.format(tab_num),
-                                    "Select Tab {}".format(tab_num),
+                                    "Select Tab &{}".format(tab_num),
                                     "Alt+{}".format(tab_num),
                                     select_tab(tab_num - 1),
                                     tab_menu)
@@ -196,22 +196,27 @@ class MainWindowWidget(QWidget):
     def _init_file_menu(self, main_menu):
         file_menu = main_menu.addMenu('&File')
         self._register_shortcut(Context.Shortcut.TAB_NEW,
-                                "New Tab", "Ctrl+T",
+                                "&New Tab", "Ctrl+T",
                                 lambda: self._tabs.newTab(),
                                 file_menu)
         self._register_shortcut(Context.Shortcut.TAB_CLOSE,
-                                "Close Tab",
+                                "&Close Tab",
                                 "Ctrl+W",
                                 lambda: self._tabs.closeTab(),
                                 file_menu)
         file_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.OPEN_FILE,
-                                "Open File", "Ctrl+O",
+                                "&Open File...", "Ctrl+O",
                                 lambda: self._open_file(),
                                 file_menu)
         self._register_shortcut(Context.Shortcut.SAVE_AS_FILE,
-                                "Save as File", "Ctrl+S",
+                                "&Save As...", "Ctrl+S",
                                 lambda: self._save_as_file(),
+                                file_menu)
+        file_menu.addSeparator()
+        self._register_shortcut(Context.Shortcut.SHOW_PLUGINS,
+                                "&Plugins...", "Ctrl+Shift+P",
+                                lambda: self._show_plugins_dialog(),
                                 file_menu)
         file_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.FILE_EXIT,
@@ -289,6 +294,9 @@ class MainWindowWidget(QWidget):
                 self._context.logger().info("Successfully saved session in {}!".format(filename))
             except Exception as e:
                 self._context.logger().error("Unexpected error saving file. {}".format(e))
+
+    def _show_plugins_dialog(self):
+        self._show_hidden_dialog("Plugins")
 
     def _tab_added_event(self, index, name):
         if 0 <= index < len(self._tabs_select_action):

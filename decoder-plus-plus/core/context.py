@@ -76,11 +76,14 @@ class Context(QObject):
         SELECT_PLAIN_VIEW = "select_plain_view"
         SELECT_HEX_DOCK = "select_hex_dock"
         SELECT_LOG_DOCK = "select_log_dock"
+        SELECT_IPYTHON_CONSOLE_DOCK = "select_ipython_console_dock"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
+        SHOW_PLUGINS = "show_plugins"
 
-    def __init__(self, app_id):
+    def __init__(self, app_id, namespace):
         super(__class__, self).__init__()
         self._app_id = app_id
+        self._namespace = namespace
         self._logger = {}
         self._config = self._init_config()
         self._debug_mode = self._config.isDebugModeEnabled()
@@ -175,7 +178,14 @@ class Context(QObject):
         """ Returns the main configuration of the application. """
         return self._config
 
+    def namespace(self):
+        """
+        Returns the namespace of the application to allow instances like the console to access classes and functions.
+        """
+        return self._namespace
+
     def listener(self) -> Listener:
+        """ Returns the listener instance which allows to subscribe to certain events. """
         return self._listener
 
     def logger(self, log_format="%(module)s: %(lineno)d: %(msg)s", log_fields=None):
