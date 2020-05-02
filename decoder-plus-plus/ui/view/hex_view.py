@@ -31,21 +31,36 @@ class HexValidatorDelegate(QStyledItemDelegate):
         editor.setValidator(validator)
         return editor
 
+
 class HexView(QTableView):
 
-    textChanged = pyqtSignal('PyQt_PyObject')
-
-    def __init__(self, parent, context, frame_id, input_text):
+    def __init__(self, context: 'core.context.Context', parent):
         super(HexView, self).__init__(parent)
         self._context = context
-        self._frame_id = frame_id
-        self._init_item_font()
-        self._input_text = input_text
+
+        self._tab_id = 0
+        self._frame_id = 0
+        self._input_text = ""
+
         chunks = self._chunk_string(self._input_text, 16)
+
+        self._init_item_font()
         self._init_model(chunks)
         self._init_headers(chunks)
         self._init_column_size()
+        self._init_listener()
+
         self.setItemDelegate(HexValidatorDelegate())
+
+    #############################################
+    #   Init
+    #############################################
+
+    def _init_listener(self):
+        """ Initialize change events. """
+        self._context.listener().textChanged.connect(self._on_text_change)
+        self._context.listener().textSelectionChanged.connect(self._on_selection_change)
+        self._context.listener().selectedFrameChanged.connect(self._on_selected_frame_change)
 
     def _init_item_font(self):
         self._item_font = QFont()
@@ -74,10 +89,10 @@ class HexView(QTableView):
             self.resizeColumnToContents(i)
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
-        self.verticalHeader().setFixedWidth(self._vertical_header_width())
+        self.verticalHeader().setFixedWidth(self._init_vertical_header_width())
         self.verticalHeader().setFont(self._item_font)
 
-    def _vertical_header_width(self):
+    def _init_vertical_header_width(self):
         vertical_header_font = QFont()
         vertical_header_font.setFamily('Courier')
         vertical_header_font.setFixedPitch(True)
@@ -92,8 +107,18 @@ class HexView(QTableView):
     def _init_model(self, chunks):
         model = QStandardItemModel(len(chunks), 1 + 16)
         self._populate_items(chunks, model)
-        model.itemChanged.connect(self._hex_value_changed_event)
+        model.itemChanged.connect(self._on_hex_value_change)
         self.setModel(model)
+
+    def _init_vertical_header(self, chunks, model):
+        if len(chunks) > 0:
+            model.setVerticalHeaderLabels(["0x{0:04x}".format(i) for i in range(len(chunks))])
+        else:
+            model.setVerticalHeaderLabels(["0x{0:04x}".format(0)])
+
+    #############################################
+    #   Private Interface
+    #############################################
 
     def _populate_items(self, chunks, model):
         model.blockSignals(True)
@@ -103,12 +128,6 @@ class HexView(QTableView):
             for row_index, chunk in enumerate(chunks):
                 self._populate_row(row_index, chunk, model)
         model.blockSignals(False)
-
-    def _init_vertical_header(self, chunks, model):
-        if len(chunks) > 0:
-            model.setVerticalHeaderLabels(["0x{0:04x}".format(i) for i in range(len(chunks))])
-        else:
-            model.setVerticalHeaderLabels(["0x{0:04x}".format(0)])
 
     def _populate_row(self, row_index, chunk, model):
         hex_chars = self._set_cells(chunk, model, row_index)
@@ -147,13 +166,6 @@ class HexView(QTableView):
         self._init_headers(chunks)
         self._init_column_size()
 
-    def _hex_value_changed_event(self, item):
-        model = self.model()
-        self._prefix_hex_value(item, model)
-        self._set_hex_text(item, model)
-        hex_string = self._get_hex_text(model)
-        self.textChanged.emit(bytearray.fromhex(hex_string).decode('utf-8', errors='surrogateescape'))
-
     def _get_hex_text(self, model):
         hex_string = ""
         for row_index in range(0, model.rowCount()):
@@ -189,13 +201,50 @@ class HexView(QTableView):
         def get_hex_char(str_char):
             """ Returns the hex representation of an utf-character while ignoring surrogate special characters. """
             return "{0:02x}".format(ord(str_char))[:2]
+
         return [get_hex_char(string[i]) for i in range(0, len(string))]
 
-    def setData(self, input_text: str):
-        self._input_text = input_text
-        self._refresh_model()
+    def _update_view(self, tab_id: str, frame_id: str, input_text: str):
+        if self._frame_id == frame_id and self._input_text != input_text:
+            self._tab_id = tab_id
+            self._frame_id = frame_id
+            self._input_text = input_text
+            self.setData(input_text)
+
+    #############################################
+    #   Events
+    #############################################
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.edit(self.selectionModel().currentIndex())
         super(HexView, self).keyPressEvent(event)
+
+    def _on_hex_value_change(self, item):
+        model = self.model()
+        self._prefix_hex_value(item, model)
+        self._set_hex_text(item, model)
+        hex_string = self._get_hex_text(model)
+        self.blockSignals(True)
+        self._context.listener().textSubmitted.emit(self._tab_id, self._frame_id,
+                                                    bytearray.fromhex(hex_string).decode('utf-8',
+                                                                                         errors='surrogateescape'))
+        self.blockSignals(False)
+
+    def _on_selection_change(self, tab_id: str, frame_id: str, input_text: str):
+        self._update_view(tab_id, frame_id, input_text)
+
+    def _on_text_change(self, tab_id: str, frame_id: str, input_text: str):
+        self._update_view(tab_id, frame_id, input_text)
+
+    def _on_selected_frame_change(self, tab_id: str, frame_id: str, input_text: str):
+        self._frame_id = frame_id
+        self._update_view(tab_id, frame_id, input_text)
+
+    #############################################
+    #   Public Interface
+    #############################################
+
+    def setData(self, input_text: str):
+        self._input_text = input_text
+        self._refresh_model()

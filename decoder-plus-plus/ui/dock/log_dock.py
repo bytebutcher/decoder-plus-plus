@@ -71,7 +71,7 @@ class LogDock(DockWidget):
             super(LogDock.Item, self).__init__(text)
             self.setEditable(False)
 
-    def __init__(self, parent: QWidget, log_entries: List[LogEntry]):
+    def __init__(self, log_entries: List[LogEntry], parent: QWidget):
         super(LogDock, self).__init__("Logs", qtawesome.icon("fa.align-left"), parent)
         self._init_button_frame()
         self._init_table_frame(log_entries)

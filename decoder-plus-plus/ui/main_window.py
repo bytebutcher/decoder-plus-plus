@@ -40,50 +40,71 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._context = context
         self._logger = context.logger()
-        self._empty_dock = QDockWidget("", self)
-        self._empty_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
-        self._ipython_dock = IPythonDock(self, self._context)
-        self._ipython_dock.setFeatures(QDockWidget.DockWidgetFloatable)
-        self._hex_dock = HexDock(self, self._context)
-        self._hex_dock.setFeatures(QDockWidget.DockWidgetFloatable)
+
+        #############################################
+        #   Initialize status bar
+        #############################################
+
         self._message_widget = self._init_message_widget()
-        self._log_entries = []
-        self._log_dock = LogDock(self, self._log_entries)
-        self._log_dock.clearEvent.connect(self._message_widget.resetCount)
-        self._log_dock.setFeatures(QDockWidget.DockWidgetFloatable)
-        self._logger.handlers[0].addFilter(self._init_log_filter())
+        self._logger.handlers[0].addFilter(self._init_log_filter(self._message_widget))
         self.statusBar().addWidget(self._message_widget)
         self.statusBar().addPermanentWidget(self._init_hidden_dialog())
-        self._init_window_size()
 
+        #############################################
+        #   Initialize docks
+        #############################################
+
+        # Initialize empty dock
+        self._empty_dock = QDockWidget("", self)
+        self._empty_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._empty_dock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._ipython_dock)
+        self._empty_dock.visibilityChanged.connect(self.show_dock)
+
+        # Initialize log dock
+        self._log_entries = []
+        self._log_dock = LogDock(self._log_entries, self)
+        self._log_dock.clearEvent.connect(self._message_widget.resetCount)
+        self._log_dock.setFeatures(QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
         self.tabifyDockWidget(self._empty_dock, self._log_dock)
-        self.tabifyDockWidget(self._empty_dock, self._hex_dock)
-        self.tabifyDockWidget(self._empty_dock, self._ipython_dock)
-
-        self._empty_dock.raise_()
-        self._empty_dock.visibilityChanged.connect(self.show_dock)
         self._log_dock.visibilityChanged.connect(self.show_dock)
-        self._hex_dock.visibilityChanged.connect(self.show_dock)
-        self._ipython_dock.visibilityChanged.connect(self.show_dock)
 
+        # Initialize hex dock
+        self._hex_dock = HexDock(self._context, self)
+        self._hex_dock.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
+        self.tabifyDockWidget(self._empty_dock, self._hex_dock)
+        self._hex_dock.visibilityChanged.connect(self.show_dock)
+
+        # Initialize ipython dock
+        self._ipython_dock = IPythonDock(self._context, self)
+        self._ipython_dock.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self._ipython_dock)
+        self.tabifyDockWidget(self._empty_dock, self._ipython_dock)
+        self._ipython_dock.visibilityChanged.connect(self.show_dock)
         self._ipython_dock.toggleViewAction().setIcon(qtawesome.icon("fa.code"))
 
-        self._tab_bar = self.findChild(QTabBar, "")
-        self._tab_bar.tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
+        # Initialize dock tab bar
+        self._dock_tab_bar = self.findChild(QTabBar, "")
+        self._dock_tab_bar.tabBarDoubleClicked.connect(lambda e: self._empty_dock.raise_())
 
+        # Do only dock tab bar on startup
+        self._empty_dock.raise_()
+
+        #############################################
+        #   Initialize window
+        #############################################
+
+        self._init_window_size()
         self.setWindowTitle("Decoder++")
         self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
 
-    def _init_log_filter(self):
+    def _init_log_filter(self, message_widget):
         """ Initializes the log filter which catches log events to be shown in the statusbar. """
         log_filter = LogFilter(self)
-        log_filter.logInfoEvent.connect(self._message_widget.showInfo)
-        log_filter.logErrorEvent.connect(self._message_widget.showError)
-        log_filter.logDebugEvent.connect(self._message_widget.showDebug)
+        log_filter.logInfoEvent.connect(message_widget.showInfo)
+        log_filter.logErrorEvent.connect(message_widget.showError)
+        log_filter.logDebugEvent.connect(message_widget.showDebug)
         return log_filter
 
     def _init_window_size(self):

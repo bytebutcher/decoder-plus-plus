@@ -259,7 +259,7 @@ class CodecFrame(CollapsibleFrame):
     def _init_input_frame(self, text):
         input_frame = QFrame(self)
         frame_layout = QVBoxLayout()
-        self._plain_view_widget = PlainView(self, self._context, self._tab_id, self._frame_id, text)
+        self._plain_view_widget = PlainView(self._tab_id, self._frame_id, text, self._context, self)
         frame_layout.addWidget(self._plain_view_widget)
         frame_layout.setContentsMargins(0, 6, 6, 6)
         input_frame.setLayout(frame_layout)

@@ -37,7 +37,7 @@ class IPythonDock(DockWidget):
         def __repr__(self):
             return "\n".join(self.__lines)
 
-    def __init__(self, parent: QWidget, context: 'core.context.Context'):
+    def __init__(self, context: 'core.context.Context', parent: QWidget):
         super(IPythonDock, self).__init__("IPython Console", qtawesome.icon("fa.terminal"), parent)
         self._context = context
         widget = IPythonWidget(

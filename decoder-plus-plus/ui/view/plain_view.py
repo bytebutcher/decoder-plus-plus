@@ -41,7 +41,7 @@ class PlainView(QFrame):
             self._callback(obj, event)
             return QtCore.QObject.eventFilter(self, obj, event)
 
-    def __init__(self, parent, context: Context, tab_id: str, frame_id: str, text: str):
+    def __init__(self, tab_id: str, frame_id: str, text: str, context: Context, parent):
         """
         Initializes the plain view.
         :param text: the text to be shown in the plain-text-edit.
@@ -52,7 +52,6 @@ class PlainView(QFrame):
         self._tab_id = tab_id
         self._frame_id = frame_id
         self._logger = logging.getLogger('decoder_plusplus')
-
 
         self._plain_text = QPlainTextEdit()
         self.setPlainText(text)
@@ -65,6 +64,8 @@ class PlainView(QFrame):
         self._plain_text.customContextMenuRequested.connect(self.showContextMenu)
         self._plain_text.installEventFilter(
             PlainView.EventFilter(self, self._context, self._on_plain_text_focus_changed_event))
+
+        self._listener.textSubmitted.connect(self._on_plain_text_submitted_event)
 
         self._last_plain_text = self.toPlainText()
         self._last_selected_plain_text = self.toPlainText()
@@ -179,6 +180,10 @@ class PlainView(QFrame):
         if event.type() == QtCore.QEvent.FocusIn and event.reason() == QtCore.Qt.MouseFocusReason:
             if self._plain_text.hasFocus():
                 self._context.listener().selectedFrameChanged.emit(self._tab_id, self._frame_id, self.toPlainText())
+
+    def _on_plain_text_submitted_event(self, tab_id: str, frame_id: str, text: str):
+        if tab_id == self._tab_id and frame_id == self._frame_id:
+            self._plain_text.setPlainText(text)
 
     def _on_search_field_escape_pressed_event(self):
         """ Closes the search field when search field is focused. """
