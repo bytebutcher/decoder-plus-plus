@@ -132,7 +132,6 @@ class CodecTab(QScrollArea):
         except BaseException as e:
             error = str(e)
             self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
-            self._logger.exception(e)
             self.newFrame(output, plugin.title(), frame, status=StatusWidget.ERROR, msg=error)
 
     def _get_plugin_config(self, frame_id: str):

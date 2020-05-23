@@ -132,7 +132,7 @@ class Context(QObject):
 
         def excepthook(exc_type, exc_value, exc_tb):
             enriched_tb = _add_missing_frames(exc_tb) if exc_tb else exc_tb
-            self.logger().error("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
+            self.logger().debug("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
 
         def _add_missing_frames(tb):
             result = fake_tb(tb.tb_frame, tb.tb_lasti, tb.tb_lineno, tb.tb_next)

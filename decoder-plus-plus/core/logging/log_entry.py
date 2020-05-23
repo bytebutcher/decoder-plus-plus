@@ -40,3 +40,7 @@ class LogEntry(object):
     def message(self) -> str:
         """ Returns the message of the log entry (e.g. 'Hello, world!'). """
         return self._message
+
+    def is_valid(self) -> bool:
+        """ Returns whether all log entries are valid (not empty). """
+        return bool(self._time) and bool(self._type) and bool(self._message)

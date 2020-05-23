@@ -153,11 +153,12 @@ class LogDock(DockWidget):
             self.addItem(log_entry)
 
     def addItem(self, log_entry: LogEntry):
-        model = self._table.model().sourceModel()
-        nextIndex = model.rowCount()
-        model.setItem(nextIndex, 0, LogDock.Item(log_entry.type()))
-        model.setItem(nextIndex, 1, LogDock.Item(log_entry.time()))
-        model.setItem(nextIndex, 2, LogDock.Item(log_entry.message()))
+        if log_entry and log_entry.is_valid():
+            model = self._table.model().sourceModel()
+            nextIndex = model.rowCount()
+            model.setItem(nextIndex, 0, LogDock.Item(log_entry.type()))
+            model.setItem(nextIndex, 1, LogDock.Item(log_entry.time()))
+            model.setItem(nextIndex, 2, LogDock.Item(log_entry.message()))
 
     def _filter_info_event(self):
         self._filter_proxy_model.setFilterInfo(self._button_filter_info.isChecked())
