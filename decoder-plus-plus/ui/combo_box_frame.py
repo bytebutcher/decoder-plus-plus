@@ -27,7 +27,6 @@ from ui.widget.combo_box import ComboBox
 
 
 class ComboBoxFrame(QFrame):
-
     titleSelected = pyqtSignal()
     pluginSelected = pyqtSignal('PyQt_PyObject')
 
@@ -178,6 +177,7 @@ class ComboBoxFrame(QFrame):
 
     def resetAll(self):
         """ Resets all combo-boxes to show the first element. """
+        self._logger.debug("ComboBoxFrame:ResetAll")
         self._reset(self._decoder_combo, self._encoder_combo, self._hasher_combo, self._script_combo)
 
     def setToolTipByPluginType(self, plugin_type: str, tooltip: str):

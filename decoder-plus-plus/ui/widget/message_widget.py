@@ -20,6 +20,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
 
 from ui import IconLabel
+from ui.widget.clickable_label import ClickableLabel
 
 
 class MessageWidget(QFrame):
@@ -99,10 +100,10 @@ class MessageWidget(QFrame):
 
         self._log_message_icon_label = IconLabel(self, self._get_icon(self.ICON_READY))
         self._log_message_icon_label.setHoverEffect(True)
-        self._log_message_icon_label.clicked.connect(lambda: self.messageClicked.emit())
-        self._log_message_text_label = QLabel("Ready.")
+        self._log_message_icon_label.clicked.connect(lambda evt: self.messageClicked.emit())
         self._log_message_icon_label.setHoverEffect(True)
-        self._log_message_text_label.mouseDoubleClickEvent = lambda e: self.messageClicked.emit()
+        self._log_message_text_label = ClickableLabel("Ready.")
+        self._log_message_text_label.doubleClicked.connect(lambda e: self.messageClicked.emit())
         layout.addWidget(self._log_message_icon_label)
         layout.addWidget(self._log_message_text_label)
 

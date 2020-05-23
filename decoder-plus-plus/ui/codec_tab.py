@@ -132,6 +132,7 @@ class CodecTab(QScrollArea):
         except BaseException as e:
             error = str(e)
             self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
+            self._logger.exception(e)
             self.newFrame(output, plugin.title(), frame, status=StatusWidget.ERROR, msg=error)
 
     def _get_plugin_config(self, frame_id: str):
@@ -194,6 +195,7 @@ class CodecTab(QScrollArea):
             new_frame.closeButtonClicked.connect(self.closeFrame)
             self._frames_layout.addWidget(new_frame)
             self._set_frame_content_height(new_frame)
+            if previous_frame: previous_frame.header().refresh()
             return new_frame
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -281,8 +283,8 @@ class CodecTab(QScrollArea):
             self._logger.debug('moveFrameUp({}): invalid move'.format(frame_id))
             return
 
-        self.switchFrameStates(codec_frame, codec_frame.previous())
-        self.switchFrames(codec_frame.previous(), codec_frame.previous().previous())
+        self.switchFrames(codec_frame.previous().previous(), codec_frame.previous())
+        self._text_changed_event(codec_frame.previous().previous().id(), codec_frame.previous().previous().getInputText(), is_user_action=False, do_preserve_state=True)
 
     def moveFrameDown(self, frame_id: str):
         codec_frame = self.getFrameById(frame_id)
@@ -290,25 +292,14 @@ class CodecTab(QScrollArea):
             self._logger.debug('moveFrameDown({}): invalid move'.format(frame_id))
             return
 
-        self.switchFrameStates(codec_frame, codec_frame.next())
-        self.switchFrames(codec_frame, codec_frame.previous())
+        self.switchFrames(codec_frame.previous(), codec_frame)
+        self._text_changed_event(codec_frame.previous().id(), codec_frame.previous().getInputText(), is_user_action=False, do_preserve_state=True)
 
-    def switchFrameStates(self, frame: CodecFrame, another_frame: CodecFrame):
-        frame_state = frame._status_widget.status()
-        frame_text = frame.getInputText()
-        another_frame_state = another_frame._status_widget.status()
-        another_frame_text = another_frame.getInputText()
-        another_frame._status_widget.setStatus(*frame_state)
-        another_frame.setInputText(frame_text)
-        frame._status_widget.setStatus(*another_frame_state)
-        frame.setInputText(another_frame_text)
 
     def switchFrames(self, frame: CodecFrame, another_frame: CodecFrame):
-        frame_plugin = PluginBuilder(self._context).build(frame.toDict()["plugin"])
-        another_frame_plugin = PluginBuilder(self._context).build(another_frame.toDict()["plugin"])
-        another_frame.setPlugin(frame_plugin, blockSignals=True)
-        frame.setPlugin(another_frame_plugin, blockSignals=True)
-        self._text_changed_event(frame.previous().id(), frame.previous().getInputText(), is_user_action=False, do_preserve_state=True)
+        temp_frame_plugin = frame.getPlugin()
+        frame.setPlugin(another_frame.getPlugin())
+        another_frame.setPlugin(temp_frame_plugin)
 
     # ------------------------------------------------------------------------------------------------------------------
 

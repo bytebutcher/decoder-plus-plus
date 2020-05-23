@@ -32,6 +32,6 @@ class PluginBuilder:
             return plugin
         except Exception as e:
             self._context.logger().debug("Error building plugin:")
-            self._context.logger().debug("> {}".format(e))
             self._context.logger().debug("> {}".format(config))
+            self._context.logger().exception(e)
             return NullPlugin(self._context)

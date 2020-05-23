@@ -19,13 +19,18 @@ from PyQt5.QtWidgets import QLabel
 
 
 class ClickableLabel(QLabel):
-    """ A label which is clickable. """
+    """ A label which emits click signals. """
 
-    clicked = pyqtSignal()
+    clicked = pyqtSignal('PyQt_PyObject') # event
+    doubleClicked =  pyqtSignal('PyQt_PyObject') # event
 
     def __init__(self, parent=None):
         super(ClickableLabel, self).__init__(parent)
 
-    def mousePressEvent(self, event):
-        self.clicked.emit()
-        super(ClickableLabel, self).mousePressEvent(event)
+    def mouseReleaseEvent(self, event):
+        if self.isEnabled(): self.clicked.emit(event)
+        super(ClickableLabel, self).mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if self.isEnabled(): self.doubleClicked.emit(event)
+        super(ClickableLabel, self).mouseDoubleClickEvent(event)

@@ -134,7 +134,6 @@ class CollapsibleFrame(Frame):
 
             def __init__(self, parent):
                 super(__class__, self).__init__(parent)
-                self._parent = parent
                 self.setContentsMargins(0, 0, 0, 0)
                 self.setLayout(QHBoxLayout())
                 self.layout().setContentsMargins(0, 0, 0, 0)

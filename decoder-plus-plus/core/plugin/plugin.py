@@ -14,20 +14,110 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import copy
 import importlib
 import importlib.util
+import json
 import os
 import sys
+from logging import Logger
 from typing import List
 
 
 class PluginType(object):
+    DECODER = "Decoder"
+    ENCODER = "Encoder"
+    HASHER = "Hasher"
+    SCRIPT = "Script"
 
-        DECODER = "Decoder"
-        ENCODER = "Encoder"
-        HASHER = "Hasher"
-        SCRIPT = "Script"
+
+class PluginConfig(object):
+    """ A customizable list of configuration options for a plugin. """
+
+    class Option(object):
+
+        def __init__(self, name, value, description, is_config_required=True):
+            """
+            :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
+            :param value: the default value of the option  (e.g. "foo", 42, False, ...).
+            :param description: the description of the option.
+            :param is_config_required: defines whether the user needs to configure this option (default = True).
+            """
+            self.name = name
+            self.value = value
+            self.description = description
+            self.is_config_required = is_config_required
+
+    class OptionGroup(Option):
+        """ A option with group name and checked status. """
+
+        def __init__(self, name, value, description, is_config_required, group_name, is_checked):
+            """
+            :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
+            :param value: the default value of the option  (e.g. "foo", 42, False, ...).
+            :param description: the description of the option.
+            :param is_config_required: defines whether the user needs to configure this option (default = True).
+            :param group_name: defines whether the option is associated with another group of options (default = None).
+            :param is_checked: defines whether the option is checked. Within a option group there should only be one
+            checked option.
+            """
+            super(PluginConfig.OptionGroup, self).__init__(name, value, description, is_config_required)
+            self.group_name = group_name
+            self.is_checked = is_checked
+
+    def __init__(self, context: "core.context.Context"):
+        self._context = context
+        self._config = {}
+
+    def add(self, option: Option):
+        """
+        Adds an option to the plugin configuration.
+        """
+        self._config[option.name] = option
+
+    def get(self, name) -> Option:
+        """ Returns the option with the specified name. """
+        return self._config[name]
+
+    def value(self, name) -> str:
+        """ Returns the value of the option with the specified name. """
+        return self._config[name].value
+
+    def count(self) -> int:
+        """ Returns the number of configuration options. """
+        return len(self._config.keys())
+
+    def update(self, options):
+        """
+        Updates the value for each specified option.
+        :param options: either a name-value-dictionary or an instance of PluginConfig.
+
+        If options is a name-value dictionary the is_config_required attribute of the associated PluginConfigOption
+        is set to False, to indicate that the option is configured now.
+
+        Example:
+            update({"foo": "bar", "bar": "foo"})
+            update(config.clone())
+        """
+        if isinstance(options, PluginConfig):
+            self._config = options._config
+        else:
+            for option_name in options.keys():
+                self._config[option_name].value = options[option_name]
+                self._config[option_name].is_config_required = False
+
+    def clone(self) -> 'PluginConfig':
+        """ Returns a deep copy of the plugin configuration. """
+        plugin_config = PluginConfig(self._context)
+        plugin_config._config = copy.deepcopy(self._config)
+        return plugin_config
+
+    def __str__(self):
+        return json.dumps(self._config, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def toDict(self):
+        """ Returns the plugin configuration as dictionary. """
+        return copy.deepcopy(self._config)
 
 
 class AbstractPlugin(object):
@@ -48,6 +138,7 @@ class AbstractPlugin(object):
         self._type = type
         self._author = author
         self._dependencies = dependencies
+        self._config = PluginConfig(context)
         self._context = context
         self._logger = context.logger()
         self._aborted = False
@@ -57,19 +148,20 @@ class AbstractPlugin(object):
         for name, value in config.items():
             setattr(self, name, value)
 
-    def config(self) -> dict:
-        """
-        Returns the current configuration of the plugin.
-        :returns empty dictionary since most plugins do not possess any special configuration.
-        """
-        return {}
+    def logger(self) -> Logger:
+        """ Returns an logger instance which can be used within the plugin. """
+        return self._context.logger()
+
+    def config(self) -> PluginConfig:
+        """ Returns the current configuration of the plugin if any, else None. """
+        return self._config
 
     def isConfigurable(self) -> bool:
         """
         Returns whether the plugin can be configured.
         :return: True, when configurable, otherwise False.
         """
-        return bool(self.config())
+        return self._config.count() > 0
 
     def name(self) -> str:
         """ :returns the name of the plugin (e.g. "URL+"). """
@@ -131,7 +223,7 @@ class AbstractPlugin(object):
         """ :returns all dependencies in a list. """
         return self._dependencies
 
-    def run(self, *args, **kwargs) -> str:
+    def run(self, text: str) -> str:
         """ The main method of the plugin which must be implemented by the plugin. """
         raise NotImplementedError("Method must be implemented from upper class")
 
@@ -146,13 +238,13 @@ class AbstractPlugin(object):
             lines.append(' '.join(result))
         return os.linesep.join(lines)
 
-    def select(self, *args, **kwargs) -> str:
+    def select(self, text: str) -> str:
         """
         This method is usually called when the plugin gets selected for execution.
         In its simplest form it may just call the run method. But it can also be used to ask the user for additional
         parameters (e.g. by displaying dialogs).
         """
-        return self.run(*args)
+        return self.run(text)
 
     def _join_options_as_human_readable_string(self, options: List[str]):
         """
@@ -211,8 +303,9 @@ class AbstractPlugin(object):
         return {
             "name": self.name(),
             "type": self.type(),
-            "config": self.config()
+            "config": self.config().toDict()
         }
+
 
 class DecoderPlugin(AbstractPlugin):
 
@@ -236,6 +329,7 @@ class DecoderPlugin(AbstractPlugin):
         :returns False by default.
         """
         return False
+
 
 class EncoderPlugin(AbstractPlugin):
 
@@ -282,10 +376,10 @@ class NullPlugin(AbstractPlugin):
     def __init__(self, context=None):
         super(NullPlugin, self).__init__("", "", "", [], context)
 
-    def select(self, *args, **kwargs):
+    def select(self, text: str):
         pass
 
-    def run(self, *args, **kwargs):
+    def run(self, text: str):
         pass
 
     def is_runnable(self) -> bool:

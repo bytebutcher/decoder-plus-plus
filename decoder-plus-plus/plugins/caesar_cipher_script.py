@@ -8,41 +8,44 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, Q
     QSlider, QHBoxLayout, QPushButton
 
 from core.exception import AbortedException
-from core.plugin.plugin import ScriptPlugin
+from core.plugin.plugin import ScriptPlugin, PluginConfig
+
 
 class Plugin(ScriptPlugin):
-    """
-    Opens a dialog to transform text using caesar-cipher.
-    """
+    """ Opens a dialog to transform text using caesar-cipher. """
+
+    class Option(object):
+
+        Shift = "shift"
 
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Caesar Cipher', "Thomas Engel", [], context)
-        self._shift = None
+
+        self.config().add(PluginConfig.Option(
+            Plugin.Option.Shift, 0, "integer by which the value of the letters should be shifted."))
         self._dialog = None
         self._codec = CaesarCipher()
 
-    def config(self):
-        return {"_shift": self._shift}
-
-    def select(self, text):
+    def select(self, text: str):
         if not self._dialog:
-            self._dialog = CaesarCipherDialog(text, self._shift or 0, self._codec)
+            self._dialog = CaesarCipherDialog(text, self.config().clone(), self._codec)
         else:
             self._dialog.setInput(text)
 
-        if self._dialog.exec_() == QDialog.Accepted:
-            self._shift = self._dialog.getShift()
-            return self.run(text)
-        else:
+        if self._dialog.exec_() != QDialog.Accepted:
             # User clicked the Cancel-Button.
             raise AbortedException("Aborted")
 
-    def title(self):
-        return "{} shift {}".format("Caesar Cipher", self._shift)
+        self.config().update(self._dialog.config())
+        return self.run(text)
 
-    def run(self, text, shift=None):
-        return self._codec.run(text, self._shift)
+    def title(self):
+        return "{} shift {}".format("Caesar Cipher", self.config().get(Plugin.Option.Shift).value)
+
+    def run(self, text: str):
+        return self._codec.run(text, self.config().get(Plugin.Option.Shift).value)
+
 
 class CaesarCipher:
     """
@@ -126,9 +129,9 @@ class CaesarCipher:
 
 class CaesarCipherDialog(QDialog):
 
-    def __init__(self, input, shift, codec):
+    def __init__(self, input: str, config: PluginConfig, codec):
         super(CaesarCipherDialog, self).__init__()
-        self._shift = shift
+        self._config = config
         main_layout = QVBoxLayout()
         main_layout.addWidget(self._init_editor_frame())
         main_layout.addWidget(self._init_button_box())
@@ -140,6 +143,9 @@ class CaesarCipherDialog(QDialog):
         self._text_area.setPlainText(self._input)
         self._codec = codec
 
+    #############################################
+    #   Initialize
+    #############################################
 
     def _setup_shortcuts(self):
         ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
@@ -177,12 +183,12 @@ class CaesarCipherDialog(QDialog):
         self._shift_slider = QSlider(Qt.Horizontal)
         self._shift_slider.setMinimum(0)
         self._shift_slider.setMaximum(26)
-        self._shift_slider.setValue(self._shift)
+        self._shift_slider.setValue(self._config.get(Plugin.Option.Shift).value)
         self._shift_slider.valueChanged.connect(self._shift_slider_changed)
         slider_frame_layout.addWidget(self._shift_slider)
 
         self._shift_text = QLineEdit()
-        self._shift_text.setText("0")
+        self._shift_text.setText(str(self._config.get(Plugin.Option.Shift).value))
         self._shift_text.setFixedWidth(30)
         self._shift_text.setValidator(QIntValidator(0, 26))
         self._shift_text.textChanged.connect(self._shift_text_changed)
@@ -194,6 +200,10 @@ class CaesarCipherDialog(QDialog):
 
         slider_frame.setLayout(slider_frame_layout)
         return slider_frame
+
+    #############################################
+    #   Events
+    #############################################
 
     def _shift_calculate_button_clicked(self):
         offset = self._codec.calculate_offset(self._input)
@@ -218,12 +228,24 @@ class CaesarCipherDialog(QDialog):
         self._shift_slider.blockSignals(False)
         self._shift_text.blockSignals(False)
 
+    #############################################
+    #   Private interface
+    #############################################
+
+    def _get_shift(self):
+        return self._shift_slider.value()
+
     def _accept(self):
+        self._config.update({Plugin.Option.Shift: self._get_shift()})
         self.accept()
 
-    def setInput(self, input):
-        self._input = input
-        self._shift_changed(self.getShift())
+    #############################################
+    #   Public interface
+    #############################################
 
-    def getShift(self):
-        return self._shift_slider.value()
+    def config(self) -> PluginConfig:
+        return self._config
+
+    def setInput(self, input) -> str:
+        self._input = input
+        self._shift_changed(self._get_shift())
