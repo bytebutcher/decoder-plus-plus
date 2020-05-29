@@ -101,11 +101,12 @@ def init_builder(context: 'core.context.Context'):
                         _plugin.name(), ", ".join(unconfigured_plugin_options)))
                     sys.exit(1)
 
-            def _runner(self, config, show_help):
+            def _runner(self, config=None, show_help=False):
                 if show_help:
                     _show_help()
                     sys.exit(0)
-                _configure(config)
+                if config:
+                    _configure(config)
                 self._input = _plugin.run(self._input)
                 return self
             return _runner
