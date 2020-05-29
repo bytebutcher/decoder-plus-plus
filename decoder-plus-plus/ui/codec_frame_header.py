@@ -175,7 +175,9 @@ class CodecFrameHeader(QFrame):
             return self._lbl_icon_down
 
         def refresh(self):
-            self._lbl_icon_down.setEnabled(self.codec_frame.hasNext())
+            # Only when there is a next codec frame it can be moved down.
+            # Note, that the first codec frame can not be moved either.
+            self._lbl_icon_down.setEnabled(self.codec_frame.hasNext() and self.codec_frame.hasPrevious())
 
     class ConfigButtonHeaderItem(ClickableCodecFrameHeaderItem):
 
@@ -205,6 +207,8 @@ class CodecFrameHeader(QFrame):
             self._lbl_icon_close.setHoverEffect(True)
             self._lbl_icon_close.setToolTip("Close")
             self._lbl_icon_close.clicked.connect(self.clicked)
+            # First codec frame can not be closed
+            self._lbl_icon_close.setEnabled(self.codec_frame.hasPrevious())
             return self._lbl_icon_close
 
 

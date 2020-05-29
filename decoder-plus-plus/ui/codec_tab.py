@@ -177,9 +177,6 @@ class CodecTab(QScrollArea):
             new_frame.pluginSelected.connect(self._execute_plugin_select)
             new_frame.configButtonClicked.connect(lambda frame_id: self._get_plugin_config(frame_id))
             self._next_frame_id = uuid.uuid4().hex
-            if self._frames.layout().count() == 0:
-                # First frame has no title and should not be collapsible.
-                new_frame._header_frame.setHidden(True)
             if self._frames.layout().count() > 0:
                 # Every frame (except the first frame) should signal success/error.
                 new_frame.flashStatus(status, msg)
