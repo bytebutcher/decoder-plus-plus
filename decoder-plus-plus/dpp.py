@@ -113,12 +113,12 @@ def init_builder(context: 'core.context.Context'):
                         _plugin.name(safe_name=True), _natural_join(unconfigured_plugin_options)))
                     sys.exit(1)
 
-            def _runner(self, config=None, show_help=False):
-                if show_help:
+            def _runner(self, **kwargs):
+                if "help" in kwargs.keys():
                     _show_help()
                     sys.exit(0)
                 if _plugin.is_configurable() and _plugin.is_unconfigured():
-                    _configure(config)
+                    _configure(kwargs)
                 self._input = _plugin.run(self._input)
                 return self
             return _runner
@@ -295,8 +295,8 @@ if __name__ == '__main__':
             action_type = get_action_type(context, builder, name)
             plugin_action = get_plugin_action(context, name, action_type, method_name)
             show_plugin_help = "help" in values
-            plugin_config = get_plugin_config(values) if not show_plugin_help else {}
-            builder = plugin_action(plugin_config, show_plugin_help)
+            plugin_config = get_plugin_config(values) if not show_plugin_help else {"help": True}
+            builder = plugin_action(**plugin_config)
 
         print(builder.run())
     except Exception as e:
