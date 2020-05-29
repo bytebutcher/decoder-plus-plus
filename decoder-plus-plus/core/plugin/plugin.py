@@ -36,19 +36,18 @@ class PluginConfig(object):
 
     class Option(object):
 
-        def __init__(self, name, value, description, is_required=True, is_initialized=False):
+        def __init__(self, name, value, description, is_required=True):
             """
             :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
             :param value: the default value of the option  (e.g. "foo", 42, False, ...).
             :param description: the description of the option.
             :param is_required: defines whether the user needs to configure this option (default = True).
-            :param is_initialized: defines whether the value was manually configured (default = False).
             """
             self.name = name
             self.value = value
             self.description = description
             self.is_required = is_required
-            self.is_initialized = is_initialized
+            self.is_initialized = False
 
     class OptionGroup(Option):
         """ A option with group name and checked status. """
