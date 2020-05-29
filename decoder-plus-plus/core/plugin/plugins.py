@@ -32,20 +32,22 @@ class Plugins(object):
         self._plugin_list = self._plugin_loader.load(plugin_paths)
         self._index = 0
 
-    def names(self, type: str=None, author: str=None) -> List[str]:
+    def names(self, type: str=None, author: str=None, safe_names=False) -> List[str]:
         """
         Returns the plugin names in a list. Does match cases.
         :param type: Filter plugin names by type (e.g. PluginType.DECODER, ...)
         :param author: Filter plugin names by author (e.g. Thomas Engel, ...)
+        :param safe_names: when False human readable names are returned (e.g. "URL+"). Otherwise names are parsed
+        from the file name (e.g. url_plus_encoder) of the individual plugin. Defaults to False.
         """
         if type and author:
-            return [plugin.name() for plugin in self._plugin_list if plugin.type() == type and plugin.author() == author]
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.type() == type and plugin.author() == author]
         elif type:
-            return [plugin.name() for plugin in self._plugin_list if plugin.type() == type]
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.type() == type]
         elif author:
-            return [plugin.name() for plugin in self._plugin_list if plugin.author() == author]
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.author() == author]
         else:
-            return [plugin.name() for plugin in self._plugin_list]
+            return [plugin.name(safe_names) for plugin in self._plugin_list]
 
     def types(self) -> List[str]:
         """ Returns all possible plugin types in a list. """

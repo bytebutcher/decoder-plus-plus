@@ -235,5 +235,5 @@ class CodecFrameHeader(QFrame):
         """ Checks whether the plugin which computes the input is configurable. """
         if self._codec_frame.hasPrevious():
             plugin = self._codec_frame.previous().getPlugin()
-            return plugin and plugin.isConfigurable()
+            return plugin and plugin.is_configurable()
         return False

@@ -43,7 +43,7 @@ class PluginLoader():
             for f in os.listdir(path):
                 if f.endswith(".py"):
                     plugin = self._load_plugin(path, f)
-                    plugins[plugin.safe_name()] = plugin
+                    plugins[plugin.name(safe_name=True)] = plugin
         return [plugins[key] for key in sorted(plugins.keys())]
 
     def _load_plugin(self, path, f):

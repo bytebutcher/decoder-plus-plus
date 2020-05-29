@@ -3,3 +3,4 @@ qtconsole
 QtAwesome
 pysha3
 passlib
+fuzzywuzzy

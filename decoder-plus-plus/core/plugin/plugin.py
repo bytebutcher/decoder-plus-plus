@@ -83,6 +83,10 @@ class PluginConfig(object):
         """ Returns the value of the option with the specified name. """
         return self._config[name].value
 
+    def keys(self):
+        """ Returns the individual configuration options. """
+        return self._config.keys()
+
     def count(self) -> int:
         """ Returns the number of configuration options. """
         return len(self._config.keys())
@@ -156,24 +160,34 @@ class AbstractPlugin(object):
         """ Returns the current configuration of the plugin if any, else None. """
         return self._config
 
-    def isConfigurable(self) -> bool:
+    def is_configurable(self) -> bool:
         """
         Returns whether the plugin can be configured.
         :return: True, when configurable, otherwise False.
         """
         return self._config.count() > 0
 
-    def name(self) -> str:
-        """ :returns the name of the plugin (e.g. "URL+"). """
-        return self._name
+    def is_configured(self) -> List[str]:
+        """
+        Returns whether all required options are configured.
+        :return: List of required options are, empty if everything is configured correctly False.
+        """
+        return [key for key in self._config.keys() if self._config.get(key).is_config_required]
+
+    def name(self, safe_name=False) -> str:
+        """
+        :param safe_name: when False a human readable name is returned (e.g. "URL+"). Otherwise the name is parsed
+        from the file name (e.g. url_plus_encoder) of the plugin. Defaults to False.
+        :returns the name of the plugin.
+        """
+        if not safe_name:
+            return self._name
+        else:
+            return self._safe_name
 
     def full_name(self) -> str:
         """ :returns the full name of the plugin including name and type (e.g. "URL+" -> "URL+-Decoder"). """
         return "{}-{}".format(self.name(), self.type())
-
-    def safe_name(self) -> str:
-        """ :returns the safe name of the plugin parsed from the file name (e.g. url_plus_encoder). """
-        return self._safe_name
 
     def method_name(self) -> str:
         """ :returns the safe name of the plugin without type-information (e.g. url_plus). """

@@ -20,6 +20,12 @@ import sys
 import argparse
 from typing import List
 
+# Load fuzzywuzzy while ignoring unnecessary warning about missing levenstein package.
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from fuzzywuzzy import process
+
 from PyQt5.QtWidgets import QApplication
 
 from core.argparse.ordered_multi_args import OrderedMultiArgs
@@ -34,7 +40,6 @@ from ui.single_instance import SingleInstance
 # Abort program execution on ctrl+c
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-
 def init_builder(context: 'core.context.Context'):
 
     def _init_builder(plugin: 'core.plugin.plugins.PluginHolder', clazz):
@@ -47,7 +52,60 @@ def init_builder(context: 'core.context.Context'):
 
         # Add plugins to clazz.
         def runner(_plugin):
-            def _runner(self):
+
+            def _show_help():
+                """ Shows the plugin config options. """
+
+                def _max_length(attr, title):
+                    """ :returns the maximum string length of a specific plugin option attribute. """
+                    lens = [len(title)]
+                    for key in _plugin.config().keys():
+                        lens.append(len(str(getattr(_plugin.config().get(key), attr))))
+                    return max(lens)
+
+                # Print title
+                print(len(_plugin.name()) * '=')
+                print(_plugin.name())
+                print(len(_plugin.name()) * '=')
+                print()
+
+                # Print header
+                name_max_length = _max_length("name", "Name")
+                value_max_length = _max_length("value", "Value")
+                row_format = "{:>" + str(name_max_length) + "}  {:<" + str(value_max_length) + "}  {:<8}  {}"
+                print(row_format.format("Name", "Value", "Required", "Description"))
+                print(row_format.format("----", "-----", "--------", "-----------"))
+
+                # Print rows
+                for key in _plugin.config().keys():
+                    option = _plugin.config().get(key)
+                    if type(option.value) == type(True):
+                        value = "True" if bool(option.value) else "False"
+                    else:
+                        value = option.value
+                    is_config_required = "yes" if option.is_config_required else "no"
+                    print(row_format.format(option.name, value, is_config_required, option.description))
+
+            def _configure(config):
+                invalid_plugin_options = [key for key in config if key not in _plugin.config().keys()]
+                if invalid_plugin_options:
+                    context.logger().error("Can not run plugin '{}'! Invalid option(s) {}".format(
+                        _plugin.name(), ", ".join(invalid_plugin_options)))
+                    sys.exit(1)
+
+                _plugin.config().update(config)
+
+                unconfigured_plugin_options = _plugin.is_configured()
+                if unconfigured_plugin_options:
+                    context.logger().error("Can not run plugin '{}'! Missing required option(s) {}".format(
+                        _plugin.name(), ", ".join(unconfigured_plugin_options)))
+                    sys.exit(1)
+
+            def _runner(self, config, show_help):
+                if show_help:
+                    _show_help()
+                    sys.exit(0)
+                _configure(config)
                 self._input = _plugin.run(self._input)
                 return self
             return _runner
@@ -74,18 +132,6 @@ def setup_syntax_completion():
         readline.parse_and_bind("tab: complete")
 
 
-def required_length(nmin,nmax):
-    class RequiredLength(OrderedMultiArgs):
-        def __call__(self, parser, args, values, option_string=None):
-            super(RequiredLength, self).__call__(parser, args, values, option_string)
-            if not nmin<=len(values)<=nmax:
-                msg='Argument "{f}" requires between {nmin} and {nmax} arguments, {num} given!'.format(
-                    f=self.dest,nmin=nmin,nmax=nmax, num=len(values))
-                raise argparse.ArgumentTypeError(msg)
-            setattr(args, self.dest, values)
-    return RequiredLength
-
-
 def get_input(context, args):
     if args.file:
         try:
@@ -106,9 +152,33 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
     try:
         return getattr(action_type_method(), method_name)
     except Exception as e:
+        plugin_names = [name[:name.rindex('_')] for name in context.plugins().names(safe_names=True)]
+        suggestions = [result for result in process.extract(method_name, plugin_names)]
+        suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
         context.logger().error(
-            'No {type}-method named "{name}". Aborting ...'.format(type=action_type_name, name=method_name))
+            'No {type} named "{name}". {suggestion}'.format(
+                type=action_type_name, name=method_name, suggestion=suggestion))
         sys.exit(1)
+
+
+def get_plugin_config(arguments):
+    result = {}
+    for argument in arguments:
+        sep_index = argument.find('=')
+        if sep_index < 1:
+            context.logger().error('Invalid argument specification! Expected key=value, got {}'.format(argument))
+            sys.exit(1)
+
+        # Parse key=value into name and value
+        name = argument[:sep_index]
+        value = argument[sep_index+1:]
+
+        # Handle boolean values
+        if value is "True" or value is "False":
+            value = value is "True"
+
+        result[name] = value
+    return result
 
 
 if __name__ == '__main__':
@@ -139,7 +209,7 @@ if __name__ == '__main__':
                             help="decodes the input using the specified codec(s)")
         parser.add_argument('-h', '--hash', action=OrderedMultiArgs,
                             help="transforms the input using the specified hash-functions")
-        parser.add_argument('-s', '--script', nargs='+', action=required_length(1, 2),
+        parser.add_argument('-s', '--script', nargs='+', action=OrderedMultiArgs,
                             help="transforms the input using the specified script (optional arguments)")
         parser.add_argument('--debug', action='store_true',
                             help="activates debug mode with extensive logging. Output will be written into dpp.log "
@@ -203,14 +273,17 @@ if __name__ == '__main__':
             context.logger().error("Argument --file and input can not be used together.")
             sys.exit(1)
 
+        # Command line usage
         input = get_input(context, args)
 
         builder = DecoderPlusPlus(input)
         for name, values in args.ordered_args:
-            method_name = values.pop()
+            method_name = values.pop(0)
             action_type = get_action_type(context, builder, name)
             plugin_action = get_plugin_action(context, name, action_type, method_name)
-            builder = plugin_action(*values)
+            show_plugin_help = "help" in values
+            plugin_config = get_plugin_config(values) if not show_plugin_help else {}
+            builder = plugin_action(plugin_config, show_plugin_help)
 
         print(builder.run())
     except Exception as e:
