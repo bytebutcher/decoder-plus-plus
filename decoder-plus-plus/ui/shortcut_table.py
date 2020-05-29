@@ -16,35 +16,25 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QTableView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
+from PyQt5.QtWidgets import QTableView, QStyledItemDelegate, QLineEdit
 from qtpy import QtWidgets
 
-from ui.shortcut_table_item_delegate import ShortcutTableItemDelegate
+from ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog
 
 
-class ShortcutTable(QTableView):
+class KeyboardShortcutTable(QTableView):
 
-    shortcutUpdated = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    changed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    keyPressed = pyqtSignal(str)
 
-    def __init__(self, parent, shortcuts):
-        super(ShortcutTable, self).__init__(parent)
-        self._init_model(shortcuts)
+    def __init__(self, parent, context):
+        super(KeyboardShortcutTable, self).__init__(parent)
+        self._context = context
+        self._init_model(context.getShortcuts())
         self._init_headers()
         self._init_proxy_model()
-        self._editing_started = False
-        # BUG: Catching the tab-key in shortcut-table does not work correctly. Instead another column gets selected.
-        # FIX: Disabling feature of assigning keyboard-shortcut by key-press as long as there is no permanent fix for this.
-        # TODO: Catch tab-key in ShortcutTableItemDelegate (or in QTableView) when in edit-mode.
-        # NOTES:
-        # - installed event-filters in ShortcutTableItemDelegate and QTableView. Both didn't catch the tab-key ...
-        # - checked the keyPressEvent / keyReleaseEvent / event in ShortcutTableItemDelegate and QTableView
-        #       * only ShortcutTable got an TAB-key in the keyReleaseEvent but at this point the other cell was
-        #         already selected and there was/is no easy way to know which cell was selected before.
-        #self._init_item_delegate()
-
-    def _init_item_delegate(self):
-        self.setItemDelegate(ShortcutTableItemDelegate(self))
+        self.clicked.connect(self.clickEvent)
 
     def _init_headers(self):
         header = self.horizontalHeader()
@@ -53,16 +43,15 @@ class ShortcutTable(QTableView):
         header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         self.verticalHeader().hide()
 
-    def _init_model(self, shortcuts):
-        model = QStandardItemModel(len(shortcuts), 3)
-        model.setHorizontalHeaderLabels(["Id", "Name", "Shortcut"])
-        for index, shortcut in enumerate(shortcuts):
-            name_item = QStandardItem(shortcut.name(remove_anchors=True))
-            name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
-            model.setItem(index, 0, QStandardItem(shortcut.id()))
-            model.setItem(index, 1, name_item)
-            model.setItem(index, 2, QStandardItem(shortcut.key()))
-        model.itemChanged.connect(self._shortcut_changed_event)
+    def _init_model(self, keyboard_shortcuts):
+        model = QStandardItemModel(len(keyboard_shortcuts), 3)
+        model.setHorizontalHeaderLabels(["Id", "Name", "Keyboard Shortcut"])
+        for index, keyboard_shortcut in enumerate(keyboard_shortcuts):
+            model.setItem(index, 0, QStandardItem(keyboard_shortcut.id()))
+            model.setItem(index, 1, QStandardItem(keyboard_shortcut.name(remove_anchors=True)))
+            model.item(index, 1).setFlags(model.item(index, 1).flags() ^ Qt.ItemIsEditable)
+            model.setItem(index, 2, QStandardItem(keyboard_shortcut.key()))
+            model.item(index, 2).setFlags(model.item(index, 2).flags() ^ Qt.ItemIsEditable)
         self.setModel(model)
         self.setColumnHidden(0, True)
 
@@ -73,33 +62,28 @@ class ShortcutTable(QTableView):
         filter_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(filter_proxy_model)
 
-    def _shortcut_changed_event(self, item):
-        # BUG: Cell changes to row below when editing cell is finished.
-        # REQUIREMENT: The cell-selection should not change.
-        # FIX: ???
+    def _edit_keyboard_shortcut(self, item):
+        keyboard_shortcut_name = self.model().sourceModel().item(item.row(), 1).text()
+        keyboard_shortcut_dialog = KeyboardShortcutDialog(self, self._context, keyboard_shortcut_name)
+        keyboard_shortcut_dialog.exec_()
+        if keyboard_shortcut_dialog.shouldBeReset():
+            self._update_keyboard_shortcut(item, "")
+        elif keyboard_shortcut_dialog.keyboardShortcut():
+            self._update_keyboard_shortcut(item, keyboard_shortcut_dialog.keyboardShortcut())
+
+    def _update_keyboard_shortcut(self, item, keyboard_shortcut):
         id = self.model().sourceModel().item(item.row(), 0).text()
-        shortcut_key = self.model().sourceModel().item(item.row(), 2).text()
-        self.shortcutUpdated.emit(id, shortcut_key)
+        self.model().sourceModel().item(item.row(), 2).setText(keyboard_shortcut)
+        self.changed.emit(id, keyboard_shortcut)
 
-    def setEditingStarted(self):
-        self._editing_started = True
+    def clickEvent(self, item):
+        self._edit_keyboard_shortcut(item)
 
-    def setEditingEnded(self):
-        self._editing_started = False
-
-    def hasEditingStarted(self):
-        return self._editing_started
-
-    def keyPressEvent(self, event):
-        # BUG: Using Enter-Key to go into Edit-Mode results in an immediate closing of the selected cell.
-        # FIX: The ItemDelegate is responsible for this behaviour. To fix this issue a custom editing-started
-        #      variable is used to inform the ItemDelegate when the Enter-Key was being pressed.
+    def keyReleaseEvent(self, event: QKeyEvent):
+        item = self.model().sourceModel().item(self.currentIndex().row())
         if event.key() == Qt.Key_Return:
-            self.edit(self.selectionModel().currentIndex())
-            self.setEditingStarted()
-            return
-        super(__class__, self).keyPressEvent(event)
-
-    def keyReleaseEvent(self, event):
-        self.setEditingEnded()
-        super(__class__, self).keyReleaseEvent(event)
+            self._edit_keyboard_shortcut(item)
+        elif event.key() == Qt.Key_Backspace:
+            self._update_keyboard_shortcut(item, "")
+        elif chr(event.key()).isalnum():
+            self.keyPressed.emit(chr(event.key()))

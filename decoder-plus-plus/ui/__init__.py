@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ui.widget.search_field import SearchField
-from .shortcut_table import ShortcutTable
+from .shortcut_table import KeyboardShortcutTable
 from ui.widget.spacer import Spacer
 from ui.widget.spacer import VSpacer
 from ui.widget.spacer import HSpacer

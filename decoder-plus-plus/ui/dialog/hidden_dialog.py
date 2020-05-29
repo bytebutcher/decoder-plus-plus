@@ -22,7 +22,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
-from ui import IconLabel, ShortcutTable, SearchField, HSpacer
+from ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
 from ui.widget.plugin_tab import PluginTab
 
 
@@ -117,14 +117,21 @@ class HiddenDialog(QDialog):
         return PluginTab(self._context, self)
 
     def _init_keyboard_shortcuts_tab(self):
+
+        def on_keyboard_shortcut_table_key_press(text):
+            # Focus search bar when alpha numeric key was pressed in shortcut table
+            shortcut_filter.setFocus()
+            shortcut_filter.setText(text)
+
         frame = QFrame(self)
         frame_layout = QVBoxLayout(self)
         shortcut_filter = SearchField(self)
         shortcut_filter.setPlaceholderText("Search keyboard shortcut...")
         shortcut_filter.setIcon(qtawesome.icon("fa.search"))
         frame_layout.addWidget(shortcut_filter)
-        shortcut_table = ShortcutTable(self, self._context.getShortcuts())
-        shortcut_table.shortcutUpdated.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))
+        shortcut_table = KeyboardShortcutTable(self, self._context)
+        shortcut_table.changed.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))
+        shortcut_table.keyPressed.connect(on_keyboard_shortcut_table_key_press)
         shortcut_filter.textChanged.connect(shortcut_table.model().setFilterRegExp)
         frame_layout.addWidget(shortcut_table)
         frame_layout.setContentsMargins(20, 20, 20, 20)
