@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
 
         self._init_window_size()
         self.setWindowTitle("Decoder++")
-        self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp.png')))
+        self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp_128.png')))
 
     def _init_log_filter(self, message_widget):
         """ Initializes the log filter which catches log events to be shown in the statusbar. """
