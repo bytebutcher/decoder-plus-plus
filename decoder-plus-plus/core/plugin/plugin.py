@@ -36,32 +36,34 @@ class PluginConfig(object):
 
     class Option(object):
 
-        def __init__(self, name, value, description, is_config_required=True):
+        def __init__(self, name, value, description, is_required=True, is_initialized=False):
             """
             :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
             :param value: the default value of the option  (e.g. "foo", 42, False, ...).
             :param description: the description of the option.
-            :param is_config_required: defines whether the user needs to configure this option (default = True).
+            :param is_required: defines whether the user needs to configure this option (default = True).
+            :param is_initialized: defines whether the value was manually configured (default = False).
             """
             self.name = name
             self.value = value
             self.description = description
-            self.is_config_required = is_config_required
+            self.is_required = is_required
+            self.is_initialized = is_initialized
 
     class OptionGroup(Option):
         """ A option with group name and checked status. """
 
-        def __init__(self, name, value, description, is_config_required, group_name, is_checked):
+        def __init__(self, name, value, description, is_required, group_name, is_checked):
             """
             :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
             :param value: the default value of the option  (e.g. "foo", 42, False, ...).
             :param description: the description of the option.
-            :param is_config_required: defines whether the user needs to configure this option (default = True).
+            :param is_required: defines whether the user needs to configure this option (default = True).
             :param group_name: defines whether the option is associated with another group of options (default = None).
             :param is_checked: defines whether the option is checked. Within a option group there should only be one
             checked option.
             """
-            super(PluginConfig.OptionGroup, self).__init__(name, value, description, is_config_required)
+            super(PluginConfig.OptionGroup, self).__init__(name, value, description, is_required)
             self.group_name = group_name
             self.is_checked = is_checked
 
@@ -96,8 +98,8 @@ class PluginConfig(object):
         Updates the value for each specified option.
         :param options: either a name-value-dictionary or an instance of PluginConfig.
 
-        If options is a name-value dictionary the is_config_required attribute of the associated PluginConfigOption
-        is set to False, to indicate that the option is configured now.
+        If options is a name-value dictionary the is_initialized attribute of the associated PluginConfigOption
+        is set to True, to indicate that the option was manually configured.
 
         Example:
             update({"foo": "bar", "bar": "foo"})
@@ -108,7 +110,7 @@ class PluginConfig(object):
         else:
             for option_name in options.keys():
                 self._config[option_name].value = options[option_name]
-                self._config[option_name].is_config_required = False
+                self._config[option_name].is_initialized = True
 
     def clone(self) -> 'PluginConfig':
         """ Returns a deep copy of the plugin configuration. """
@@ -167,17 +169,16 @@ class AbstractPlugin(object):
         """
         return self._config.count() > 0
 
-    def is_configured(self) -> List[str]:
+    def is_unconfigured(self) -> List[str]:
         """
-        Returns whether all required options are configured.
-        :return: List of required options are, empty if everything is configured correctly False.
+        :returns all required options which are currently not configured.
         """
-        return [key for key in self._config.keys() if self._config.get(key).is_config_required]
+        return [key for key in self._config.keys() if self._config.get(key).is_required and not self._config.get(key).is_initialized]
 
     def name(self, safe_name=False) -> str:
         """
         :param safe_name: when False a human readable name is returned (e.g. "URL+"). Otherwise the name is parsed
-        from the file name (e.g. url_plus_encoder) of the plugin. Defaults to False.
+        from the file name (e.g. url_plus) of the plugin. Defaults to False.
         :returns the name of the plugin.
         """
         if not safe_name:

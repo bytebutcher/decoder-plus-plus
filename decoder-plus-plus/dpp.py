@@ -83,29 +83,41 @@ def init_builder(context: 'core.context.Context'):
                         value = "True" if bool(option.value) else "False"
                     else:
                         value = option.value
-                    is_config_required = "yes" if option.is_config_required else "no"
-                    print(row_format.format(option.name, value, is_config_required, option.description))
+                    is_required = "yes" if option.is_required else "no"
+                    print(row_format.format(option.name, value, is_required, option.description))
+
+            def _natural_join(list):
+                """ Joins a list of strings (e.g. ["1", "2", "3"] => "1, 2 and 3"). """
+                if not list:
+                    return ""
+                elif len(list) == 1:
+                    return list[0]
+                else:
+                    return " and ".join([", ".join(list[:-1]), list[-1]])
 
             def _configure(config):
                 invalid_plugin_options = [key for key in config if key not in _plugin.config().keys()]
                 if invalid_plugin_options:
-                    context.logger().error("Can not run plugin '{}'! Invalid option(s) {}".format(
-                        _plugin.name(), ", ".join(invalid_plugin_options)))
+                    invalid_plugin_option = invalid_plugin_options[0]
+                    suggestions = [result for result in process.extract(invalid_plugin_option, _plugin.config().keys())]
+                    suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
+                    context.logger().error("Can not run '{}'! Invalid option {}. {}".format(
+                        _plugin.name(safe_name=True), invalid_plugin_option, suggestion))
                     sys.exit(1)
 
                 _plugin.config().update(config)
 
-                unconfigured_plugin_options = _plugin.is_configured()
+                unconfigured_plugin_options = _plugin.is_unconfigured()
                 if unconfigured_plugin_options:
-                    context.logger().error("Can not run plugin '{}'! Missing required option(s) {}".format(
-                        _plugin.name(), ", ".join(unconfigured_plugin_options)))
+                    context.logger().error("Can not run '{}'! Missing required option {}.".format(
+                        _plugin.name(safe_name=True), _natural_join(unconfigured_plugin_options)))
                     sys.exit(1)
 
             def _runner(self, config=None, show_help=False):
                 if show_help:
                     _show_help()
                     sys.exit(0)
-                if config:
+                if _plugin.is_configurable() and _plugin.is_unconfigured():
                     _configure(config)
                 self._input = _plugin.run(self._input)
                 return self
@@ -117,7 +129,7 @@ def init_builder(context: 'core.context.Context'):
     clazz_map = {PluginType.ENCODER: Encoder, PluginType.DECODER: Decoder, PluginType.HASHER: Hasher, PluginType.SCRIPT: Script}
     for plugin in plugins.plugins():
         if not plugin.type() in clazz_map:
-            context.logger().debug("Can not load plugin '{}'! Invalid type '{}'!".format(plugin.name(), plugin.type()))
+            context.logger().debug("Can not load plugin '{}'! Invalid type '{}'!".format(plugin.name(safe_name=True), plugin.type()))
             continue
 
         _init_builder(plugin, clazz_map[plugin.type()])
