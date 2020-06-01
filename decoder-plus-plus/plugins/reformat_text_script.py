@@ -1,10 +1,12 @@
+import os
 import re
+import string
 
 import qtawesome
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QGroupBox, QFormLayout, QLineEdit, QCheckBox, \
-    QDialogButtonBox, QPlainTextEdit, QLayout, QHBoxLayout, QPushButton
+    QDialogButtonBox, QPlainTextEdit, QLayout, QHBoxLayout, QPushButton, QToolButton
 
 from core.exception import AbortedException
 from core.plugin.plugin import ScriptPlugin, PluginConfig
@@ -20,6 +22,7 @@ class Plugin(ScriptPlugin):
         Format = "format"
         SplitChars = "split_char"
         IsRegex = "is_regex"
+        HandleNewlines = "handle_newlines"
 
     def __init__(self, context):
         # Name, Author, Dependencies
@@ -30,6 +33,8 @@ class Plugin(ScriptPlugin):
             Plugin.Option.SplitChars, " ", "the characters used to split the text in individual parts (default=' ')", False))
         self.config().add(PluginConfig.Option(
             Plugin.Option.IsRegex, False, "defines whether the split chars is a regular expression (default=False)", False))
+        self.config().add(PluginConfig.Option(
+            Plugin.Option.HandleNewlines, True, "defines whether the operation should be applied for each individual line (default=True)", False))
         self._dialog = None
         self._codec = ReformatCodec()
 
@@ -50,10 +55,11 @@ class Plugin(ScriptPlugin):
 
 
     def title(self):
-        return "Reformat text with '{}' using '{}' as {}delimiter".format(
+        return "Reformat text with '{}' using '{}' as {}delimiter{}".format(
             self.config().get(Plugin.Option.Format).value,
             self.config().get(Plugin.Option.SplitChars).value,
-            "regex-" if self.config().get(Plugin.Option.IsRegex).value else ""
+            "regex-" if self.config().get(Plugin.Option.IsRegex).value else "",
+            " (newline sensitive)" if self.config().get(Plugin.Option.HandleNewlines).value else ""
         )
 
     def run(self, text):
@@ -61,26 +67,47 @@ class Plugin(ScriptPlugin):
             format = self.config().get(Plugin.Option.Format).value
             delimiter = self.config().get(Plugin.Option.SplitChars).value
             is_regex = self.config().get(Plugin.Option.IsRegex).value
-            return self._codec.reformat(text, format, delimiter, is_regex)
+            handle_newlines = self.config().get(Plugin.Option.HandleNewlines).value
+            return self._codec.reformat(text, format, delimiter, is_regex, handle_newlines)
         return ''
 
 
 class ReformatCodec:
 
-    def reformat(self, input, format, split_by_chars, is_regex):
+    class SafeDict(dict):
+        def __missing__(self, key):
+            return '{' + key + '}'
+
+    def reformat(self, input, format, split_by_chars, is_regex, handle_newlines):
+
+        def _fill_blanks(format, values):
+            """ Ensure that there are always at least as many values as there are placeholders. """
+            format_len = len([i for i in string.Formatter().parse(format)])
+            if len(values) < format_len:
+                for i in range(1, format_len - len(values)):
+                    values.append("")
+            return values
+
+        def _reformat(text):
+            if is_regex:
+                split_input = re.split(split_by_chars, text)
+            else:
+                split_input = text.split(split_by_chars)
+            return format.format(format, *_fill_blanks(format, split_input))
+
         if input:
             if format:
                 try:
-                    if is_regex:
-                        split_input = re.split(split_by_chars, input)
+                    if handle_newlines:
+                        return os.linesep.join([_reformat(line) for line in input.split(os.linesep)])
                     else:
-                        split_input = input.split(split_by_chars)
-                    return format.format(*split_input)
+                        return _reformat(input)
                 except BaseException:
                     raise Exception("Error during reformat operation! Check your format string!")
             else:
                 return input
         return ''
+
 
 class ReformatDialog(QDialog):
 
@@ -123,7 +150,8 @@ class ReformatDialog(QDialog):
         self._txt_format.setText(self._config.get(Plugin.Option.Format).value)
         self._txt_format.textChanged.connect(self._on_change_event)
 
-        self._btn_format_help = QPushButton("?")
+        self._btn_format_help = QToolButton()
+        self._btn_format_help.setText("?")
         self._btn_format_help.clicked.connect(lambda evt: QDesktopServices.openUrl(QUrl("https://pyformat.info/")))
 
         self._txt_split_char = QLineEdit()
@@ -134,6 +162,10 @@ class ReformatDialog(QDialog):
         self._chk_regex.setChecked(self._config.get(Plugin.Option.IsRegex).value)
         self._chk_regex.clicked.connect(self._on_change_event)
 
+        self._chk_new_lines = QCheckBox("Handle Newline")
+        self._chk_new_lines.setChecked(self._config.get(Plugin.Option.HandleNewlines).value)
+        self._chk_new_lines.clicked.connect(self._on_change_event)
+
         # Build layout
         frm_frame = QFrame()
         frm_layout = QHBoxLayout()
@@ -143,6 +175,7 @@ class ReformatDialog(QDialog):
         frm_layout.addWidget(QLabel("Split by: "))
         frm_layout.addWidget(self._txt_split_char)
         frm_layout.addWidget(self._chk_regex)
+        frm_layout.addWidget(self._chk_new_lines)
         frm_frame.setLayout(frm_layout)
         return frm_frame
 
@@ -167,6 +200,7 @@ class ReformatDialog(QDialog):
         self._txt_format.setText(self._config.get(Plugin.Option.Format).value)
         self._txt_split_char.setText(self._config.get(Plugin.Option.SplitChars).value)
         self._chk_regex.setChecked(self._config.get(Plugin.Option.IsRegex).value)
+        self._chk_new_lines.setChecked(self._config.get(Plugin.Option.HandleNewlines).value)
         self._on_change_event(None)
 
     def _on_change_event(self, event):
@@ -194,7 +228,8 @@ class ReformatDialog(QDialog):
 
     def _do_preview(self):
         try:
-            result = self._codec.reformat(self._input, self._txt_format.text(), self._txt_split_char.text(), self._chk_regex.isChecked())
+            result = self._codec.reformat(self._input, self._txt_format.text(), self._txt_split_char.text(),
+                                          self._chk_regex.isChecked(), self._chk_new_lines.isChecked())
             self._txt_preview.setPlainText(result)
             return True
         except BaseException as e:
