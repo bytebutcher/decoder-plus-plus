@@ -33,32 +33,32 @@ class Plugin(ScriptPlugin):
     """
 
     class Option(object):
-        Split_By_Length = "split_by_length"
-        Split_By_Chars = "split_by_chars"
-        Rejoin_With_Chars = "rejoin_with_chars"
+        SplitByLength = "split_by_length"
+        SplitByChars = "split_by_chars"
+        RejoinWithChars = "rejoin_with_chars"
 
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Split & Rejoin', "Thomas Engel", [], context)
         self.config().add(PluginConfig.OptionGroup(
-            Plugin.Option.Split_By_Chars, "", "", True, "SplitBehaviour", True))
+            Plugin.Option.SplitByChars, "", "the chars used at which to split the text", True, "split_behaviour", True))
         self.config().add(PluginConfig.OptionGroup(
-            Plugin.Option.Split_By_Length, 0, "", True, "SplitBehaviour", False))
+            Plugin.Option.SplitByLength, "0", "the length used at which to split the text", True, "split_behaviour", False))
         self.config().add(PluginConfig.Option(
-            Plugin.Option.Rejoin_With_Chars, "", "", True))
+            Plugin.Option.RejoinWithChars, "", "the chars used to join the splitted text", True))
         self._dialog = None
         self._dialog_return_code = None
 
     def title(self):
-        if self.config().get(Plugin.Option.Split_By_Length).is_checked:
+        if self.config().get(Plugin.Option.SplitByLength).is_checked:
             return "Split by length {} and rejoin with '{}'".format(
-                self.config().get(Plugin.Option.Split_By_Length).value,
-                self.config().get(Plugin.Option.Rejoin_With_Chars).value
+                self.config().get(Plugin.Option.SplitByLength).value,
+                self.config().get(Plugin.Option.RejoinWithChars).value
             )
-        elif self.config().get(Plugin.Option.Split_By_Chars).is_checked:
+        elif self.config().get(Plugin.Option.SplitByChars).is_checked:
             return "Split by characters '{}' and rejoin with '{}'".format(
-                self.config().get(Plugin.Option.Split_By_Chars).value,
-                self.config().get(Plugin.Option.Rejoin_With_Chars).value
+                self.config().get(Plugin.Option.SplitByChars).value,
+                self.config().get(Plugin.Option.RejoinWithChars).value
             )
         else:
             self.logger().debug("Invalid option.")
@@ -81,11 +81,11 @@ class Plugin(ScriptPlugin):
     def run(self, text: str):
         if text:
             input = ""
-            if self.config().get(Plugin.Option.Split_By_Length).is_checked:
-                input = self._chunk_string(text, self.config().get(Plugin.Option.Split_By_Length).value)
-            elif self.config().get(Plugin.Option.Split_By_Chars).is_checked:
-                input = text.split(self.config().get(Plugin.Option.Split_By_Chars).value)
-            return self.config().get(Plugin.Option.Rejoin_With_Chars).value.join(input)
+            if self.config().get(Plugin.Option.SplitByLength).is_checked:
+                input = self._chunk_string(text, int(self.config().get(Plugin.Option.SplitByLength).value))
+            elif self.config().get(Plugin.Option.SplitByChars).is_checked:
+                input = text.split(self.config().get(Plugin.Option.SplitByChars).value)
+            return self.config().get(Plugin.Option.RejoinWithChars).value.join(input)
         return ''
 
     def _chunk_string(self, string, length):
@@ -124,17 +124,17 @@ class SplitAndRejoinDialog(QDialog):
         form_frame = QGroupBox()
         form_frame_layout = QFormLayout()
         self._split_by_character_radio_button = QRadioButton("Character")
-        self._split_by_character_radio_button.setChecked(self._config.get(Plugin.Option.Split_By_Chars).is_checked)
+        self._split_by_character_radio_button.setChecked(self._config.get(Plugin.Option.SplitByChars).is_checked)
         self._split_by_length_radio_button = QRadioButton("Length")
-        self._split_by_length_radio_button.setChecked(self._config.get(Plugin.Option.Split_By_Length).is_checked)
+        self._split_by_length_radio_button.setChecked(self._config.get(Plugin.Option.SplitByLength).is_checked)
 
         self._split_by_line_edit = QLineEdit()
-        if self._config.get(Plugin.Option.Split_By_Chars).is_checked:
-            self._split_by_line_edit.setText(self._config.get(Plugin.Option.Split_By_Chars).value)
+        if self._config.get(Plugin.Option.SplitByChars).is_checked:
+            self._split_by_line_edit.setText(self._config.get(Plugin.Option.SplitByChars).value)
         else:
-            self._split_by_line_edit.setText(self._config.get(Plugin.Option.Split_By_Length).value)
+            self._split_by_line_edit.setText(self._config.get(Plugin.Option.SplitByLength).value)
         self._join_with_line_edit = QLineEdit()
-        self._join_with_line_edit.setText(self._config.get(Plugin.Option.Rejoin_With_Chars).value)
+        self._join_with_line_edit.setText(self._config.get(Plugin.Option.RejoinWithChars).value)
 
         # Register change events
         self._split_by_character_radio_button.clicked.connect(self._on_change_event)
@@ -161,15 +161,13 @@ class SplitAndRejoinDialog(QDialog):
         if not self._get_split_by_text():
             return "Split by text should not be empty."
 
-        if self._get_split_by_text() and self._config.get(Plugin.Option.Split_By_Length).is_checked:
+        if self._get_split_by_text() and self._split_by_length_radio_button.isChecked():
             try:
                 length = int(self._get_split_by_text())
                 if length <= 0:
                     return "Split by text should be greater than 0."
             except:
                 return "Split by text should be an integer."
-
-
 
     def _accept(self):
         self.accept()
@@ -182,11 +180,11 @@ class SplitAndRejoinDialog(QDialog):
         self._show_split_by_text_error(split_by_text_error)
         self._btn_box.button(QDialogButtonBox.Ok).setEnabled(True if not split_by_text_error else False)
         if split_by_text_error:
-            self._set_option(Plugin.Option.Split_By_Length, self._get_split_by_length,
+            self._set_option(Plugin.Option.SplitByLength, self._get_split_by_length,
                              self._split_by_length_radio_button.isChecked())
-            self._set_option(Plugin.Option.Split_By_Chars, self._get_split_by_text,
+            self._set_option(Plugin.Option.SplitByChars, self._get_split_by_text,
                              self._split_by_character_radio_button.isChecked())
-            self.config().get(Plugin.Option.Rejoin_With_Chars).value = self._get_join_with_text()
+            self.config().get(Plugin.Option.RejoinWithChars).value = self._get_join_with_text()
 
     def _set_option(self, option_name, callback, is_checked):
         if is_checked:
@@ -199,7 +197,7 @@ class SplitAndRejoinDialog(QDialog):
         return self._split_by_line_edit.text()
 
     def _get_split_by_length(self):
-        return int(self._get_split_by_text() if self._get_split_by_text() else 0)
+        return self._get_split_by_text() if self._get_split_by_text() else "0"
 
     def _get_join_with_text(self):
         return self._join_with_line_edit.text()
