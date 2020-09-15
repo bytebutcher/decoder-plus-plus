@@ -1,6 +1,8 @@
 import qtawesome
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QRadioButton, QFrame, QFormLayout, QDialogButtonBox, QLineEdit, \
-    QLabel, QGroupBox
+    QLabel, QGroupBox, QWidget, QCheckBox, QShortcut
 
 from core.exception import AbortedException
 from core.plugin.plugin import ScriptPlugin, PluginConfig
@@ -33,6 +35,7 @@ class Plugin(ScriptPlugin):
     """
 
     class Option(object):
+        SplitText = "split_text"
         SplitByLength = "split_by_length"
         SplitByChars = "split_by_chars"
         RejoinWithChars = "rejoin_with_chars"
@@ -40,24 +43,62 @@ class Plugin(ScriptPlugin):
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Split & Rejoin', "Thomas Engel", [], context)
-        self.config().add(PluginConfig.OptionGroup(
-            Plugin.Option.SplitByChars, "", "the chars used at which to split the text", True, "split_behaviour", True))
-        self.config().add(PluginConfig.OptionGroup(
-            Plugin.Option.SplitByLength, "0", "the length used at which to split the text", True, "split_behaviour", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.RejoinWithChars, "", "the chars used to join the splitted text", True))
+        self._init_config()
         self._dialog = None
         self._dialog_return_code = None
+
+    def _init_config(self):
+        def _validate_split_text(config: PluginConfig, value: str):
+            if not value:
+                return "Split by text should not be empty."
+
+        def _validate_rejoin_with_chars(config: PluginConfig, value: str):
+            if config.get(Plugin.Option.SplitByLength).value:
+                try:
+                    length = int(config.get(Plugin.Option.SplitText).value)
+                    if length <= 0:
+                        return "Split by text should be greater than 0."
+                except:
+                    return "Split by text should be an integer."
+
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.SplitText,
+            value="",
+            description="the parameter used for splitting",
+            is_required=True,
+            validator=_validate_split_text
+        ))
+        self.config().add(PluginConfig.Option.Group(
+            name=Plugin.Option.SplitByChars,
+            value=True,
+            description="specifies whether text should be split at chars",
+            is_required=False,
+            group_name="split_behaviour"
+        ))
+        self.config().add(PluginConfig.Option.Group(
+            name=Plugin.Option.SplitByLength,
+            value=False,
+            description="specifies whether text should be split at interval",
+            is_required=False,
+            group_name="split_behaviour"
+        ))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.RejoinWithChars,
+            value="",
+            description="the chars used to join the split text",
+            is_required=True,
+            validator=_validate_rejoin_with_chars
+        ))
 
     def title(self):
         if self.config().get(Plugin.Option.SplitByLength).is_checked:
             return "Split by length {} and rejoin with '{}'".format(
-                self.config().get(Plugin.Option.SplitByLength).value,
+                self.config().get(Plugin.Option.SplitText).value,
                 self.config().get(Plugin.Option.RejoinWithChars).value
             )
         elif self.config().get(Plugin.Option.SplitByChars).is_checked:
             return "Split by characters '{}' and rejoin with '{}'".format(
-                self.config().get(Plugin.Option.SplitByChars).value,
+                self.config().get(Plugin.Option.SplitText).value,
                 self.config().get(Plugin.Option.RejoinWithChars).value
             )
         else:
@@ -66,7 +107,11 @@ class Plugin(ScriptPlugin):
 
     def select(self, text: str):
         if not self._dialog:
-            self._dialog = SplitAndRejoinDialog(self.config().clone())
+            try:
+                self._dialog = PluginConfigDialog(
+                    self._context, self.config().clone(), "Split & Rejoin", qtawesome.icon("fa.edit"))
+            except BaseException as e:
+                self._context.logger().exception(e, exc_info=self._context.isDebugModeEnabled())
 
         self._dialog_return_code = self._dialog.exec_()
 
@@ -82,14 +127,173 @@ class Plugin(ScriptPlugin):
         if text:
             input = ""
             if self.config().get(Plugin.Option.SplitByLength).is_checked:
-                input = self._chunk_string(text, int(self.config().get(Plugin.Option.SplitByLength).value))
+                input = self._chunk_string(text, int(self.config().get(Plugin.Option.SplitText).value))
             elif self.config().get(Plugin.Option.SplitByChars).is_checked:
-                input = text.split(self.config().get(Plugin.Option.SplitByChars).value)
+                input = text.split(self.config().get(Plugin.Option.SplitText).value)
             return self.config().get(Plugin.Option.RejoinWithChars).value.join(input)
         return ''
 
     def _chunk_string(self, string, length):
         return [string[0 + i:length + i] for i in range(0, len(string), length)]
+
+
+class PluginConfigDialog(QDialog):
+
+    class WidgetWrapper:
+
+        def __init__(self, name, widget, get_value_callback, validate_callback, on_change_signal):
+            self.name = name
+            self.widget = widget
+            self._get_value_callback = get_value_callback
+            self.validate = validate_callback
+            self.onChange = on_change_signal
+
+        def get_value(self):
+            return self._get_value_callback()
+
+        value = property(get_value)
+
+    def __init__(self, context, config, title, icon=None):
+        super(PluginConfigDialog, self).__init__()
+        self._context = context
+        self._config = config
+        self._widgets = {}
+        self.setLayout(self._init_main_layout())
+        self._build()
+        self._init_shortcuts()
+        self.setWindowTitle(title)
+        self.setWindowIcon(icon)
+
+    def _init_main_layout(self):
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self._init_input_frame())
+        main_layout.addWidget(self._init_error_frame())
+        self._btn_box = self._init_button_box()
+        main_layout.addWidget(self._btn_box)
+        return main_layout
+
+    def _init_error_frame(self):
+        self._error_frame = QFrame()
+        layout = QVBoxLayout()
+        self._error_text = QLabel("")
+        self._error_text.setStyleSheet('QLabel { color: red }')
+        layout.addWidget(self._error_text)
+        self._error_frame.setLayout(layout)
+        self._error_frame.setHidden(True)
+        return self._error_frame
+
+    def _init_button_box(self):
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        return button_box
+
+    def _init_shortcuts(self):
+        def _accept(self):
+            if self._btn_box(QDialogButtonBox.Ok).isEnabled():
+                self.accept()
+
+        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
+        ctrl_return_shortcut.activated.connect(_accept)
+        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
+        alt_return_shortcut.activated.connect(_accept)
+        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_O), self)
+        alt_o_shortcut.activated.connect(_accept)
+
+    def _init_input_frame(self):
+        input_frame = QGroupBox()
+        self._input_frame_layout = QFormLayout()
+        input_frame.setLayout(self._input_frame_layout)
+        return input_frame
+
+    def _update_and_validate(self):
+        """ Update and validate options. """
+        self._config.update({name: self._widgets[name].value for name in self._config.keys()})
+        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(self._validate())
+
+    def _validate(self):
+        """ Validate the current settings. """
+        self._reset_errors()
+        for key, widget_wrapper in self._widgets.items():
+            message = widget_wrapper.validate(self._config, widget_wrapper.value)
+            if message:
+                self._show_error_indicator(widget_wrapper)
+                self._show_error_message(widget_wrapper, message)
+                return False
+        return True
+
+    def _reset_errors(self):
+        """ Hides error message box and resets any error indicators. """
+        self._error_frame.setHidden(True)
+        self._error_text.setText("")
+        for name in self._config.keys():
+            self._reset_error(self._widgets[name])
+
+    def _reset_error(self, widget_wrapper):
+        """
+        Resets any error indication on a specific widget.
+        This method can be overwritten to allow customizing visualization of errors for specific widgets.
+        """
+        widget = widget_wrapper.widget
+        if isinstance(widget, QLineEdit):
+            widget.setStyleSheet('QLineEdit { }')
+
+    def _show_error_indicator(self, widget_wrapper):
+        """
+        Indicates an error on a specific widget.
+        This method can be overwritten to allow customizing visualization of errors for specific widgets.
+        """
+        widget = widget_wrapper.widget
+        if isinstance(widget, QLineEdit):
+            widget.setStyleSheet('QLineEdit { color: red }')
+
+    def _show_error_message(self, widget_wrapper, message):
+        """ Shows an error message within a error-box. """
+        self._error_frame.setHidden(False)
+        self._error_text.setText(message)
+
+    def _build_option(self, option: PluginConfig.Option.Base) -> WidgetWrapper:
+        """
+        Automatically build the widget for this option.
+        This method can be overwritten to allow building custom widgets.
+        :return the widget for this option.
+        """
+        if isinstance(option, PluginConfig.Option.String):
+            x = QLineEdit(option.value)
+            w = PluginConfigDialog.WidgetWrapper(option.name, x, x.text, option.validate, x.textChanged)
+            w.onChange.connect(lambda evt: self._update_and_validate())
+        elif isinstance(option, PluginConfig.Option.Integer):
+            x = QLineEdit(option.value)
+            w = PluginConfigDialog.WidgetWrapper(option.name, x, x.text, option.validate, x.textChanged)
+            w.onChange.connect(lambda evt: self._update_and_validate())
+        elif isinstance(option, PluginConfig.Option.Boolean):
+            x = QCheckBox(option.name)
+            x.setChecked(option.value)
+            w = PluginConfigDialog.WidgetWrapper(option.name, x, x.isChecked, option.validate, x.clicked)
+            w.onChange.connect(lambda evt: self._update_and_validate())
+        elif isinstance(option, PluginConfig.Option.Group):
+            x = QRadioButton(option.name)
+            x.setChecked(option.value)
+            w = PluginConfigDialog.WidgetWrapper(option.name, x, x.isChecked, option.validate, x.clicked)
+            w.onChange.connect(lambda evt: self._update_and_validate())
+        else:
+            raise Exception("Invalid option of type {} detected!".format(type(option)))
+        return w
+
+    def _build(self):
+        """
+        Automatically build the widgets for all options.
+        This method can be overwritten to allow building custom widgets.
+        """
+        for name, option in self._config.items():
+            label = QLabel()
+            if not isinstance(option, PluginConfig.Option.Group):
+                label.setText(name)
+            self._widgets[name] = self._build_option(option)
+            self._input_frame_layout.addRow(label, self._widgets[name].widget)
+
+    def config(self):
+        return self._config
 
 
 class SplitAndRejoinDialog(QDialog):

@@ -46,7 +46,7 @@ class PlainView(QFrame):
         Initializes the plain view.
         :param text: the text to be shown in the plain-text-edit.
         """
-        super(PlainView, self).__init__(parent)
+        super(__class__, self).__init__(parent)
         self._context = context
         self._listener = context.listener()
         self._tab_id = tab_id

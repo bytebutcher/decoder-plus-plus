@@ -42,9 +42,9 @@ class IPythonDock(DockWidget):
         self._context = context
         widget = IPythonWidget(
             banner=os.linesep.join([
-                'Decoder++ IPython Console',
+                'Decoder++ IPython Console v{version}'.format(version=self._context.getAppVersion()),
                 'Type "copyright", "credits", "license" or "help" for more information.',
-                'Type "encoders", "decoders", "hashs" or "scripts" to show a list of codecs.',
+                'Type "encoders", "decoders", "hashes" or "scripts" to show a list of codecs.',
                 'Type "usage" to show general usage information.'
             ]),
             namespace=self._context.namespace(),
@@ -59,7 +59,7 @@ class IPythonDock(DockWidget):
                 ]),
                 "encoders": IPythonDock.Printer(DecoderPlusPlus("").encode().list()),
                 "decoders": IPythonDock.Printer(DecoderPlusPlus("").decode().list()),
-                "hashs": IPythonDock.Printer(DecoderPlusPlus("").hash().list()),
+                "hashes": IPythonDock.Printer(DecoderPlusPlus("").hash().list()),
                 "scripts": IPythonDock.Printer(DecoderPlusPlus("").script().list()),
                 "dpp": DecoderPlusPlus
             })

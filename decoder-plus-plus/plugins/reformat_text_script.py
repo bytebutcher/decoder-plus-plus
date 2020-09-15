@@ -27,14 +27,30 @@ class Plugin(ScriptPlugin):
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Reformat Text', "Thomas Engel", [], context)
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Format, "", "the format string to be used"))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.SplitChars, " ", "the characters used to split the text in individual parts (default=' ')", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.IsRegex, False, "defines whether the split chars is a regular expression (default=False)", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.HandleNewlines, True, "defines whether the operation should be applied for each individual line (default=True)", False))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.Format,
+            value="",
+            description="the format string to be used",
+            is_required=True
+        ))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.SplitChars,
+            value=" ",
+            description="the characters used to split the text in individual parts (default=' ')",
+            is_required=False
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.IsRegex,
+            value=False,
+            description="defines whether the split chars is a regular expression (default=False)",
+            is_required=False
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.HandleNewlines,
+            value=True,
+            description="defines whether the operation should be applied for each individual line (default=True)",
+            is_required=False
+        ))
         self._dialog = None
         self._codec = ReformatCodec()
 

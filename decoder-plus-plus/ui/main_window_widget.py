@@ -20,11 +20,13 @@ import json
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
 from core import Context
+from core.model import Model
 from core.plugin.plugin import PluginType
 from ui import CodecTab
 from ui.codec_frame import CodecFrame
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
+from ui.widget.status_widget import StatusWidget
 
 
 class MainWindowWidget(QWidget):
@@ -73,23 +75,27 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.EDIT_CUT,
                                 "C&ut",
                                 "Ctrl+X",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.cutSelectedInputText()),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.cutSelectedInputText()),
                                 edit_menu)
         self._register_shortcut(Context.Shortcut.EDIT_COPY,
                                 "&Copy",
                                 "Ctrl+C",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.copySelectedInputText()),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.copySelectedInputText()),
                                 edit_menu)
         self._register_shortcut(Context.Shortcut.EDIT_PASTE,
                                 "&Paste",
                                 "Ctrl+P",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.pasteSelectedInputText()),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.pasteSelectedInputText()),
                                 edit_menu)
         edit_menu.addSeparator()
         self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
                                 "Toggle &Search Field",
                                 "Ctrl+F",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.toggleSearchField()),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.toggleSearchField()),
                                 edit_menu)
         return edit_menu
 
@@ -114,7 +120,7 @@ class MainWindowWidget(QWidget):
 
     def _init_select_menu(self, main_menu):
         select_menu = main_menu.addMenu('&Select')
-        #self._register_shortcut(Context.Shortcut.FOCUS_CODEC_SEARCH,
+        # self._register_shortcut(Context.Shortcut.FOCUS_CODEC_SEARCH,
         #                        "Select Codec Search",
         #                        "Ctrl+Space",
         #                        lambda: self._tabs.focusCodecSearch(),
@@ -122,22 +128,26 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.FOCUS_DECODER,
                                 "Select &Decoder",
                                 "Alt+Shift+D",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER)),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_ENCODER,
                                 "Select &Encoder",
                                 "Alt+Shift+E",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER)),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_HASHER,
                                 "Select &Hasher",
                                 "Alt+Shift+H",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER)),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER)),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_SCRIPT,
                                 "Select &Script",
                                 "Alt+Shift+S",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT)),
+                                lambda: self._call_focused_frame(
+                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT)),
                                 select_menu)
 
         select_menu.addSeparator()
@@ -164,7 +174,7 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.TAB_RENAME,
                                 "&Rename Tab",
                                 "Alt+Shift+R",
-                                lambda: self._tabs.tabBar().renameTab(),
+                                lambda: self._tabs.tabBar().rename_tab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_NEXT,
                                 "&Next Tab",
@@ -185,10 +195,10 @@ class MainWindowWidget(QWidget):
 
         for tab_num in range(1, 10):
             action = self._register_shortcut(Context.Shortcut.TAB_SELECT_.format(tab_num),
-                                    "Select Tab &{}".format(tab_num),
-                                    "Alt+{}".format(tab_num),
-                                    select_tab(tab_num - 1),
-                                    tab_menu)
+                                             "Select Tab &{}".format(tab_num),
+                                             "Alt+{}".format(tab_num),
+                                             select_tab(tab_num - 1),
+                                             tab_menu)
             action.setVisible(False)
             self._tabs_select_action.append(action)
         return tab_menu
@@ -237,7 +247,7 @@ class MainWindowWidget(QWidget):
             callback(focused_frame)
 
     def _get_focused_frame(self) -> CodecFrame:
-        return self._tabs.currentWidget().getFocusedFrame()
+        return self._tabs.currentWidget().frames().getFocusedFrame()
 
     def _focus_input_text(self, callback):
         frame = self._get_focused_frame()
@@ -258,7 +268,7 @@ class MainWindowWidget(QWidget):
 
             self._tabs.currentWidget().ensureWidgetVisible(future_frame)
 
-    def _show_hidden_dialog(self, tab_select: str=None):
+    def _show_hidden_dialog(self, tab_select: str = None):
         """ Shows the hidden dialog. """
         hidden_dialog = HiddenDialog(self, self._context, tab_select)
         hidden_dialog.exec_()
@@ -272,16 +282,16 @@ class MainWindowWidget(QWidget):
                     for tab_config in save_file:
                         index, tab = self.newTab()
                         self._tabs.renameTab(index, tab_config["name"])
-                        previous_frame = None
+                        frame_index = 0
                         for frame_config in tab_config["frames"]:
-                            if previous_frame is None:
-                                # New tabs contain one empty frame
+                            if frame_index == 0:
+                                # New tabs already contain one empty frame
                                 frame = tab.getFrames()[0]
                                 frame.setInputText(frame_config["text"])
                             else:
-                                frame = tab.newFrame(frame_config["text"], frame_config["title"], previous_frame)
+                                frame = tab.newFrame(frame_config["text"], frame_config["title"], StatusWidget.DEFAULT)
                             frame.fromDict(frame_config)
-                            previous_frame = frame
+                            frame_index = frame_index + 1
                 self._context.logger().info("Successfully loaded {}!".format(filename))
             except Exception as e:
                 self._context.logger().error("Unexpected error loading file. {}".format(e))
@@ -290,6 +300,7 @@ class MainWindowWidget(QWidget):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
         if filename:
             try:
+                print(self._tabs.toDict())
                 self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
                 self._context.logger().info("Successfully saved session in {}!".format(filename))
             except Exception as e:

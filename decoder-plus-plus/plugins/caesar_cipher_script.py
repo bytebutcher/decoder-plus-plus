@@ -22,8 +22,13 @@ class Plugin(ScriptPlugin):
         # Name, Author, Dependencies
         super().__init__('Caesar Cipher', "Thomas Engel", [], context)
 
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Shift, 0, "integer by which the value of the letters should be shifted."))
+        self.config().add(PluginConfig.Option.Integer(
+            name=Plugin.Option.Shift,
+            value=0,
+            description="integer by which the value of the letters should be shifted.",
+            is_required=True,
+            range=[0, 26]
+        ))
         self._dialog = None
         self._codec = CaesarCipher()
 

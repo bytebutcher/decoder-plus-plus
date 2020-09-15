@@ -27,14 +27,12 @@ class Frame(QFrame):
 
     frameChanged = pyqtSignal(str)
 
-    def __init__(self, parent, context: Context, frame_id: str, previous_frame: 'ui.widget.Frame', next_frame: 'ui.widget.Frame'):
+    def __init__(self, parent, context: Context, frame_id: str):
         super(__class__, self).__init__(parent)
         self._frame_id = frame_id
-        self._previous_frame = previous_frame
-        if previous_frame:
-            previous_frame.setNext(self)
-        self._next_frame = next_frame
         self._context = context
+        self._listener = self._context.listener()
+        self._logger = context.logger()
 
     def id(self) -> str:
         """ Returns the individual identifier of the frame. """
@@ -46,29 +44,3 @@ class Frame(QFrame):
         This method needs to be overridden if other behaviour is required.
         """
         return False
-
-    def hasNext(self) -> bool:
-        """ Returns True, when there is a next frame. Otherwise False.  """
-        return self._next_frame is not None
-
-    def hasPrevious(self) -> bool:
-        """ Returns True, when there is a previous frame. Otherwise False.  """
-        return self._previous_frame is not None
-
-    def setNext(self, next_frame: 'ui.widget.frame.Frame'):
-        """ Sets the next frame. """
-        self._next_frame = next_frame
-        self.frameChanged.emit(self._frame_id)
-
-    def setPrevious(self, previous_frame: 'ui.widget.frame.Frame'):
-        """ Sets the previous frame. """
-        self._previous_frame = previous_frame
-        self.frameChanged.emit(self._frame_id)
-
-    def next(self) -> 'ui.widget.frame.Frame':
-        """ Returns the next frame. Might be None. """
-        return self._next_frame
-
-    def previous(self) -> 'ui.widget.frame.Frame':
-        """ Returns the previous frame. Might be None. """
-        return self._previous_frame

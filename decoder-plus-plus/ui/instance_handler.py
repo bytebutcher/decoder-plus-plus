@@ -17,8 +17,8 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 
-class SingleInstance(QObject):
-    """ Makes sure that an application can only be run once. """
+class InstanceHandler(QObject):
+    """ Makes sure that only one instance of this application can be run. """
 
     received = pyqtSignal(str)
 
@@ -26,7 +26,7 @@ class SingleInstance(QObject):
         super(__class__, self).__init__(parent)
         self._parent = parent
         self._name = name
-        self._timeout = 5000
+        self._timeout = 1000
         self._socket = QLocalSocket(self)
         self._socket.connectToServer(self._name)
         self._is_already_running = self._socket.waitForConnected(self._timeout)
@@ -37,7 +37,7 @@ class SingleInstance(QObject):
             self._server.listen(self._name)
 
     def _send_data(self, data=None):
-        """ Sends data to an server-application. """
+        """ Sends model to an server-application. """
         if not data:
             data = ""
         self._socket.write(data.encode())
@@ -45,13 +45,13 @@ class SingleInstance(QObject):
         self._socket.disconnectFromServer()
 
     def _receive_data(self):
-        """ Receives data from an client-application. """
+        """ Receives model from an client-application. """
         socket = self._server.nextPendingConnection()
         if socket.waitForReadyRead(self._timeout):
-            # Emit transmitted data.
+            # Emit transmitted model.
             self.received.emit(socket.readAll().data().decode("utf-8", "surrogateescape"))
         else:
-            # When no data was transmitted just emit empty string.
+            # When no model was transmitted just emit empty string.
             self.received.emit("")
 
     def newTab(self, input):

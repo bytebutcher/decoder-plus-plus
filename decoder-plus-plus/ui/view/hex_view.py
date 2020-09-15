@@ -35,7 +35,7 @@ class HexValidatorDelegate(QStyledItemDelegate):
 class HexView(QTableView):
 
     def __init__(self, context: 'core.context.Context', parent):
-        super(HexView, self).__init__(parent)
+        super(__class__, self).__init__(parent)
         self._context = context
 
         self._tab_id = 0
@@ -218,7 +218,7 @@ class HexView(QTableView):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.edit(self.selectionModel().currentIndex())
-        super(HexView, self).keyPressEvent(event)
+        super(__class__, self).keyPressEvent(event)
 
     def _on_hex_value_change(self, item):
         model = self.model()

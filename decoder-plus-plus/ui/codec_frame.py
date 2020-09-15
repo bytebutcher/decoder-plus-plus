@@ -14,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import uuid
+
 import qtawesome
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
@@ -40,15 +42,14 @@ class CodecFrame(CollapsibleFrame):
     configButtonClicked = pyqtSignal(str)  # frame_id
     closeButtonClicked = pyqtSignal(str)  # frame_id
     pluginSelected = pyqtSignal(str, str, 'PyQt_PyObject')  # frame_id, input_text, plugin
+    pluginDeselected = pyqtSignal(str)  # frame_id
 
-    def __init__(self, parent, context: Context, tab_id: str, frame_id: str, codec_tab, plugins: Plugins, previous_frame, text):
-        super(__class__, self).__init__(parent, context, frame_id, previous_frame, None)
-        self._listener = self._context.listener()
-        self._context.shortcutUpdated.connect(self._shortcut_updated_event)
-        self._init_logger(context, frame_id)
+    def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: Plugins, text):
+        super(__class__, self).__init__(parent, context, uuid.uuid4().hex)
+
         self._tab_id = tab_id
-        self._frame_id = frame_id
-        self._codec_tab = codec_tab
+        self._codec_frames = codec_frames
+        self._context.shortcutUpdated.connect(self._shortcut_updated_event)
         self._plugins = plugins
         self._flash_event = None
 
@@ -58,49 +59,44 @@ class CodecFrame(CollapsibleFrame):
         self.addWidget(self._init_button_frame())
 
         self._init_header()
-        self.show()
 
-    def _init_logger(self, context, frame_id):
-        """ Initializes the logger. Encapsulates logger-instance to enhance standard-logging with frame-id. """
-        self._logger = context.logger()
-        # BUG: Using logging with custom field frame_id does not work correctly.
-        # FIX: ???
-        #self._logger = context.logger(log_format="%(module)s: %(frame_id)d: %(lineno)d: %(msg)s",log_fields={'frame_id': frame_id})
+        self.show()
 
     def _init_header(self):
 
-        codec_frame_header = CodecFrameHeader(self)
+        self._header_frame.addWidget(CodecFrameHeader.TitleHeaderItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.ContentPreviewHeaderItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.HSpacerItem(self))
 
-        codec_frame_header.addWidget(CodecFrameHeader.TitleHeaderItem(self, codec_frame_header))
-        codec_frame_header.addWidget(CodecFrameHeader.ContentPreviewHeaderItem(self, codec_frame_header))
-        codec_frame_header.addWidget(CollapsibleFrame.HeaderFrame.HSpacerItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.TypeHeaderItem(self))
 
-        codec_frame_header.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
-        codec_frame_header.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self, codec_frame_header))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self))
 
-        codec_frame_header.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
-        codec_frame_header.addWidget(CodecFrameHeader.ContentLengthInfoHeaderItem(self, codec_frame_header))
-        codec_frame_header.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.ContentLengthInfoHeaderItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
 
         def button_clicked_event(event, signal):
             if event.button() == QtCore.Qt.LeftButton:
                 signal.emit(self.id())
 
-        up_button_header_item = CodecFrameHeader.UpButtonHeaderItem(self, codec_frame_header)
+        up_button_header_item = CodecFrameHeader.UpButtonHeaderItem(self)
         up_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.upButtonClicked))
-        codec_frame_header.addWidget(up_button_header_item)
+        self._header_frame.addWidget(up_button_header_item)
 
-        down_button_header_item = CodecFrameHeader.DownButtonHeaderItem(self, codec_frame_header)
+        down_button_header_item = CodecFrameHeader.DownButtonHeaderItem(self)
         down_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.downButtonClicked))
-        codec_frame_header.addWidget(down_button_header_item)
+        self._header_frame.addWidget(down_button_header_item)
 
-        config_button_header_item = CodecFrameHeader.ConfigButtonHeaderItem(self, codec_frame_header)
+        config_button_header_item = CodecFrameHeader.ConfigButtonHeaderItem(self)
         config_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.configButtonClicked))
-        codec_frame_header.addWidget(config_button_header_item)
+        self._header_frame.addWidget(config_button_header_item)
 
-        close_button_header_item = CodecFrameHeader.CloseButtonHeaderItem(self, codec_frame_header)
+        close_button_header_item = CodecFrameHeader.CloseButtonHeaderItem(self)
         close_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.closeButtonClicked))
-        codec_frame_header.addWidget(close_button_header_item)
+        self._header_frame.addWidget(close_button_header_item)
 
     def _init_input_frame(self, text):
         input_frame = QFrame(self)
@@ -115,7 +111,7 @@ class CodecFrame(CollapsibleFrame):
         button_frame = QFrame(self)
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
-        self._combo_box_frame.titleSelected.connect(self._combo_box_title_selected_event)
+        self._combo_box_frame.titleSelected.connect(lambda: self.pluginDeselected.emit(self.id()))
         self._combo_box_frame.pluginSelected.connect(lambda plugin: self.pluginSelected.emit(self.id(), self.getInputText(), plugin))
         button_frame_layout.addWidget(self._combo_box_frame)
         self._smart_decode_button = SmartDecodeButton(self, self._plugins.filter(type=PluginType.DECODER))
@@ -169,10 +165,6 @@ class CodecFrame(CollapsibleFrame):
         self._logger.info("Possible match: {}".format(decoder.title()))
         self.selectComboBoxEntryByPlugin(decoder)
 
-    def _combo_box_title_selected_event(self):
-        self._codec_tab.removeFrames(self._next_frame)
-        self.focusInputText()
-
     def id(self) -> str:
         return self._frame_id
 
@@ -205,7 +197,7 @@ class CodecFrame(CollapsibleFrame):
         return self._plain_view_widget.toPlainText()
 
     def getComboBoxes(self):
-        return self._combo_boxes
+        return self._combo_box_frame
 
     def cutSelectedInputText(self):
         self._plain_view_widget.cutSelectedInputText()
@@ -230,6 +222,61 @@ class CodecFrame(CollapsibleFrame):
             self.selectComboBoxEntryByPlugin(plugin, blockSignals=blockSignals)
             self.getPlugin().setup(plugin.config().toDict())
             self.frameChanged.emit(self.id())
+
+    def title(self) -> str:
+        """ Returns the title of the current frame which is either the title of the previous plugin or None. """
+        if self.hasPreviousFrame():
+            return self.getPreviousFrame().getPlugin().title()
+
+    def name(self) -> str:
+        """ Returns the name of the current frame which is either the title of the previous plugin or None. """
+        if self.hasPreviousFrame():
+            return self.getPreviousFrame().getPlugin().name()
+
+    def type(self) -> str:
+        """ Returns the type of the current frame which is either the type of the previous plugin or "None". """
+        if self.hasPreviousFrame():
+            return self.getPreviousFrame().getPlugin().type() or "None"
+        return "None"
+
+    def description(self) -> str:
+        """
+        Returns the description of the current frame which is either the description of the previous plugin or None.
+        """
+        if self.hasPreviousFrame():
+            if not isinstance(self.getPreviousFrame().getPlugin(), NullPlugin):
+                return self.getPreviousFrame().getPlugin().__doc__
+
+    def isConfigurable(self):
+        """ Checks whether the plugin which computes the input is configurable. """
+        if self.hasPreviousFrame():
+            plugin = self.getPreviousFrame().getPlugin()
+            return plugin and plugin.is_configurable()
+        return False
+
+    def getFrameIndex(self) -> int:
+        """ Returns the index of the codec frame. """
+        return self._codec_frames.getFrameIndex(self._frame_id)
+
+    def getFrame(self) -> 'ui.codec_frame.CodecFrame':
+        """ Returns the current frame if exists, otherwise an exception is thrown. """
+        return self._codec_frames.getFrameByIndex(self.getFrameIndex())
+
+    def hasPreviousFrame(self) -> bool:
+        """ Checks whether there is a previous frame. Returns either True or False. """
+        return self._codec_frames.hasPreviousFrame(self.getFrameIndex())
+
+    def getPreviousFrame(self) -> 'ui.codec_frame.CodecFrame':
+        """ Returns the previous frame if any, otherwise an exception is thrown. """
+        return self._codec_frames.getFrameByIndex(self.getFrameIndex() - 1)
+
+    def hasNextFrame(self) -> bool:
+        """ Checks whether there is a next frame. Returns either True or False. """
+        return self._codec_frames.hasNextFrame(self.getFrameIndex())
+
+    def getNextFrame(self) -> 'ui.codec_frame.CodecFrame':
+        """ Returns the next frame if any, otherwise an exception is thrown. """
+        return self._codec_frames.getFrameByIndex(self.getFrameIndex() + 1)
 
     def fromDict(self, frame_config):
         self.setInputText(frame_config["text"])

@@ -21,60 +21,97 @@ from PyQt5.QtWidgets import QVBoxLayout, QFrame, QShortcut, QDialogButtonBox
 from ui import MainWindow, MainWindowWidget, CodecTab
 
 
-class DecoderPlusPlusDialog(MainWindow):
-
-    def __init__(self, context: 'core.context.Context', input: str=None):
-        super().__init__(context, input)
-        self._user_input = input
-        self._application_was_canceled = True
-        layout = QVBoxLayout()
-        self._codec_tab_widget = CodecTab(self, self._context, context.plugins())
-        self._codec_tab_widget.getFocusedFrame().setInputText(input)
-        layout.addWidget(self._codec_tab_widget)
-        layout.addWidget(self._init_button_box())
-        self._main_window_widget = QFrame()
-        self._main_window_widget.setLayout(layout)
-        self.setCentralWidget(self._main_window_widget)
-        self._setup_shortcuts()
-        self.show()
-
-    def _setup_shortcuts(self):
-        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
-        ctrl_return_shortcut.activated.connect(self._accept)
-        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
-        alt_return_shortcut.activated.connect(self._accept)
-        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_O), self)
-        alt_o_shortcut.activated.connect(self._accept)
-
-    def _init_button_box(self):
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self._accept)
-        button_box.rejected.connect(self._reject)
-        return button_box
-
-    def _accept(self):
-        self._application_was_canceled = False
-        self.close()
-
-    def _reject(self):
-        self.close()
-
-    def closeEvent(self, event):
-        if self._application_was_canceled:
-            print(self._user_input, end='')
-        else:
-            codec_frames = self._codec_tab_widget.getFrames()
-            print(codec_frames[-1].getInputText(), end = '')
-        event.accept()
-
 class DecoderPlusPlusWindow(MainWindow):
+    """ The DecoderPlusPlus application. """
 
     def __init__(self, context: 'core.context.Context', input: str=None):
+        """
+        Initializes the DecoderPlusPlus application.
+        :param context: the application context.
+        :param input: the user input.
+        """
         super().__init__(context, input)
         self._main_window_widget = MainWindowWidget(self, self._context, input)
         self.setCentralWidget(self._main_window_widget)
         self.show()
 
     def newTab(self, input: str):
-        """ Opens a new tab. """
+        """ Opens a new tab with the specified input as content for the first codec frame. """
         self._main_window_widget.newTab(input)
+
+
+class DecoderPlusPlusDialog(MainWindow):
+    """
+    The DecoderPlusPlusDialog with OK- and Cancel button.
+    When the OK-button is triggered the transformed text is printed to stdout.
+    When the Cancel-button is triggered or the user exist the application in any other way the initial input is
+    printed to stdout.
+    """
+
+    def __init__(self, context: 'core.context.Context', input: str=None):
+        """
+        Initializes the DecoderPlusPlus dialog.
+        :param context: the application context.
+        :param input: the user input.
+        """
+        super().__init__(context, input)
+
+        # Store the initial user input which is returned when the user cancels application.
+        self._user_input = input
+
+        # As long as the "OK"-button is not triggered we assume that the application was closed by the user.
+        self._application_was_canceled = True
+
+        # Build main window
+        self._main_window_widget = QFrame()
+        self._main_window_widget.setLayout(QVBoxLayout())
+        self._codec_tab_widget = CodecTab(self, self._context, context.plugins())
+        self._codec_tab_widget.frames().getFocusedFrame().setInputText(input)
+        self._main_window_widget.layout().addWidget(self._codec_tab_widget)
+        self._main_window_widget.layout().addWidget(self._init_button_box())
+        self.setCentralWidget(self._main_window_widget)
+
+        # Setup additional shortcuts to allow user to quickly hit the accept button.
+        self._setup_shortcuts()
+
+        # Do not show statusbar in dialog mode.
+        self.statusBar().hide()
+
+        # Show dialog.
+        self.show()
+
+    def _setup_shortcuts(self):
+        """ Setup shortcuts to allow user to quickly hit the accept button. """
+        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
+        ctrl_return_shortcut.activated.connect(self.onAccept)
+        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
+        alt_return_shortcut.activated.connect(self.onAccept)
+        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_O), self)
+        alt_o_shortcut.activated.connect(self.onAccept)
+
+    def _init_button_box(self):
+        """ Initialize the central dialog buttons.  """
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.onAccept)
+        button_box.rejected.connect(self.onReject)
+        button_box.setContentsMargins(0, 35, 0, 0)
+        return button_box
+
+    def onAccept(self):
+        """ """
+        self._application_was_canceled = False
+        self.close()
+
+    def onReject(self):
+        self.close()
+
+    def closeEvent(self, event):
+        """ Handles the closeEvent which is triggered when the user exits the application. """
+        if self._application_was_canceled:
+            # Return the initial user input (here: no change) when user cancelled application.
+            print(self._user_input, end='')
+        else:
+            # Return the transformed input when user triggered the OK-button.
+            codec_frames = self._codec_tab_widget.getFrames()
+            print(codec_frames[-1].getInputText(), end = '')
+        super().closeEvent(event)

@@ -26,16 +26,13 @@ from ui.widget.elided_label import ElidedLabel
 
 
 class CodecFrameHeader(QFrame):
-
     class AbstractCodecFrameHeaderItem(CollapsibleFrame.HeaderFrame.AbstractHeaderFrameItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
-            self.header = header
             self.codec_frame = codec_frame
 
     class ClickableCodecFrameHeaderItem(AbstractCodecFrameHeaderItem):
-
         clicked = pyqtSignal('PyQt_PyObject')  # event
         doubleClicked = pyqtSignal('PyQt_PyObject')  # event
 
@@ -53,28 +50,51 @@ class CodecFrameHeader(QFrame):
 
     class TitleHeaderItem(AbstractCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
             frm_title_frame = QFrame(self)
             frm_title_frame_layout = QHBoxLayout()
             frm_title_frame_layout.setContentsMargins(0, 0, 0, 0)
-            self._title = QLabel(self.header.title())
+            self._title = QLabel(self.codec_frame.title())
             self._title.setTextFormat(Qt.PlainText)
-            self._title.setToolTip(self.header.description())
+            self._title.setToolTip(self.codec_frame.description())
             frm_title_frame_layout.addWidget(self._title)
             frm_title_frame.setLayout(frm_title_frame_layout)
             return frm_title_frame
 
         def refresh(self):
-            self._title.setText(self.header.title())
+            self._title.setText(self.codec_frame.title())
+
+    class TypeHeaderItem(AbstractCodecFrameHeaderItem):
+
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
+            self.setCentralWidget(self._init_central_widget())
+
+        def _init_central_widget(self):
+            frm_type = QFrame(self)
+            frm_type_layout = QHBoxLayout()
+            frm_type_layout.setContentsMargins(0, 0, 0, 0)
+            lbl_type = QLabel("Type:")
+            frm_type_layout.addWidget(lbl_type)
+            self._txt_type = QLabel(self.codec_frame.type())
+            self._txt_type.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            minimum_width = self._txt_type.fontMetrics().boundingRect("000000").width()
+            self._txt_type.setMinimumWidth(minimum_width)
+            frm_type_layout.addWidget(self._txt_type)
+            frm_type.setLayout(frm_type_layout)
+            return frm_type
+
+        def refresh(self):
+            self._txt_type.setText(self.codec_frame.type())
 
     class ContentPreviewHeaderItem(AbstractCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
@@ -95,8 +115,8 @@ class CodecFrameHeader(QFrame):
 
     class LineCountInfoHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
@@ -120,8 +140,8 @@ class CodecFrameHeader(QFrame):
 
     class ContentLengthInfoHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
@@ -145,61 +165,61 @@ class CodecFrameHeader(QFrame):
 
     class UpButtonHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
             self._lbl_icon_up = IconLabel(self, qtawesome.icon("fa.chevron-up"))
             self._lbl_icon_up.setHoverEffect(True)
             self._lbl_icon_up.setToolTip("Move up")
-            self._lbl_icon_up.setEnabled(self.codec_frame.hasPrevious() and self.codec_frame.previous().hasPrevious())
+            self._lbl_icon_up.setEnabled(self.codec_frame.getFrameIndex() >= 2)
             self._lbl_icon_up.clicked.connect(self.clicked)
             return self._lbl_icon_up
 
         def refresh(self):
-            self._lbl_icon_up.setEnabled(self.codec_frame.hasPrevious() and self.codec_frame.previous().hasPrevious())
+            self._lbl_icon_up.setEnabled(self.codec_frame.getFrameIndex() >= 2)
 
     class DownButtonHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
             self._lbl_icon_down = IconLabel(self, qtawesome.icon("fa.chevron-down"))
             self._lbl_icon_down.setHoverEffect(True)
             self._lbl_icon_down.setToolTip("Move down")
-            self._lbl_icon_down.setEnabled(self.codec_frame.hasNext())
+            self._lbl_icon_down.setEnabled(self.codec_frame.hasNextFrame())
             self._lbl_icon_down.clicked.connect(self.clicked)
             return self._lbl_icon_down
 
         def refresh(self):
             # Only when there is a next codec frame it can be moved down.
             # Note, that the first codec frame can not be moved either.
-            self._lbl_icon_down.setEnabled(self.codec_frame.hasNext() and self.codec_frame.hasPrevious())
+            self._lbl_icon_down.setEnabled(self.codec_frame.hasNextFrame() and self.codec_frame.hasPreviousFrame())
 
     class ConfigButtonHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
             self._lbl_icon_config = IconLabel(self, qtawesome.icon("fa.cog"))
             self._lbl_icon_config.setHoverEffect(True)
-            self._lbl_icon_config.setEnabled(self.header.isConfigurable())
+            self._lbl_icon_config.setEnabled(self.codec_frame.isConfigurable())
             self._lbl_icon_config.setToolTip("Configure")
             self._lbl_icon_config.clicked.connect(self.clicked)
             return self._lbl_icon_config
 
         def refresh(self):
-            self._lbl_icon_config.setEnabled(self.header.isConfigurable())
+            self._lbl_icon_config.setEnabled(self.codec_frame.isConfigurable())
 
     class CloseButtonHeaderItem(ClickableCodecFrameHeaderItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame', header: 'ui.codec_frame_header.CodecFrameHeader'):
-            super(__class__, self).__init__(codec_frame, header)
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
@@ -208,36 +228,9 @@ class CodecFrameHeader(QFrame):
             self._lbl_icon_close.setToolTip("Close")
             self._lbl_icon_close.clicked.connect(self.clicked)
             # First codec frame can not be closed
-            self._lbl_icon_close.setEnabled(self.codec_frame.hasPrevious())
+            self._lbl_icon_close.setEnabled(self.codec_frame.hasPreviousFrame())
             return self._lbl_icon_close
 
-
-    def __init__(self, codec_frame):
-        super(__class__, self).__init__()
-        self._codec_frame = codec_frame
-        self._context = codec_frame._context
-
-    def addWidget(self, widget: QWidget):
-        """ Adds a widget to the header. """
-        self._codec_frame.header().addWidget(widget)
-
-    def title(self) -> str:
-        """ Returns the title of the current frame which is either the title of the previous plugin or None. """
-        if self._codec_frame.hasPrevious():
-            return self._codec_frame.previous().getPlugin().title()
-        return None
-
-    def description(self) -> str:
-        """
-        Returns the description of the current frame which is either the description of the previous plugin or None.
-        """
-        if self._codec_frame.hasPrevious():
-            if not isinstance(self._codec_frame.previous().getPlugin(), NullPlugin):
-                return self._codec_frame.previous().getPlugin().__doc__
-
-    def isConfigurable(self):
-        """ Checks whether the plugin which computes the input is configurable. """
-        if self._codec_frame.hasPrevious():
-            plugin = self._codec_frame.previous().getPlugin()
-            return plugin and plugin.is_configurable()
-        return False
+        def refresh(self):
+            # First codec frame can not be closed
+            self._lbl_icon_close.setEnabled(self.codec_frame.hasPreviousFrame())

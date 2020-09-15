@@ -36,38 +36,81 @@ class PluginConfig(object):
 
     class Option(object):
 
-        def __init__(self, name, value, description, is_required=True):
-            """
-            :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
-            :param value: the default value of the option  (e.g. "foo", 42, False, ...).
-            :param description: the description of the option.
-            :param is_required: defines whether the user needs to configure this option (default = True).
-            """
-            self.name = name
-            self.value = value
-            self.description = description
-            self.is_required = is_required
-            self.is_initialized = False
+        class Base(object):
 
-    class OptionGroup(Option):
-        """ A option with group name and checked status. """
+            def __init__(self, name, value, description, is_required=True, validator=None):
+                """
+                :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
+                :param value: the default value of the option  (e.g. "foo", 42, False, ...).
+                :param description: the description of the option.
+                :param is_required: defines whether the user needs to configure this option (default = True).
+                :param validator: by default validator is None which indicates that no validation is performed.
+                                  otherwise a callback function is expected which should be able to take two arguments,
+                                  the config and the value. the callback is expected to return None when validation
+                                  succeeded or a string containing the error message when validation failed.
+                """
+                self.name = name
+                self.value = value
+                self.description = description
+                self.is_required = is_required
+                self.is_initialized = False
+                self._validator = validator
 
-        def __init__(self, name, value, description, is_required, group_name, is_checked):
-            """
-            :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
-            :param value: the default value of the option  (e.g. "foo", 42, False, ...).
-            :param description: the description of the option.
-            :param is_required: defines whether the user needs to configure this option (default = True).
-            :param group_name: defines whether the option is associated with another group of options (default = None).
-            :param is_checked: defines whether the option is checked. Within a option group there should only be one
-            checked option.
-            """
-            super(PluginConfig.OptionGroup, self).__init__(name, value, description, is_required)
-            self.group_name = group_name
-            self.is_checked = is_checked
+            def validate(self, config, value):
+                if self._validator:
+                    return self._validator(config, value)
 
-    def __init__(self, context: "core.context.Context"):
-        self._context = context
+            def __deepcopy__(self, memo):
+                """ Makes a deep copy of the option while reusing callable's. """
+                cls = self.__class__
+                result = cls.__new__(cls)
+                memo[id(self)] = result
+                for k, v in self.__dict__.items():
+                    setattr(result, k, v if callable(v) else copy.deepcopy(v, memo))
+                return result
+
+        class String(Base):
+
+            def __init__(self, name, value, description, is_required, validator=None):
+                """
+                :param value: the string (e.g. "ab cd ef gh ij kl mn op qr st uv wx yz").
+                """
+                super(PluginConfig.Option.String, self).__init__(name, value, description, is_required, validator)
+
+        class Integer(Base):
+
+            def __init__(self, name, value, description, is_required, validator=None, range=None):
+                """
+                :param value: the integer (e.g. ..., -2, -1, 0, 1, 2, ...).
+                :param range: a list containing the minimum and maximum (e.g. [-2, 2])
+                """
+                super(PluginConfig.Option.Integer, self).__init__(name, value, description, is_required, validator)
+                self.range = range
+
+        class Boolean(Base):
+
+            def __init__(self, name, value, description, is_required, validator=None):
+                """
+                :param value: the boolean value (e.g. True/False).
+                """
+                super(PluginConfig.Option.Boolean, self).__init__(name, value, description, is_required, validator)
+
+            def _is_checked(self):
+                return bool(self.value)
+
+            is_checked = property(_is_checked)
+
+        class Group(Boolean):
+            """ A option with group name and checked status. """
+
+            def __init__(self, name, value, description, is_required, group_name, validator=None):
+                """
+                :param group_name: defines whether the option is associated with another group of options.
+                """
+                super(PluginConfig.Option.Group, self).__init__(name, value, description, is_required, validator)
+                self.group_name = group_name
+
+    def __init__(self):
         self._config = {}
 
     def add(self, option: Option):
@@ -85,17 +128,23 @@ class PluginConfig(object):
         return self._config[name].value
 
     def keys(self):
-        """ Returns the individual configuration options. """
+        """ Returns the individual configuration option names. """
         return self._config.keys()
+
+    def items(self):
+        """ Returns the individual configuration options. """
+        return self._config.items()
 
     def count(self) -> int:
         """ Returns the number of configuration options. """
         return len(self._config.keys())
 
-    def update(self, options):
+    def update(self, options, ignore_invalid=False):
         """
         Updates the value for each specified option.
         :param options: either a name-value-dictionary or an instance of PluginConfig.
+        :param ignore_invalid: when set to True an exception will be thrown when illegal options are
+                                discovered (default = False).
 
         If options is a name-value dictionary the is_initialized attribute of the associated PluginConfigOption
         is set to True, to indicate that the option was manually configured.
@@ -107,13 +156,33 @@ class PluginConfig(object):
         if isinstance(options, PluginConfig):
             self._config = options._config
         else:
+            def uncheck_group(group_name):
+                """ Unchecks every option within the specified group. """
+                for option in self._config.items():
+                    if type(option) == PluginConfig.Option.Group and option.group_name == group_name:
+                        option.value = False
+
             for option_name in options.keys():
-                self._config[option_name].value = options[option_name]
-                self._config[option_name].is_initialized = True
+                if option_name not in self._config:
+                    if not ignore_invalid:
+                        raise KeyError("Unknown plugin configuration option '{}={}'!".format(
+                            option_name, options[option_name]))
+                    continue
+
+                option = self._config[option_name]
+
+                # When option is within a group, mark it as checked and uncheck all other options
+                if type(option) == PluginConfig.Option.Group:
+                    uncheck_group(option.group_name)
+
+                option.value = options[option_name]
+
+                # Mark option as initialized
+                option.is_initialized = True
 
     def clone(self) -> 'PluginConfig':
         """ Returns a deep copy of the plugin configuration. """
-        plugin_config = PluginConfig(self._context)
+        plugin_config = PluginConfig()
         plugin_config._config = copy.deepcopy(self._config)
         return plugin_config
 
@@ -123,6 +192,10 @@ class PluginConfig(object):
     def toDict(self):
         """ Returns the plugin configuration as dictionary. """
         return copy.deepcopy(self._config)
+
+    def toJSON(self):
+        """ Returns the json representation of the configuration. """
+        return json.dumps(self._config, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 
 class AbstractPlugin(object):
@@ -143,15 +216,14 @@ class AbstractPlugin(object):
         self._type = type
         self._author = author
         self._dependencies = dependencies
-        self._config = PluginConfig(context)
+        self._config = PluginConfig()
         self._context = context
-        self._logger = context.logger()
         self._aborted = False
 
     def setup(self, config: dict):
         """ Injects a given configuration into the plugin. """
         for name, value in config.items():
-            setattr(self, name, value)
+            self._config.add(value)
 
     def logger(self) -> Logger:
         """ Returns an logger instance which can be used within the plugin. """
@@ -172,7 +244,20 @@ class AbstractPlugin(object):
         """
         :returns all required options which are currently not configured.
         """
-        return [key for key in self._config.keys() if self._config.get(key).is_required and not self._config.get(key).is_initialized]
+        configured_groups = []
+        for key in self._config.keys():
+            option = self._config.get(key)
+            if type(option) == PluginConfig.Option.Group and option.is_required and option.is_initialized:
+                configured_groups.append(option.group_name)
+
+        unconfigured_options = []
+        for key in self._config.keys():
+            option = self._config.get(key)
+            if option.is_required and not option.is_initialized:
+                if type(option) == PluginConfig.OptionGroup and option.group_name not in configured_groups:
+                    unconfigured_options.append(key)
+
+        return unconfigured_options
 
     def name(self, safe_name=False) -> str:
         """
@@ -210,7 +295,7 @@ class AbstractPlugin(object):
         Checks whether all specified dependencies can be loaded.
         :returns a list of unresolved dependencies, or an empty list if all dependencies could be resolved.
         """
-        self._logger.debug("Checking dependencies for {} {}".format(self.name(), self.type()))
+        self._context.logger().debug("Checking dependencies for {} {}".format(self.name(), self.type()))
         unresolved_dependencies = []
         if self._dependencies:
             for dependency in self._dependencies:
@@ -312,6 +397,15 @@ class AbstractPlugin(object):
 
     def __hash__(self):
         return hash(self.__key())
+
+    def __deepcopy__(self, memo):
+        """ Makes a deep copy of the option while reusing callable's. """
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, v if callable(v) else copy.deepcopy(v, memo))
+        return result
 
     def toDict(self):
         return {

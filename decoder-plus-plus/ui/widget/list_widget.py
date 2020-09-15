@@ -68,7 +68,7 @@ class ListWidget(QListView):
 
     def setFilterCaseSensitive(self, cs: int):
         """
-        Sets the case-sensitivity of the proxy-model.
+        Sets the case-sensitivity of the proxy-controller.
         :param cs: the case-sensitivity (QtCore.Qt.CaseSensitive, QtCore.Qt.CaseInsensitive).
         """
         self.model().setFilterCaseSensitivity(cs)

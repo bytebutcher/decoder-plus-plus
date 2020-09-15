@@ -124,7 +124,7 @@ class ComboBoxFrame(QFrame):
         try:
             combo_box = self._combo_boxes[type]
             name = combo_box.itemText(index)
-            plugin = copy.copy(self._plugins.plugin(name, type))
+            plugin = copy.deepcopy(self._plugins.plugin(name, type))
             if plugin in self._plugin_history:
                 plugin = self._plugin_history[plugin]
             else:

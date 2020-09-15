@@ -26,14 +26,30 @@ class Plugin(ScriptPlugin):
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Filter Lines', "Thomas Engel", [], context)
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Filter_Term, "", "term to filter by"))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Should_Match_Case, True, "defines whether filter should match case", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Should_Invert_Match, False, "defines whether filter should invert match", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.Is_Regex, False, "defines whether filter term is a regex", False))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.Filter_Term,
+            value="",
+            description="term to filter by",
+            is_required=True
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.Should_Match_Case,
+            value=True,
+            description="defines whether filter should match case",
+            is_required=False
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.Should_Invert_Match,
+            value=False,
+            description="defines whether filter should invert match",
+            is_required=False
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.Is_Regex,
+            value=False,
+            description="defines whether filter term is a regex",
+            is_required=False
+        ))
         self._dialog = None
         self._dialog_return_code = QDialog.Accepted
 

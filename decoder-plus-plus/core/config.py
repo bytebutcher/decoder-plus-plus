@@ -23,14 +23,6 @@ class Config(QSettings):
     def __init__(self):
         super().__init__('net.bytebutcher', 'decoder++')
 
-    def getName(self) -> str:
-        """ Returns the name of the application. """
-        return "Decoder++"
-
-    def getVersion(self) -> str:
-        """ Returns the version of the application. """
-        return "1.0b"
-
     def isDebugModeEnabled(self) -> bool:
         """ Returns whether debug mode is enabled (True = enabled, False = disabled). """
         return self.value('debug', "False") == "True"

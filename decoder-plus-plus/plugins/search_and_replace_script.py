@@ -21,14 +21,30 @@ class Plugin(ScriptPlugin):
     def __init__(self, context):
         # Name, Author, Dependencies
         super().__init__('Search & Replace', "Thomas Engel", [], context)
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.SearchTerm, "", "the word or phrase to replace"))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.ReplaceTerm, "", "the word or phrase used as replacement"))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.ShouldMatchCase, True, "defines whether the search term should match case", False))
-        self.config().add(PluginConfig.Option(
-            Plugin.Option.IsRegex, False, "defines whether the search term is a regular expression", False))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.SearchTerm,
+            value="",
+            description="the word or phrase to replace",
+            is_required=True
+        ))
+        self.config().add(PluginConfig.Option.String(
+            name=Plugin.Option.ReplaceTerm,
+            value="",
+            description="the word or phrase used as replacement",
+            is_required=True
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.ShouldMatchCase,
+            value=True,
+            description="defines whether the search term should match case",
+            is_required=False
+        ))
+        self.config().add(PluginConfig.Option.Boolean(
+            name=Plugin.Option.IsRegex,
+            value=False,
+            description="defines whether the search term is a regular expression",
+            is_required=False
+        ))
         self._dialog = None
         self._dialog_return_code = QDialog.Accepted
 

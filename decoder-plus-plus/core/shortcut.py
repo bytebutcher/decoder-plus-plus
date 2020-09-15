@@ -66,4 +66,4 @@ class NullShortcut(Shortcut):
     def __init__(self):
         self._widget = QWidget()
         # id, name, shortcut_key, callback, widget
-        super(NullShortcut, self).__init__("", "", "", lambda: None, self._widget)
+        super(__class__, self).__init__("", "", "", lambda: None, self._widget)

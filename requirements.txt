@@ -4,3 +4,5 @@ QtAwesome
 pysha3
 passlib
 fuzzywuzzy
+filemagic
+hashid

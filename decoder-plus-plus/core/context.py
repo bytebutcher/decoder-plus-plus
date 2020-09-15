@@ -41,6 +41,12 @@ class Context(QObject):
 
     shortcutUpdated = pyqtSignal('PyQt_PyObject')
 
+    class Mode:
+        """ A list of different application modes. """
+        GRAPHICAL_UI = "gfx" # graphical user interface
+        COMMAND_LINE = "cmd" # command shell
+        INTERACTIVE = "interactive" # Python Interactive Shell
+
     class Shortcut:
         """ A set of all shortcut ids which can be used within the application. """
 
@@ -87,13 +93,13 @@ class Context(QObject):
         self._logger = {}
         self._config = self._init_config()
         self._debug_mode = self._config.isDebugModeEnabled()
-        self._init_excepthook()
         self._listener = Listener(self)
         self._plugins = Plugins([
             os.path.join(self.getAppPath(), "plugins"),
             os.path.join(str(Path.home()), ".config", "dpp", "plugins")], self)
         self._shortcuts = {}
         self._installed_packages = []
+        self._mode = None
 
     def _init_config(self):
         """ Returns the configuration. Might return None when initialization fails. """
@@ -124,29 +130,13 @@ class Context(QObject):
 
         return logger
 
-    def _init_excepthook(self):
-        """
-        Initializes an excepthook which handles uncaught exceptions.
-        @see https://fman.io/blog/pyqt-excepthook/
-        """
+    def getAppName(self) -> str:
+        """ Returns the name of the application. """
+        return "Decoder++"
 
-        def excepthook(exc_type, exc_value, exc_tb):
-            enriched_tb = _add_missing_frames(exc_tb) if exc_tb else exc_tb
-            self.logger().debug("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
-
-        def _add_missing_frames(tb):
-            result = fake_tb(tb.tb_frame, tb.tb_lasti, tb.tb_lineno, tb.tb_next)
-            frame = tb.tb_frame.f_back
-            while frame:
-                result = fake_tb(frame, frame.f_lasti, frame.f_lineno, result)
-                frame = frame.f_back
-            return result
-
-        fake_tb = namedtuple(
-            'fake_tb', ('tb_frame', 'tb_lasti', 'tb_lineno', 'tb_next')
-        )
-
-        sys.excepthook = excepthook
+    def getAppVersion(self) -> str:
+        """ Returns the version of the application. """
+        return "1.0.0"
 
     def getAppPath(self):
         """ Returns the path where the main application is located. """
@@ -156,6 +146,14 @@ class Context(QObject):
     def getAppID(self):
         """ Returns the ID of the application. """
         return self._app_id
+
+    def setMode(self, mode: str):
+        """ Sets the mode (see ``Context.Mode``) in which the application is currently running. """
+        self._mode = mode
+
+    def mode(self) -> str:
+        """ :returns the mode (see ``Context.Mode``) the application is currently running in or None if unspecified. """
+        return self._mode
 
     def setDebugMode(self, status: bool, temporary=False):
         """ Enables/Disables debug mode. """
@@ -264,3 +262,7 @@ class Context(QObject):
     def saveAsFile(self, filename: str, content: str):
         with open(filename, "w") as f:
             f.write(content)
+
+    def __deepcopy__(self, memo):
+        """ There shall be only one. """
+        return self

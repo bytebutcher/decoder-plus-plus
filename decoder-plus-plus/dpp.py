@@ -15,13 +15,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
 import signal
 import sys
 import argparse
+from collections import namedtuple
 from typing import List
 
 # Load fuzzywuzzy while ignoring unnecessary warning about missing levenstein package.
 import warnings
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from fuzzywuzzy import process
@@ -35,58 +38,74 @@ from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlus
 from core.plugin.plugin import PluginType
 
 from ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
-from ui.single_instance import SingleInstance
+from ui.instance_handler import InstanceHandler
 
 # Abort program execution on ctrl+c
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+
 def init_builder(context: 'core.context.Context'):
 
     def _init_builder(plugin: 'core.plugin.plugins.PluginHolder', clazz):
-        def list(self) -> List[str]:
-            return [method for method in dir(self) if not method.startswith("_") and
+        def list(self, filter_terms=()) -> List[str]:
+            codecs = [method for method in dir(self) if not method.startswith("_") and
                     method not in ["list", "decode", "encode", "hash", "script", "run"]]
+            return [codec for codec in codecs if all(filter_term in codec for filter_term in filter_terms)]
 
         # Add list method to clazz.
-        setattr(clazz, "list", lambda this: list(this))
+        setattr(clazz, "list", list)
 
         # Add plugins to clazz.
-        def runner(_plugin):
+        def runner(plugin):
 
-            def _show_help():
+            def sys_exit(exit_code):
+                """ Wraps the sys.exit call. Only sys.exit in command line mode. """
+                if context.mode() == Context.Mode.COMMAND_LINE:
+                    sys.exit(exit_code)
+
+            def show_help():
                 """ Shows the plugin config options. """
 
-                def _max_length(attr, title):
+                def max_length(attr, title):
                     """ :returns the maximum string length of a specific plugin option attribute. """
                     lens = [len(title)]
-                    for key in _plugin.config().keys():
-                        lens.append(len(str(getattr(_plugin.config().get(key), attr))))
+                    for key in plugin.config().keys():
+                        if hasattr(plugin.config().get(key), attr):
+                            lens.append(len(str(getattr(plugin.config().get(key), attr))))
                     return max(lens)
 
                 # Print title
-                print(len(_plugin.name()) * '=')
-                print(_plugin.name())
-                print(len(_plugin.name()) * '=')
+                print()
+                print(plugin.name())
+                print(len(plugin.name()) * '=')
                 print()
 
                 # Print header
-                name_max_length = _max_length("name", "Name")
-                value_max_length = _max_length("value", "Value")
-                row_format = "{:>" + str(name_max_length) + "}  {:<" + str(value_max_length) + "}  {:<8}  {}"
-                print(row_format.format("Name", "Value", "Required", "Description"))
-                print(row_format.format("----", "-----", "--------", "-----------"))
+                name_max_length = max_length("name", "Name")
+                value_max_length = max_length("value", "Value")
+                group_max_length = max_length("group_name", "Group")
+                row_format = "{:>" + str(name_max_length) + "}  " + \
+                             "{:<" + str(value_max_length) + "}  " + \
+                             "{:<" + str(group_max_length) + "}  " + \
+                             "{:<8}  " + \
+                             "{}"
+                print(row_format.format("Name", "Value", "Group", "Required", "Description"))
+                print(row_format.format("----", "-----", "-----", "--------", "-----------"))
 
                 # Print rows
-                for key in _plugin.config().keys():
-                    option = _plugin.config().get(key)
+                for key in plugin.config().keys():
+                    option = plugin.config().get(key)
                     if type(option.value) == type(True):
                         value = "True" if bool(option.value) else "False"
                     else:
                         value = option.value
+                    group_name = option.group_name if hasattr(option, "group_name") else ""
                     is_required = "yes" if option.is_required else "no"
-                    print(row_format.format(option.name, value, is_required, option.description))
+                    print(row_format.format(option.name, value, group_name, is_required, option.description))
 
-            def _natural_join(list):
+                print()
+
+            def natural_join(list):
                 """ Joins a list of strings (e.g. ["1", "2", "3"] => "1, 2 and 3"). """
                 if not list:
                     return ""
@@ -95,31 +114,32 @@ def init_builder(context: 'core.context.Context'):
                 else:
                     return " and ".join([", ".join(list[:-1]), list[-1]])
 
-            def _configure(config):
-                invalid_plugin_options = [key for key in config if key not in _plugin.config().keys()]
-                if invalid_plugin_options:
-                    invalid_plugin_option = invalid_plugin_options[0]
-                    suggestions = [result for result in process.extract(invalid_plugin_option, _plugin.config().keys())]
-                    suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
-                    context.logger().error("Can not run '{}'! Invalid option {}. {}".format(
-                        _plugin.name(safe_name=True), invalid_plugin_option, suggestion))
-                    sys.exit(1)
+            def _runner(self, **kwargs):
 
-                _plugin.config().update(config)
+                plugin.config().update(kwargs, ignore_invalid=True)
 
-                unconfigured_plugin_options = _plugin.is_unconfigured()
+                if "help" in kwargs.keys():
+                    show_help()
+                    return sys_exit(0)
+
+                if plugin.is_configurable() and plugin.is_unconfigured():
+                    invalid_plugin_options = [key for key in kwargs if key not in plugin.config().keys()]
+                    if invalid_plugin_options:
+                        invalid_plugin_option = invalid_plugin_options[0]
+                        suggestions = [result for result in
+                                       process.extract(invalid_plugin_option, plugin.config().keys())]
+                        suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
+                        context.logger().error("Can not run '{}'! Invalid option {}. {}".format(
+                            plugin.name(safe_name=True), invalid_plugin_option, suggestion))
+                        return sys_exit(1)
+
+                unconfigured_plugin_options = plugin.is_unconfigured()
                 if unconfigured_plugin_options:
                     context.logger().error("Can not run '{}'! Missing required option {}.".format(
-                        _plugin.name(safe_name=True), _natural_join(unconfigured_plugin_options)))
-                    sys.exit(1)
+                        plugin.name(safe_name=True), natural_join(unconfigured_plugin_options)))
+                    return sys_exit(1)
 
-            def _runner(self, **kwargs):
-                if "help" in kwargs.keys():
-                    _show_help()
-                    sys.exit(0)
-                if _plugin.is_configurable() and _plugin.is_unconfigured():
-                    _configure(kwargs)
-                self._input = _plugin.run(self._input)
+                self._input = plugin.run(self._input)
                 return self
             return _runner
 
@@ -143,6 +163,30 @@ def setup_syntax_completion():
     else:
         import rlcompleter
         readline.parse_and_bind("tab: complete")
+
+
+def setup_excepthook(logger):
+    """
+    Setup the excepthook which logs uncaught exceptions instead of throwing them around.
+    @see https://fman.io/blog/pyqt-excepthook/
+    """
+    def _excepthook(exc_type, exc_value, exc_tb):
+        enriched_tb = _add_missing_frames(exc_tb) if exc_tb else exc_tb
+        logger.debug("Uncaught exception", exc_info=(exc_type, exc_value, enriched_tb))
+
+    def _add_missing_frames(tb):
+        result = fake_tb(tb.tb_frame, tb.tb_lasti, tb.tb_lineno, tb.tb_next)
+        frame = tb.tb_frame.f_back
+        while frame:
+            result = fake_tb(frame, frame.f_lasti, frame.f_lineno, result)
+            frame = frame.f_back
+        return result
+
+    fake_tb = namedtuple(
+        'fake_tb', ('tb_frame', 'tb_lasti', 'tb_lineno', 'tb_next')
+    )
+
+    sys.excepthook = _excepthook
 
 
 def get_input(context, args):
@@ -195,6 +239,9 @@ def get_plugin_config(arguments):
 
 
 if __name__ == '__main__':
+    # Abort program execution on ctrl+c
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     # Loads logger, config and plugins.
     context = Context("net.bytebutcher.decoder_plus_plus", namespace=locals())
 
@@ -216,13 +263,15 @@ if __name__ == '__main__':
                             help="opens new instance instead of new tab in already running instance.")
         parser.add_argument('--dialog', action='store_true',
                             help="opens a dialog which returns the transformed text when done.")
+        parser.add_argument('-l', '--list-codecs', nargs='*', metavar="FILTER_TERM",
+                            help="lists all available codecs or those matching the filter terms.")
         parser.add_argument('-e', '--encode', dest="encode", action=OrderedMultiArgs,
                             help="encodes the input using the specified codec(s).")
         parser.add_argument('-d', '--decode', action=OrderedMultiArgs,
                             help="decodes the input using the specified codec(s)")
         parser.add_argument('-h', '--hash', action=OrderedMultiArgs,
                             help="transforms the input using the specified hash-functions")
-        parser.add_argument('-s', '--script', nargs='+', action=OrderedMultiArgs,
+        parser.add_argument('-s', '--script', nargs='+', action=OrderedMultiArgs, metavar="OPTION=VALUE",
                             help="transforms the input using the specified script (optional arguments)")
         parser.add_argument('--debug', action='store_true',
                             help="activates debug mode with extensive logging. Output will be written into dpp.log "
@@ -233,21 +282,76 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(0)
 
+        if args.script and not args.file and not args.input:
+            scripts = [arg[1] for arg in args.ordered_args if arg[0] == 'script']
+            args.input = scripts.pop(-1).pop(-1)
+
         if args.debug:
             # Enable debug mode for current session.
             context.setDebugMode(True, temporary=True)
 
-        if not args.encode and not args.decode and not args.script and not args.hash and not args.interactive:
-            # Start GUI when no other parameters were used.
+        if args.interactive:
+
+            def run_interactive_mode():
+                """ Run interactive mode. """
+
+                def usage():
+                    print(os.linesep.join([
+                        'dpp(<input>).',
+                        '   encode().base64().base32().',
+                        '   decode().base32().',
+                        '   hash().md5().',
+                        '   script().clone().',
+                        '   run()'
+                    ]))
+
+                def __list_codecs(attr, args):
+                    return getattr(DecoderPlusPlus(""), attr)().list(args)
+
+                # Update application mode
+                context.setMode(Context.Mode.INTERACTIVE)
+
+                # Setup tab completion
+                setup_syntax_completion()
+
+                # Setup functions to list individual codecs
+                encoders = lambda *args: __list_codecs("encode", args)
+                decoders = lambda *args: __list_codecs("decode", args)
+                hashes = lambda *args: __list_codecs("hash", args)
+                scripts = lambda *args: __list_codecs("script", args)
+
+                # Setup shorthand for the DecoderPlusPlus class
+                dpp = DecoderPlusPlus
+
+                # Start interactive python shell
+                import code
+                banner = os.linesep.join([
+                    'Decoder++ Python Console v{version}'.format(version=context.getAppVersion()),
+                    'Type "copyright", "credits", "license" or "help" for more information.',
+                    'Type "encoders", "decoders", "hashes" or "scripts" to show a list of codecs.',
+                    'Type "usage" to show general usage information.'
+                ])
+                code.InteractiveConsole(locals=locals()).interact(banner=banner)
+
+            # Run interactive mode in namespace of function.
+            run_interactive_mode()
+            sys.exit(0)
+
+        # Start GUI when no other parameters were used.
+        if not args.encode and not args.decode and not args.script and not args.hash and not type(args.list_codecs) == list:
+            # Setup excepthook to handle uncaught exceptions.
+            setup_excepthook(context.logger())
+            # Update application mode
+            context.setMode(Context.Mode.GRAPHICAL_UI)
             try:
                 app = QApplication(sys.argv)
-                instance = SingleInstance(app, context.getAppID())
+                instance_handler = InstanceHandler(app, context.getAppID())
                 input = get_input(context, args)
                 if args.dialog:
                     context.logger().info("Starting Decoder++ Dialog...")
                     ex = DecoderPlusPlusDialog(context, input)
                     sys.exit(app.exec_())
-                if instance.isAlreadyRunning():
+                if instance_handler.isAlreadyRunning():
                     context.logger().info("Application is already running...")
                     if args.new_instance:
                         context.logger().info("Starting Decoder++ GUI in new instance...")
@@ -255,23 +359,37 @@ if __name__ == '__main__':
                         sys.exit(app.exec_())
                     else:
                         context.logger().info("Opening new tab in already running instance...")
-                        instance.newTab(input)
+                        instance_handler.newTab(input)
                         sys.exit(0)
                 else:
                     context.logger().info("Starting Decoder++ GUI...")
                     ex = DecoderPlusPlusWindow(context, input)
-                    instance.received.connect(ex.newTab)
+                    instance_handler.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:
                 context.logger().exception("Unexpected Exception: {}".format(e), exc_info=context.isDebugModeEnabled())
                 sys.exit(1)
 
-        if args.interactive:
-            setup_syntax_completion()
-            import code
-            print("Loading {app_name} ({app_version})".format(app_name=context.config().getName(),
-                                                              app_version=context.config().getVersion()))
-            code.InteractiveConsole(locals=globals()).interact()
+        if type(args.list_codecs) == list:
+            filter_terms = args.list_codecs
+            row_format = "{:<20}  {}"
+            print()
+            print(row_format.format("Codec", "Type"))
+            print(row_format.format("-----", "----"))
+            for plugin in context.plugins():
+                plugin_name = plugin.method_name().lower()
+                plugin_type = plugin.type().lower()
+                if filter_terms:
+                    has_match = True
+                    for filter_term in filter_terms:
+                        filter_term = filter_term.lower()
+                        if filter_term not in plugin_name and filter_term not in plugin_type:
+                            has_match = False
+                            break
+                    if not has_match:
+                        continue
+                print(row_format.format(plugin_name, plugin_type))
+            print()
             sys.exit(0)
 
         if not args.encode and not args.decode and not args.script and not args.hash:
@@ -287,15 +405,16 @@ if __name__ == '__main__':
             sys.exit(1)
 
         # Command line usage
+        context.setMode(Context.Mode.COMMAND_LINE)
         input = get_input(context, args)
-
         builder = DecoderPlusPlus(input)
         for name, values in args.ordered_args:
             method_name = values.pop(0)
             action_type = get_action_type(context, builder, name)
             plugin_action = get_plugin_action(context, name, action_type, method_name)
             show_plugin_help = "help" in values
-            plugin_config = get_plugin_config(values) if not show_plugin_help else {"help": True}
+            plugin_config = get_plugin_config(filter(lambda x: x != "help", values))
+            if show_plugin_help: plugin_config["help"] = True
             builder = plugin_action(**plugin_config)
 
         print(builder.run())

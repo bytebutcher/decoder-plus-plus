@@ -21,6 +21,8 @@ import qtawesome
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
+from core import Context
+from core.model import Model
 from ui import CodecTab, TabBar
 from ui.builder.action_builder import ActionBuilder
 from ui.widget.search_field import SearchField
@@ -40,13 +42,13 @@ class MainWindowTabsWidget(QTabWidget):
     # tabMovedToNext(old_index, new_index, name)
     tabMovedToNext = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
-    def __init__(self, context, plugins, parent=None):
+    def __init__(self, context: Context, plugins, parent=None):
         super(__class__, self).__init__(parent)
         self._parent = parent
         self._context = context
+        self._current_tab_number = 1
         self._init_listener(context)
         self._plugins = plugins
-        self._current_tab_number = 1
         bar = TabBar()
         bar.customContextMenuRequested.connect(self._show_context_menu)
         bar.tabRenamed.connect(self.tabRenamed.emit)
@@ -106,7 +108,7 @@ class MainWindowTabsWidget(QTabWidget):
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Rename Tab")
-                       .callback(self.tabBar().renameTab).build())
+                       .callback(self.tabBar().rename_tab).build())
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Close Tab")
@@ -122,17 +124,17 @@ class MainWindowTabsWidget(QTabWidget):
         Opens a new tab and writes input into first codec-frame.
         :param input: The input which should be placed into the first codec-frame.
         """
+        codec_tab = CodecTab(self, self._context, self._plugins)
         name = "Tab {}".format(self._current_tab_number)
         self._current_tab_number += 1
-        codec_tab = CodecTab(self, self._context, self._plugins)
         self.insertTab(self.count() - 1, codec_tab, name)
         index = self.count() - 2
         self.setCurrentIndex(index)
         self.tabAdded.emit(index, name)
-        codec_tab.getFocusedFrame().setInputText(input)
+        codec_tab.frames().getFocusedFrame().setInputText(input)
         # BUG: Input-text of newly added codec-tab is not focused correctly.
         # FIX: Refocus input-text.
-        codec_tab.getFocusedFrame().focusInputText()
+        codec_tab.frames().getFocusedFrame().focusInputText()
         return index, codec_tab
 
     def renameTab(self, index, title):
