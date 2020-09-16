@@ -69,9 +69,9 @@ def init_builder(context: 'core.context.Context'):
                 def max_length(attr, title):
                     """ :returns the maximum string length of a specific plugin option attribute. """
                     lens = [len(title)]
-                    for key in plugin.config().keys():
-                        if hasattr(plugin.config().get(key), attr):
-                            lens.append(len(str(getattr(plugin.config().get(key), attr))))
+                    for key in plugin.config.keys():
+                        if hasattr(plugin.config.get(key), attr):
+                            lens.append(len(str(getattr(plugin.config.get(key), attr))))
                     return max(lens)
 
                 # Print title
@@ -81,7 +81,7 @@ def init_builder(context: 'core.context.Context'):
                 print()
 
                 # Print header
-                name_max_length = max_length("name", "Name")
+                name_max_length = max_length("key", "Name")
                 value_max_length = max_length("value", "Value")
                 group_max_length = max_length("group_name", "Group")
                 row_format = "{:>" + str(name_max_length) + "}  " + \
@@ -93,15 +93,15 @@ def init_builder(context: 'core.context.Context'):
                 print(row_format.format("----", "-----", "-----", "--------", "-----------"))
 
                 # Print rows
-                for key in plugin.config().keys():
-                    option = plugin.config().get(key)
+                for key in plugin.config.keys():
+                    option = plugin.config.get(key)
                     if type(option.value) == type(True):
                         value = "True" if bool(option.value) else "False"
                     else:
                         value = option.value
                     group_name = option.group_name if hasattr(option, "group_name") else ""
                     is_required = "yes" if option.is_required else "no"
-                    print(row_format.format(option.name, value, group_name, is_required, option.description))
+                    print(row_format.format(option.key, value, group_name, is_required, option.description))
 
                 print()
 
@@ -116,18 +116,18 @@ def init_builder(context: 'core.context.Context'):
 
             def _runner(self, **kwargs):
 
-                plugin.config().update(kwargs, ignore_invalid=True)
+                plugin.config.update(kwargs, ignore_invalid=True)
 
                 if "help" in kwargs.keys():
                     show_help()
                     return sys_exit(0)
 
                 if plugin.is_configurable() and plugin.is_unconfigured():
-                    invalid_plugin_options = [key for key in kwargs if key not in plugin.config().keys()]
+                    invalid_plugin_options = [key for key in kwargs if key not in plugin.config.keys()]
                     if invalid_plugin_options:
                         invalid_plugin_option = invalid_plugin_options[0]
                         suggestions = [result for result in
-                                       process.extract(invalid_plugin_option, plugin.config().keys())]
+                                       process.extract(invalid_plugin_option, plugin.config.keys())]
                         suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
                         context.logger().error("Can not run '{}'! Invalid option {}. {}".format(
                             plugin.name(safe_name=True), invalid_plugin_option, suggestion))
@@ -409,6 +409,10 @@ if __name__ == '__main__':
         input = get_input(context, args)
         builder = DecoderPlusPlus(input)
         for name, values in args.ordered_args:
+            if not values:
+                # No input supplied (e.g. dpp --script search_and_replace)
+                parser.print_help()
+                sys.exit(1)
             method_name = values.pop(0)
             action_type = get_action_type(context, builder, name)
             plugin_action = get_plugin_action(context, name, action_type, method_name)

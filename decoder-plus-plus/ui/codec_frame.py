@@ -175,6 +175,12 @@ class CodecFrame(CollapsibleFrame):
         else:
             return NullPlugin(self._context)
 
+    def status(self):
+        return self._status_widget.status()
+
+    def setStatus(self, type, message):
+        self._status_widget.setStatus(type, message)
+
     def flashStatus(self, status, message):
         self._header_frame.indicateError(status is "ERROR")
         self._status_widget.setStatus(status, message)
@@ -290,6 +296,7 @@ class CodecFrame(CollapsibleFrame):
     def toDict(self):
         status_type, status_message = self._status_widget.status()
         return {
+            "title": self.title(),
             "text": self.getInputText(),
             "is_collapsed": self.isCollapsed(),
             "status": {

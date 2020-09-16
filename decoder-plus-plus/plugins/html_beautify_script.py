@@ -8,7 +8,7 @@ class Plugin(ScriptPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('HTML Beautify', "Thomas Engel", [], context)
+        super().__init__('HTML Beautify', "Thomas Engel", ["lxml"], context)
 
     def run(self, text):
         from lxml import etree, html

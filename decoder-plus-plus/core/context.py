@@ -91,8 +91,8 @@ class Context(QObject):
         self._app_id = app_id
         self._namespace = namespace
         self._logger = {}
-        self._config = self._init_config()
-        self._debug_mode = self._config.isDebugModeEnabled()
+        self.config = self._init_config()
+        self._debug_mode = self.config.isDebugModeEnabled()
         self._listener = Listener(self)
         self._plugins = Plugins([
             os.path.join(self.getAppPath(), "plugins"),
@@ -112,7 +112,7 @@ class Context(QObject):
     def _init_logger(self, log_format):
         """ Returns the logger. """
         logger = logging.getLogger(self._app_id)
-        log_level = logging.DEBUG if self._config.isDebugModeEnabled() else logging.WARN
+        log_level = logging.DEBUG if self.config.isDebugModeEnabled() else logging.WARN
 
         logging.root.setLevel(log_level)
         console_logger = logging.StreamHandler(sys.stderr)
@@ -158,7 +158,7 @@ class Context(QObject):
     def setDebugMode(self, status: bool, temporary=False):
         """ Enables/Disables debug mode. """
         if not temporary:
-            self._config.setDebugMode(status)
+            self.config.setDebugMode(status)
         self._debug_mode = status
         logging.root.setLevel(logging.DEBUG if status else logging.INFO)
         status_string = "enabled" if status else "disabled"
@@ -166,15 +166,11 @@ class Context(QObject):
 
     def toggleDebugMode(self):
         """ Toggles the debug-mode on/off. """
-        self.setDebugMode(not self._config.isDebugModeEnabled())
+        self.setDebugMode(not self.config.isDebugModeEnabled())
 
     def isDebugModeEnabled(self):
         """ Returns whether the debug mode is currently configured or temporary enabled. """
-        return self._config.isDebugModeEnabled() or self._debug_mode
-
-    def config(self) -> Config:
-        """ Returns the main configuration of the application. """
-        return self._config
+        return self.config.isDebugModeEnabled() or self._debug_mode
 
     def namespace(self):
         """
@@ -219,13 +215,13 @@ class Context(QObject):
         :param the_callback: the callback which should be triggered when the shortcut is used.
         :param the_widget: the widget to which the shortcut is bound to.
         """
-        the_shortcut_key = self._config.getShortcutKey(the_id)
+        the_shortcut_key = self.config.getShortcutKey(the_id)
         if not the_shortcut_key:
             the_shortcut_key = the_default_shortcut_key
         self.logger().debug("Registering shortcut {} to {}".format(the_id, the_shortcut_key))
         shortcut = Shortcut(the_id, the_name, the_shortcut_key, the_callback, the_widget)
         self._shortcuts[the_id] = shortcut
-        self._config.setShortcutKey(the_id, the_shortcut_key)
+        self.config.setShortcutKey(the_id, the_shortcut_key)
         self.shortcutUpdated.emit(shortcut)
         return shortcut
 
@@ -242,7 +238,7 @@ class Context(QObject):
         self.logger().debug("Updating shortcut {} to {}".format(the_id, the_shortcut_key))
         shortcut = self._shortcuts[the_id]
         shortcut.setKey(the_shortcut_key)
-        self._config.setShortcutKey(the_id, the_shortcut_key)
+        self.config.setShortcutKey(the_id, the_shortcut_key)
         self.shortcutUpdated.emit(shortcut)
 
     def getShortcuts(self) -> List[Shortcut]:

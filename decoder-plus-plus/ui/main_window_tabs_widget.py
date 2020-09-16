@@ -22,7 +22,6 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
 from core import Context
-from core.model import Model
 from ui import CodecTab, TabBar
 from ui.builder.action_builder import ActionBuilder
 from ui.widget.search_field import SearchField
@@ -139,6 +138,7 @@ class MainWindowTabsWidget(QTabWidget):
 
     def renameTab(self, index, title):
         self.tabBar().setTabText(index, title)
+        return self.tab(index)
 
     def selectTab(self, index):
         if index < 0 or index > self.count() - 2:

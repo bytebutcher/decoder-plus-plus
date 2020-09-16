@@ -20,13 +20,11 @@ import json
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
 from core import Context
-from core.model import Model
 from core.plugin.plugin import PluginType
 from ui import CodecTab
 from ui.codec_frame import CodecFrame
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
-from ui.widget.status_widget import StatusWidget
 
 
 class MainWindowWidget(QWidget):
@@ -281,15 +279,19 @@ class MainWindowWidget(QWidget):
                     save_file = json.loads(f.read())
                     for tab_config in save_file:
                         index, tab = self.newTab()
-                        self._tabs.renameTab(index, tab_config["name"])
                         frame_index = 0
                         for frame_config in tab_config["frames"]:
                             if frame_index == 0:
                                 # New tabs already contain one empty frame
-                                frame = tab.getFrames()[0]
+                                frame = tab.frames().getFrames()[0]
                                 frame.setInputText(frame_config["text"])
+                                frame.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
                             else:
-                                frame = tab.newFrame(frame_config["text"], frame_config["title"], StatusWidget.DEFAULT)
+                                frame = tab.frames().newFrame(frame_config["text"],
+                                                              frame_config["title"],
+                                                              frame_index,
+                                                              frame_config["status"]["type"],
+                                                              frame_config["status"]["message"])
                             frame.fromDict(frame_config)
                             frame_index = frame_index + 1
                 self._context.logger().info("Successfully loaded {}!".format(filename))
@@ -300,7 +302,6 @@ class MainWindowWidget(QWidget):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
         if filename:
             try:
-                print(self._tabs.toDict())
                 self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
                 self._context.logger().info("Successfully saved session in {}!".format(filename))
             except Exception as e:

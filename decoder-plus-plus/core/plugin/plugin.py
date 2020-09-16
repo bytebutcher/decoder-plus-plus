@@ -36,29 +36,38 @@ class PluginConfig(object):
 
     class Option(object):
 
+        class Label(object):
+
+            def __init__(self, key, name):
+                self.key = key
+                self.name = name
+
+            def __str__(self):
+                return self.key
+
         class Base(object):
 
-            def __init__(self, name, value, description, is_required=True, validator=None):
+            def __init__(self, label, value, description, is_required=True):
                 """
-                :param name: the name of the option (e.g. "search", "replace", "is_case_insensitive", ...).
+                :param label: the label of the option (e.g. OptionLabel("search", "Search:"), ...).
                 :param value: the default value of the option  (e.g. "foo", 42, False, ...).
                 :param description: the description of the option.
                 :param is_required: defines whether the user needs to configure this option (default = True).
-                :param validator: by default validator is None which indicates that no validation is performed.
-                                  otherwise a callback function is expected which should be able to take two arguments,
-                                  the config and the value. the callback is expected to return None when validation
-                                  succeeded or a string containing the error message when validation failed.
                 """
-                self.name = name
+                self.label = label
                 self.value = value
                 self.description = description
                 self.is_required = is_required
                 self.is_initialized = False
-                self._validator = validator
 
-            def validate(self, config, value):
-                if self._validator:
-                    return self._validator(config, value)
+            def _name(self):
+                return self.label.name
+
+            def _key(self):
+                return self.label.key
+
+            def __str__(self):
+                self._key()
 
             def __deepcopy__(self, memo):
                 """ Makes a deep copy of the option while reusing callable's. """
@@ -69,31 +78,34 @@ class PluginConfig(object):
                     setattr(result, k, v if callable(v) else copy.deepcopy(v, memo))
                 return result
 
+            name = property(fget=_name)
+            key = property(fget=_key)
+
         class String(Base):
 
-            def __init__(self, name, value, description, is_required, validator=None):
+            def __init__(self, label, value, description, is_required):
                 """
                 :param value: the string (e.g. "ab cd ef gh ij kl mn op qr st uv wx yz").
                 """
-                super(PluginConfig.Option.String, self).__init__(name, value, description, is_required, validator)
+                super(PluginConfig.Option.String, self).__init__(label, value, description, is_required)
 
         class Integer(Base):
 
-            def __init__(self, name, value, description, is_required, validator=None, range=None):
+            def __init__(self, label, value, description, is_required, range=None):
                 """
                 :param value: the integer (e.g. ..., -2, -1, 0, 1, 2, ...).
                 :param range: a list containing the minimum and maximum (e.g. [-2, 2])
                 """
-                super(PluginConfig.Option.Integer, self).__init__(name, value, description, is_required, validator)
+                super(PluginConfig.Option.Integer, self).__init__(label, value, description, is_required)
                 self.range = range
 
         class Boolean(Base):
 
-            def __init__(self, name, value, description, is_required, validator=None):
+            def __init__(self, label, value, description, is_required):
                 """
                 :param value: the boolean value (e.g. True/False).
                 """
-                super(PluginConfig.Option.Boolean, self).__init__(name, value, description, is_required, validator)
+                super(PluginConfig.Option.Boolean, self).__init__(label, value, description, is_required)
 
             def _is_checked(self):
                 return bool(self.value)
@@ -103,29 +115,43 @@ class PluginConfig(object):
         class Group(Boolean):
             """ A option with group name and checked status. """
 
-            def __init__(self, name, value, description, is_required, group_name, validator=None):
+            def __init__(self, label, value, description, is_required, group_name):
                 """
                 :param group_name: defines whether the option is associated with another group of options.
                 """
-                super(PluginConfig.Option.Group, self).__init__(name, value, description, is_required, validator)
+                super(PluginConfig.Option.Group, self).__init__(label, value, description, is_required)
                 self.group_name = group_name
 
     def __init__(self):
         self._config = {}
+        self._validators = {}
 
-    def add(self, option: Option):
+    def add(self, option: Option.Base, validator=None):
         """
         Adds an option to the plugin configuration.
+
+        :param option: the option to store.
+        :param validator: by default validator is None which indicates that no validation is performed.
+                          otherwise a callback function is expected which should be able to take three arguments,
+                          the config, the codec and the value. the callback is expected to return None when validation
+                          succeeded or a string containing the error message when validation failed.
         """
-        self._config[option.name] = option
+        self._config[option.key] = option
+        self._validators[option.key] = validator
 
-    def get(self, name) -> Option:
+    def get(self, label: Option.Label) -> Option:
         """ Returns the option with the specified name. """
-        return self._config[name]
+        if isinstance(label, PluginConfig.Option.Label):
+            return self._config[label.key]
+        else:
+            return self._config[label]
 
-    def value(self, name) -> str:
+    def value(self, label: Option.Label) -> str:
         """ Returns the value of the option with the specified name. """
-        return self._config[name].value
+        if isinstance(label, PluginConfig.Option.Label):
+            return self._config[label.key].value
+        else:
+            return self._config[label].value
 
     def keys(self):
         """ Returns the individual configuration option names. """
@@ -184,7 +210,16 @@ class PluginConfig(object):
         """ Returns a deep copy of the plugin configuration. """
         plugin_config = PluginConfig()
         plugin_config._config = copy.deepcopy(self._config)
+        plugin_config._validators = self._validators
         return plugin_config
+
+    def validate(self, option: Option.Base, codec, input) -> str:
+        """ Returns True if validation succeeded, else error message. """
+        if option.key in self._validators and self._validators[option.key] is not None:
+            message = self._validators[option.key](self, codec, input)
+            if message is not None:
+                return message
+        return True
 
     def __str__(self):
         return json.dumps(self._config, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -216,45 +251,41 @@ class AbstractPlugin(object):
         self._type = type
         self._author = author
         self._dependencies = dependencies
-        self._config = PluginConfig()
+        self.config = PluginConfig()
         self._context = context
         self._aborted = False
 
     def setup(self, config: dict):
         """ Injects a given configuration into the plugin. """
         for name, value in config.items():
-            self._config.add(value)
+            self.config.add(value)
 
     def logger(self) -> Logger:
         """ Returns an logger instance which can be used within the plugin. """
         return self._context.logger()
-
-    def config(self) -> PluginConfig:
-        """ Returns the current configuration of the plugin if any, else None. """
-        return self._config
 
     def is_configurable(self) -> bool:
         """
         Returns whether the plugin can be configured.
         :return: True, when configurable, otherwise False.
         """
-        return self._config.count() > 0
+        return self.config.count() > 0
 
     def is_unconfigured(self) -> List[str]:
         """
         :returns all required options which are currently not configured.
         """
         configured_groups = []
-        for key in self._config.keys():
-            option = self._config.get(key)
+        for key in self.config.keys():
+            option = self.config.get(key)
             if type(option) == PluginConfig.Option.Group and option.is_required and option.is_initialized:
                 configured_groups.append(option.group_name)
 
         unconfigured_options = []
-        for key in self._config.keys():
-            option = self._config.get(key)
+        for key in self.config.keys():
+            option = self.config.get(key)
             if option.is_required and not option.is_initialized:
-                if type(option) == PluginConfig.OptionGroup and option.group_name not in configured_groups:
+                if type(option) == PluginConfig.Option.Group and option.group_name not in configured_groups:
                     unconfigured_options.append(key)
 
         return unconfigured_options
@@ -367,7 +398,7 @@ class AbstractPlugin(object):
 
     def is_enabled(self) -> bool:
         """ :returns whether the plugin is enabled/disabled. """
-        return self._context.config().getPluginStatus(self.full_name())
+        return self._context.config.getPluginStatus(self.full_name())
 
     def is_runnable(self) -> bool:
         """ :returns whether the plugin can be run. Usually true, except for NullPlugin. """
@@ -375,7 +406,7 @@ class AbstractPlugin(object):
 
     def set_enabled(self, status):
         """ Sets the status of the plugin to enabled/disabled. """
-        self._context.config().setPluginStatus(self.full_name(), status)
+        self._context.config.setPluginStatus(self.full_name(), status)
 
     def set_aborted(self, status):
         """ Sets whether the execution of the plugin was aborted by the user. """
@@ -411,7 +442,7 @@ class AbstractPlugin(object):
         return {
             "name": self.name(),
             "type": self.type(),
-            "config": self.config().toDict()
+            "config": self.config.toDict()
         }
 
 

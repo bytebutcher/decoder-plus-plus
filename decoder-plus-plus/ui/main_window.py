@@ -109,9 +109,9 @@ class MainWindow(QMainWindow):
 
     def _init_window_size(self):
         """ Initializes the window size. Looks and uses any previously saved sizing. """
-        size = self._context.config().getSize()
+        size = self._context.config.getSize()
         if size:
-            self.resize(self._context.config().getSize())
+            self.resize(self._context.config.getSize())
         self.setMinimumWidth(520)
         self.setMinimumHeight(300)
 
@@ -187,8 +187,8 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """
-        self._context.config().setSize(self.size())
-        self._context.config().setPosition(self.pos())
+        self._context.config.setSize(self.size())
+        self._context.config.setPosition(self.pos())
         e.accept()
 
     def setWindowIcon(self, icon: QIcon):
