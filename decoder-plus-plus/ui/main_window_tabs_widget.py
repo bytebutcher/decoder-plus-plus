@@ -61,10 +61,6 @@ class MainWindowTabsWidget(QTabWidget):
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
-        #
-        # >> CornerWidget with search field (Preview)
-        #
-        # self.setCornerWidget(self._init_search_field(), QtCore.Qt.TopRightCorner)
 
     def _init_search_field(self):
         search_field_frame = QFrame()

@@ -23,7 +23,7 @@ from core import Context
 from core.plugin import PluginType
 from ui import CodecTab
 from ui.codec_frame import CodecFrame
-from ui.dialog.hidden_dialog import HiddenDialog
+from ui.dialog.config_dialog import ConfigDialog
 from ui.main_window_tabs_widget import MainWindowTabsWidget
 
 
@@ -60,7 +60,7 @@ class MainWindowWidget(QWidget):
         help_menu = main_menu.addMenu('&Help')
         keyboard_shortcuts_action = QAction("&Keyboard Shortcuts...", self)
         keyboard_shortcuts_action.triggered.connect(
-            lambda: self._show_hidden_dialog(HiddenDialog.TAB_KEYBOARD_SHORTCUTS))
+            lambda: self._show_hidden_dialog(ConfigDialog.TAB_KEYBOARD_SHORTCUTS))
         help_menu.addAction(keyboard_shortcuts_action)
         about_action = QAction("&About", self)
         about_action.triggered.connect(self._show_hidden_dialog)
@@ -268,7 +268,7 @@ class MainWindowWidget(QWidget):
 
     def _show_hidden_dialog(self, tab_select: str = None):
         """ Shows the hidden dialog. """
-        hidden_dialog = HiddenDialog(self, self._context, tab_select)
+        hidden_dialog = ConfigDialog(self, self._context, tab_select)
         hidden_dialog.exec_()
 
     def _open_file(self):

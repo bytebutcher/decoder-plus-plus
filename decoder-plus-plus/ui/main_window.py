@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QMainWindow, QDockWidget, QTabBar
 
 from core.logging import LogEntry, LogFilter
 from ui import IconLabel
-from ui.dialog.hidden_dialog import HiddenDialog
+from ui.dialog.config_dialog import ConfigDialog
 from ui.dock.hex_dock import HexDock
 from ui.dock.ipython_dock import IPythonDock
 from ui.dock.log_dock import LogDock
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
 
     def _show_hidden_dialog(self):
         """ Shows the hidden dialog. """
-        hidden_dialog = HiddenDialog(self, self._context)
+        hidden_dialog = ConfigDialog(self, self._context)
         hidden_dialog.exec_()
 
     def _toggle_log_dock(self, *filters: List[str], **kwargs):

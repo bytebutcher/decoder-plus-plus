@@ -26,7 +26,7 @@ from ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
 from ui.widget.plugin_tab import PluginTab
 
 
-class HiddenDialog(QDialog):
+class ConfigDialog(QDialog):
 
     TAB_ABOUT = "About"
     TAB_PLUGINS = "Plugins"
@@ -45,13 +45,13 @@ class HiddenDialog(QDialog):
         tabs = QTabWidget()
 
         self._about_tab = self._init_about_tab()
-        tabs.insertTab(0, self._about_tab, HiddenDialog.TAB_ABOUT)
+        tabs.insertTab(0, self._about_tab, ConfigDialog.TAB_ABOUT)
 
         self._plugins_tab = self._init_plugins_tab()
-        tabs.insertTab(1, self._plugins_tab, HiddenDialog.TAB_PLUGINS)
+        tabs.insertTab(1, self._plugins_tab, ConfigDialog.TAB_PLUGINS)
 
         self._keyboard_shortcuts_tab = self._init_keyboard_shortcuts_tab()
-        tabs.insertTab(2, self._keyboard_shortcuts_tab, HiddenDialog.TAB_KEYBOARD_SHORTCUTS)
+        tabs.insertTab(2, self._keyboard_shortcuts_tab, ConfigDialog.TAB_KEYBOARD_SHORTCUTS)
 
         self._init_tab_selection(tabs, select_tab_name)
 

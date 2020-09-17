@@ -65,9 +65,6 @@ class CodecFrame(CollapsibleFrame):
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.HSpacerItem(self))
 
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
-        self._header_frame.addWidget(CodecFrameHeader.TypeHeaderItem(self))
-
-        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
         self._header_frame.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self))
 
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))

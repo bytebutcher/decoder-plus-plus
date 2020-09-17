@@ -17,7 +17,7 @@
 #
 from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
-from PyQt5.QtWidgets import QTableView, QStyledItemDelegate, QLineEdit
+from PyQt5.QtWidgets import QTableView
 from qtpy import QtWidgets
 
 from ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog

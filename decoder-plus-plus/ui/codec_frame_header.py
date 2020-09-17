@@ -67,29 +67,6 @@ class CodecFrameHeader(QFrame):
         def refresh(self):
             self._title.setText(self.codec_frame.title())
 
-    class TypeHeaderItem(AbstractCodecFrameHeaderItem):
-
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
-            super(__class__, self).__init__(codec_frame)
-            self.setCentralWidget(self._init_central_widget())
-
-        def _init_central_widget(self):
-            frm_type = QFrame(self)
-            frm_type_layout = QHBoxLayout()
-            frm_type_layout.setContentsMargins(0, 0, 0, 0)
-            lbl_type = QLabel("Type:")
-            frm_type_layout.addWidget(lbl_type)
-            self._txt_type = QLabel(self.codec_frame.type())
-            self._txt_type.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            minimum_width = self._txt_type.fontMetrics().boundingRect("000000").width()
-            self._txt_type.setMinimumWidth(minimum_width)
-            frm_type_layout.addWidget(self._txt_type)
-            frm_type.setLayout(frm_type_layout)
-            return frm_type
-
-        def refresh(self):
-            self._txt_type.setText(self.codec_frame.type())
-
     class ContentPreviewHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
