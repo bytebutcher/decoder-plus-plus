@@ -23,7 +23,7 @@ from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
-from core.logging.log_entry import LogEntry
+from core.logging import LogEntry
 from ui.widget.dock_widget import DockWidget
 from ui.widget.spacer import VSpacer
 

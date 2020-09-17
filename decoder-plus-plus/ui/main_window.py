@@ -24,8 +24,7 @@ from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QDockWidget, QTabBar
 
-from core.logging.log_entry import LogEntry
-from core.logging.log_filter import LogFilter
+from core.logging import LogEntry, LogFilter
 from ui import IconLabel
 from ui.dialog.hidden_dialog import HiddenDialog
 from ui.dock.hex_dock import HexDock
