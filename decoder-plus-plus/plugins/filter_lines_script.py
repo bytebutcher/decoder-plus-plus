@@ -2,14 +2,10 @@ import os
 import re
 import qtawesome
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFrame, QPlainTextEdit, QShortcut, \
-    QHBoxLayout, QCheckBox
+from PyQt5.QtWidgets import QDialog
 
 from core.exception import AbortedException
-from core.plugin.plugin import ScriptPlugin, PluginConfig
-from ui import SearchField
+from core.plugin import ScriptPlugin, PluginConfig
 from ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
 
 

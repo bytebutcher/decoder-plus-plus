@@ -19,16 +19,14 @@ import logging
 import os
 import subprocess
 import sys
-from collections import namedtuple
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction
 
-from core.config import Config
 from core.listener import Listener
-from core.plugin.plugins import AbstractPlugin, Plugins
+from core.plugin import AbstractPlugin, Plugins
 from core.shortcut import Shortcut, NullShortcut
 
 

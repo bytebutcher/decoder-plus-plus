@@ -21,10 +21,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
 from core import Context
-from core.exception import AbortedException
-from core.plugin.plugin_builder import PluginBuilder
-from core.plugin.plugins import Plugins
-from ui.codec_frame import CodecFrame
+from core.plugin import Plugins, PluginBuilder
 from ui.codec_frames import CodecFrames
 from ui.widget.spacer import VSpacer
 from ui.widget.status_widget import StatusWidget

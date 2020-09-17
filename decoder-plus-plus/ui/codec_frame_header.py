@@ -16,10 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QWidget
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
 from qtpy import QtCore
 
-from core.plugin.plugin import NullPlugin
 from ui import IconLabel
 from ui.widget.collapsible_frame import CollapsibleFrame
 from ui.widget.elided_label import ElidedLabel

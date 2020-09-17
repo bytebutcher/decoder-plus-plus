@@ -20,7 +20,7 @@ import json
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
 from core import Context
-from core.plugin.plugin import PluginType
+from core.plugin import PluginType
 from ui import CodecTab
 from ui.codec_frame import CodecFrame
 from ui.dialog.hidden_dialog import HiddenDialog

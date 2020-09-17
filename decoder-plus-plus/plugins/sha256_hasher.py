@@ -1,4 +1,4 @@
-from core.plugin.plugin import HasherPlugin
+from core.plugin import HasherPlugin
 
 class Plugin(HasherPlugin):
     """

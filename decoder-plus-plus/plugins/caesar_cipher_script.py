@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, Q
     QSlider, QHBoxLayout, QPushButton
 
 from core.exception import AbortedException
-from core.plugin.plugin import ScriptPlugin, PluginConfig
+from core.plugin import ScriptPlugin, PluginConfig
 
 
 class Plugin(ScriptPlugin):

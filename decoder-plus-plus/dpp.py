@@ -35,7 +35,7 @@ from core.argparse.ordered_multi_args import OrderedMultiArgs
 from core.argparse.single_args import SingleArgs
 from core.context import Context
 from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
-from core.plugin.plugin import PluginType
+from core.plugin import PluginType
 
 from ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
 from ui.instance_handler import InstanceHandler

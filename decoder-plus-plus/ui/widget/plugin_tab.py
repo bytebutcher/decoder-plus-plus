@@ -22,7 +22,8 @@ from PyQt5.QtCore import pyqtSignal, QModelIndex, QEvent
 from PyQt5.QtGui import QStandardItem, QBrush
 from PyQt5.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
 
-from core import Context, Plugins
+from core import Context
+from core.plugin import Plugins
 from ui.widget import ListWidget, SearchField
 from ui.widget.dyna_frame import DynaFrame
 from ui.widget.plugin_frame import PluginFrame

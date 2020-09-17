@@ -1,6 +1,4 @@
-import re
-
-from core.plugin.plugin import ScriptPlugin
+from core.plugin import ScriptPlugin
 
 
 class Plugin(ScriptPlugin):

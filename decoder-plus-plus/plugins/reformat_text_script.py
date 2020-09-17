@@ -5,11 +5,11 @@ import string
 import qtawesome
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QGroupBox, QFormLayout, QLineEdit, QCheckBox, \
-    QDialogButtonBox, QPlainTextEdit, QLayout, QHBoxLayout, QPushButton, QToolButton
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QLineEdit, QCheckBox, \
+    QDialogButtonBox, QPlainTextEdit, QHBoxLayout, QToolButton
 
 from core.exception import AbortedException
-from core.plugin.plugin import ScriptPlugin, PluginConfig
+from core.plugin import ScriptPlugin, PluginConfig
 from ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
 
 

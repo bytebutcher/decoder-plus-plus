@@ -1,4 +1,4 @@
-from core.plugin.plugin import EncoderPlugin
+from core.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
     """

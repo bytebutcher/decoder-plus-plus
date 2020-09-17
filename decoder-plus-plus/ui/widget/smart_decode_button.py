@@ -19,7 +19,7 @@ from typing import List
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton
 
-from core.plugin.plugin import DecoderPlugin
+from core.plugin import DecoderPlugin
 
 
 class SmartDecodeButton(QFrame):

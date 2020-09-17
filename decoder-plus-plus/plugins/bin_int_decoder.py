@@ -1,6 +1,4 @@
-import re
-
-from core.plugin.plugin import DecoderPlugin
+from core.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """

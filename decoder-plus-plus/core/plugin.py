@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import collections
 import copy
 import importlib
 import importlib.util
@@ -523,3 +524,154 @@ class NullPlugin(AbstractPlugin):
 
     def is_runnable(self) -> bool:
         return False
+
+
+class PluginBuilder:
+    """ Builds a plugin from a configuration item. """
+
+    def __init__(self, context: 'core.context.Context'):
+        self._context = context
+
+    def build(self, config) -> AbstractPlugin:
+        """ Returns a plugin as specified within configuration item. Returns a NullPlugin on error. """
+        try:
+            plugin = self._context.getPluginByName(config["name"], config["type"])
+            plugin.setup(config["config"])
+            return plugin
+        except Exception as e:
+            self._context.logger().debug("Error building plugin:")
+            self._context.logger().debug("> {}".format(config))
+            self._context.logger().exception(e)
+            return NullPlugin(self._context)
+
+
+class PluginLoader:
+    """ Loads python files of type Plugin from a specified folder. """
+
+    def __init__(self, context):
+        self._context = context
+        self._logger = context.logger()
+        self._unresolved_dependencies = {}
+        self._errors = {}
+        self._plugins_path = {}
+
+    def load(self, paths: List['str']) -> List[AbstractPlugin]:
+        """
+        Loads plugins from the specified paths and returns them in an ordered list.
+        :param path: the paths were plugin files (.py) are found.
+        :return: ordered list of plugins.
+        """
+        plugins = {}
+        for path in paths:
+            for f in os.listdir(path):
+                if f.endswith(".py"):
+                    plugin = self._load_plugin(path, f)
+                    if not plugin:
+                        self._logger.error("Loading plugin {} at {} failed!".format(path, f))
+                        continue
+                    plugins[plugin.name(safe_name=True)] = plugin
+        return [plugins[key] for key in sorted(plugins.keys())]
+
+    def _load_plugin(self, path, f):
+        self._logger.debug("Loading plugin at {}/{}".format(path, f))
+        sys.path.insert(0, path)
+        plugin = None
+        try:
+            fname, ext = os.path.splitext(f)
+            mod = __import__(fname)
+            plugin = mod.Plugin(self._context)
+        except Exception as e:
+            self._logger.error("{}: {}".format(f, str(e)))
+            self._errors[f] = str(e)
+            pass
+        sys.path.pop(0)
+        return plugin
+
+    def _get_plugins(self):
+        plugins = {}
+        for path in self._plugins_path:
+            for fname in self._plugins_path[path]:
+                plugins[fname] = self._plugins_path[path][fname]
+        return plugins
+
+
+class Plugins:
+    """ Defines a list of plugins and additional helper methods for working with them. """
+
+    def __init__(self, plugin_paths: List['str'], context: 'core.context.Context'):
+        self._context = context
+        self._logger = context.logger()
+        self._plugin_loader = PluginLoader(context)
+        self._plugin_list = self._plugin_loader.load(plugin_paths)
+        self._index = 0
+
+    def names(self, type: str=None, author: str=None, safe_names=False) -> List[str]:
+        """
+        Returns the plugin names in a list. Does match cases.
+        :param type: Filter plugin names by type (e.g. PluginType.DECODER, ...)
+        :param author: Filter plugin names by author (e.g. Thomas Engel, ...)
+        :param safe_names: when False human readable names are returned (e.g. "URL+"). Otherwise names are parsed
+        from the file name (e.g. url_plus_encoder) of the individual plugin. Defaults to False.
+        """
+        if type and author:
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.type() == type and plugin.author() == author]
+        elif type:
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.type() == type]
+        elif author:
+            return [plugin.name(safe_names) for plugin in self._plugin_list if plugin.author() == author]
+        else:
+            return [plugin.name(safe_names) for plugin in self._plugin_list]
+
+    def types(self) -> List[str]:
+        """ Returns all possible plugin types in a list. """
+        return [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]
+
+    def plugins(self) -> List[AbstractPlugin]:
+        return self._plugin_list
+
+    def plugin(self, name: str, type: str) -> AbstractPlugin:
+        """
+        Returns the plugin matching name and type. Does not match cases. There can only be one.
+        :param name: The name of the plugin (e.g. SHA1/sha1).
+        :param type: The type of the plugin (e.g. DECODER/decoder).
+        """
+        the_type = type.lower()
+        the_plugin_name = name.lower()
+        for plugin in self._plugin_list:
+            if plugin.type().lower() == the_type and plugin.name().lower() == the_plugin_name:
+                return plugin
+        raise Exception("Undefined plugin '{}::{}'!".format(name, type))
+
+    def authors(self) -> List[str]:
+        """ Returns all authors in a list. """
+        authors = [plugin.author() for plugin in self._plugin_list if plugin.author()]
+        return [author for author, _ in collections.Counter(authors).most_common()]
+
+    def filter(self, name: str=None, type: str=None) -> List[AbstractPlugin]:
+        """
+        Returns the plugins matching name and/or type. Does not match cases.
+        :param name: The name of the plugin (e.g. SHA1/sha1).
+        :param type: The type of the plugin (e.g. DECODER/decoder).
+        :raise Exception when neither name nor type is specified.
+        """
+        if name and type:
+            try:
+                return [self.plugin(name, type)]
+            except:
+                return []
+        if name:
+            the_plugin_name = name.lower()
+            return [plugin for plugin in self._plugin_list if plugin.name().lower() == the_plugin_name]
+        if type:
+            the_type_name = type.lower()
+            return [plugin for plugin in self._plugin_list if plugin.type().lower() == the_type_name]
+        raise Exception("Unknown Error '{}::{}'!".format(name, type))
+
+    def __getitem__(self, item):
+        """ Returns the specified plugin. """
+        return self._plugin_list[item]
+
+    def __len__(self):
+        """ Returns the number of plugins. """
+        return len(self._plugin_list)
+

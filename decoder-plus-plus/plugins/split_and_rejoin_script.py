@@ -2,7 +2,7 @@ import qtawesome
 from PyQt5.QtWidgets import QDialog
 
 from core.exception import AbortedException
-from core.plugin.plugin import ScriptPlugin, PluginConfig
+from core.plugin import ScriptPlugin, PluginConfig
 from ui.dialog.plugin_config_dialog import PluginConfigDialog
 
 

@@ -19,7 +19,7 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QLabel, QRadioButton, QCheckBox, QLineEdit, QDialog, QDialogButtonBox, QFormLayout, \
     QGroupBox, QShortcut, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit
 
-from core.plugin.plugin import PluginConfig
+from core.plugin import PluginConfig
 
 
 class PluginConfigDialog(QDialog):

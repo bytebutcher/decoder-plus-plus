@@ -16,21 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import uuid
 
-import qtawesome
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
-from qtpy import QtCore
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QFrame, QVBoxLayout
 
 from core import Context
-from core.plugin.plugin import PluginType, AbstractPlugin, NullPlugin
-from core.plugin.plugin_builder import PluginBuilder
-from core.plugin.plugins import Plugins
-from ui import VSpacer, IconLabel
+from core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
+from ui import VSpacer
 from ui.codec_frame_header import CodecFrameHeader
 from ui.combo_box_frame import ComboBoxFrame
 from ui.view.plain_view import PlainView
 from ui.widget.collapsible_frame import CollapsibleFrame
-from ui.widget.elided_label import ElidedLabel
 from ui.widget.smart_decode_button import SmartDecodeButton
 from ui.widget.status_widget import StatusWidget
 
