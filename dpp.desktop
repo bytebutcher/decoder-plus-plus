@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=dpp %f
+Icon=dpp
+StartupNotify=true
+Terminal=false
+Name=Decoder++
+
