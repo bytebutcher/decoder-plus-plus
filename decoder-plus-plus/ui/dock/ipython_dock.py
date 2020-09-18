@@ -44,8 +44,8 @@ class IPythonDock(DockWidget):
             banner=os.linesep.join([
                 'Decoder++ IPython Console v{version}'.format(version=self._context.getAppVersion()),
                 'Type "copyright", "credits", "license" or "help" for more information.',
-                'Type "encoders", "decoders", "hashes" or "scripts" to show a list of codecs.',
-                'Type "usage" to show general usage information.'
+                'Type "encoders()", "decoders()", "hashes()" or "scripts()" to show a list of codecs.',
+                'Type "usage()" to show general usage information.'
             ]),
             namespace=self._context.namespace(),
             variables={

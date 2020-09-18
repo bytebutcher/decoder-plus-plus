@@ -301,9 +301,17 @@ if __name__ == '__main__':
                         '   encode().base64().base32().',
                         '   decode().base32().',
                         '   hash().md5().',
-                        '   script().clone().',
-                        '   run()'
+                        '   script().caesar_cipher(shift=2).',
+                        '   run()',
+                        '',
+                        '# List encoders/decoder/hasher/scripts',
+                        'dpp().encode().list()',
+                        '',
+                        '# Show script parameters',
+                        'dpp().script().caesar_cipher(help=True)'
                     ]))
+                    print()
+                    print("")
 
                 def __list_codecs(attr, args):
                     return getattr(DecoderPlusPlus(""), attr)().list(args)
@@ -328,8 +336,8 @@ if __name__ == '__main__':
                 banner = os.linesep.join([
                     'Decoder++ Python Console v{version}'.format(version=context.getAppVersion()),
                     'Type "copyright", "credits", "license" or "help" for more information.',
-                    'Type "encoders", "decoders", "hashes" or "scripts" to show a list of codecs.',
-                    'Type "usage" to show general usage information.'
+                    'Type "encoders()", "decoders()", "hashes()" or "scripts()" to show a list of codecs.',
+                    'Type "usage()" to show general usage information.'
                 ])
                 code.InteractiveConsole(locals=locals()).interact(banner=banner)
 

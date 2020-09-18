@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
 from qtpy import QtCore
 
 from ui import IconLabel
@@ -72,16 +72,15 @@ class CodecFrameHeader(QFrame):
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         def _init_central_widget(self):
             frm_content_preview = QFrame(self)
             frm_content_preview_layout = QHBoxLayout()
             frm_content_preview_layout.setContentsMargins(0, 0, 0, 0)
-            txt_content_preview = QLabel("")
-            frm_content_preview_layout.addWidget(txt_content_preview)
             self._content_preview_text = ElidedLabel("")
             self._content_preview_text.setTextFormat(Qt.PlainText)
-            self._content_preview_text.setStyleSheet("QLabel { color: gray }");
+            self._content_preview_text.setStyleSheet("QLabel { color: gray }")
             frm_content_preview_layout.addWidget(self._content_preview_text)
             frm_content_preview.setLayout(frm_content_preview_layout)
             return frm_content_preview

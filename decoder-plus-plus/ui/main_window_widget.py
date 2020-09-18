@@ -278,7 +278,7 @@ class MainWindowWidget(QWidget):
                 with open(filename) as f:
                     save_file = json.loads(f.read())
                     for tab_config in save_file:
-                        index, tab = self.newTab()
+                        index, tab = self.newTab(title=tab_config["name"])
                         frame_index = 0
                         for frame_config in tab_config["frames"]:
                             if frame_index == 0:
@@ -318,9 +318,10 @@ class MainWindowWidget(QWidget):
         for index in range(0, len(self._tabs_select_action)):
             self._tabs_select_action[index].setVisible(index < self._tabs.tabCount())
 
-    def newTab(self, input: str = None) -> (int, CodecTab):
+    def newTab(self, input: str = None, title: str=None) -> (int, CodecTab):
         """
         Opens a new tab and writes input into first codec-frame.
         :param input: The input which should be placed into the first codec-frame.
+        :param title: The title of the tab.
         """
-        return self._tabs.newTab(input)
+        return self._tabs.newTab(input, title)

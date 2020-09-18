@@ -114,13 +114,14 @@ class MainWindowTabsWidget(QTabWidget):
                        .callback(lambda: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
-    def newTab(self, input: str=None) -> (int, CodecTab):
+    def newTab(self, input: str=None, title :str=None) -> (int, CodecTab):
         """
         Opens a new tab and writes input into first codec-frame.
         :param input: The input which should be placed into the first codec-frame.
+        :param title: The title of the tab.
         """
         codec_tab = CodecTab(self, self._context, self._plugins)
-        name = "Tab {}".format(self._current_tab_number)
+        name = "Tab {}".format(self._current_tab_number) if not title else title
         self._current_tab_number += 1
         self.insertTab(self.count() - 1, codec_tab, name)
         index = self.count() - 2
