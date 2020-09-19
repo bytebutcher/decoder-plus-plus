@@ -1,7 +1,7 @@
-PyQt5
-QtAwesome
-pysha3
-passlib
-fuzzywuzzy
-filemagic
-hashid
+PyQt5==5.14
+QtAwesomei==0.7.2
+pysha3==1.0.2
+passlib==1.7.2
+fuzzywuzzy==0.18.0
+filemagic==1.6
+hashid==3.1.4

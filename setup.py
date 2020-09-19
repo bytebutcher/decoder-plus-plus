@@ -11,7 +11,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="decoder-plus-plus",
-    version="1.1.1",
+    version="1.1.3",
     description="An extensible application for penetration testers and software developers to decode/encode data into various formats.",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -24,7 +24,15 @@ setup(
         "Operating System :: OS Independent"
     ],
     packages=setuptools.find_packages(),
-    install_requires=['PyQt5', 'qtconsole', 'QtAwesome', 'pysha3', 'passlib', 'fuzzywuzzy', 'filemagic', 'hashid'],
+    install_requires=[
+        'PyQt5==5.14', 
+        'QtAwesome==0.7.2',
+        'pysha3==1.0.2',
+        'passlib==1.7.2',
+        'fuzzywuzzy==0.18.0', 
+        'filemagic==1.6', 
+        'hashid==3.1.4'
+    ],
     data_files=[
         ('share/icons/hicolor/scalable/apps', ['data/dpp.png']),
         ('share/applications', ['data/dpp.desktop'])
