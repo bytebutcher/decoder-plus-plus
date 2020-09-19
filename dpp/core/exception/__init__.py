@@ -1,1 +1,1 @@
-from core.exception.aborted_exception import AbortedException
+from dpp.core.exception.aborted_exception import AbortedException

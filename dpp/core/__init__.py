@@ -18,4 +18,4 @@
 # Config is imported within the init_config method of the context-object.
 # This makes it possible to use the command-line-version of Decoder++ without any QtDependencies.
 
-from core.context import Context
+from dpp.core.context import Context

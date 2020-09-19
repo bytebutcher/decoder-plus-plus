@@ -19,8 +19,8 @@ from PyQt5.QtCore import QRect, pyqtSignal, QTimer, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
 
-from ui import IconLabel
-from ui.widget.clickable_label import ClickableLabel
+from dpp.ui import IconLabel
+from dpp.ui.widget.clickable_label import ClickableLabel
 
 
 class MessageWidget(QFrame):

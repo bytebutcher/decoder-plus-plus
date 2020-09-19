@@ -20,11 +20,11 @@ from typing import List
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
-from core import Context
-from core.plugin import Plugins, PluginBuilder
-from ui.codec_frames import CodecFrames
-from ui.widget.spacer import VSpacer
-from ui.widget.status_widget import StatusWidget
+from dpp.core import Context
+from dpp.core.plugin import Plugins, PluginBuilder
+from dpp.ui.codec_frames import CodecFrames
+from dpp.ui.widget.spacer import VSpacer
+from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecTab(QScrollArea):

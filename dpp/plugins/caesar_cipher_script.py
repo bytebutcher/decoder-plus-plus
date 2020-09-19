@@ -7,8 +7,8 @@ from PyQt5.QtGui import QKeySequence, QIntValidator
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, QShortcut, \
     QSlider, QHBoxLayout, QPushButton
 
-from core.exception import AbortedException
-from core.plugin import ScriptPlugin, PluginConfig
+from dpp.core.exception import AbortedException
+from dpp.core.plugin import ScriptPlugin, PluginConfig
 
 
 class Plugin(ScriptPlugin):

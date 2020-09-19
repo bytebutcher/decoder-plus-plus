@@ -19,12 +19,12 @@ import json
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QAction, QFileDialog
 
-from core import Context
-from core.plugin import PluginType
-from ui import CodecTab
-from ui.codec_frame import CodecFrame
-from ui.dialog.config_dialog import ConfigDialog
-from ui.main_window_tabs_widget import MainWindowTabsWidget
+from dpp.core import Context
+from dpp.core.plugin import PluginType
+from dpp.ui import CodecTab
+from dpp.ui.codec_frame import CodecFrame
+from dpp.ui.dialog.config_dialog import ConfigDialog
+from dpp.ui.main_window_tabs_widget import MainWindowTabsWidget
 
 
 class MainWindowWidget(QWidget):
@@ -108,11 +108,6 @@ class MainWindowWidget(QWidget):
                                 "He&x",
                                 "Alt+Shift+X",
                                 lambda: self._main_window._toggle_hex_dock(),
-                                view_menu)
-        self._register_shortcut(Context.Shortcut.SELECT_IPYTHON_CONSOLE_DOCK,
-                                "I&Python Console",
-                                "Alt+Shift+P",
-                                lambda: self._main_window._toggle_ipython_dock(),
                                 view_menu)
         return view_menu
 

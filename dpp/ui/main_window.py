@@ -24,13 +24,12 @@ from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QDockWidget, QTabBar
 
-from core.logging import LogEntry, LogFilter
-from ui import IconLabel
-from ui.dialog.config_dialog import ConfigDialog
-from ui.dock.hex_dock import HexDock
-from ui.dock.ipython_dock import IPythonDock
-from ui.dock.log_dock import LogDock
-from ui.widget.message_widget import MessageWidget
+from dpp.core.logging import LogEntry, LogFilter
+from dpp.ui import IconLabel
+from dpp.ui.dialog.config_dialog import ConfigDialog
+from dpp.ui.dock.hex_dock import HexDock
+from dpp.ui.dock.log_dock import LogDock
+from dpp.ui.widget.message_widget import MessageWidget
 
 
 class MainWindow(QMainWindow):
@@ -74,14 +73,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self._hex_dock)
         self.tabifyDockWidget(self._empty_dock, self._hex_dock)
         self._hex_dock.visibilityChanged.connect(self.show_dock)
-
-        # Initialize ipython dock
-        self._ipython_dock = IPythonDock(self._context, self)
-        self._ipython_dock.setFeatures(QDockWidget.DockWidgetFloatable)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._ipython_dock)
-        self.tabifyDockWidget(self._empty_dock, self._ipython_dock)
-        self._ipython_dock.visibilityChanged.connect(self.show_dock)
-        self._ipython_dock.toggleViewAction().setIcon(qtawesome.icon("fa.code"))
 
         # Initialize dock tab bar
         self._dock_tab_bar = self.findChild(QTabBar, "")
@@ -166,18 +157,11 @@ class MainWindow(QMainWindow):
         else:
             self._empty_dock.raise_()
 
-    def _toggle_ipython_dock(self):
-        """ Shows/Hides the ipython dock. """
-        is_ipython_dock_visible = not self._ipython_dock.visibleRegion().isEmpty()
-        if not is_ipython_dock_visible:
-            self._ipython_dock.raise_()
-        else:
-            self._ipython_dock.raise_()
 
     def show_dock(self, e: QEvent):
         """ Shows/Hides the docks. """
         is_empty_dock_visible = not self._empty_dock.visibleRegion().isEmpty()
-        for dock in [self._log_dock, self._hex_dock, self._ipython_dock]:
+        for dock in [self._log_dock, self._hex_dock]:
             if is_empty_dock_visible:
                 if not dock.isFloating():
                     dock.hide()

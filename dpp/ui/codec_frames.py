@@ -2,9 +2,9 @@ from typing import List
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
 
-from core.exception import AbortedException
-from ui.codec_frame import CodecFrame
-from ui.widget.status_widget import StatusWidget
+from dpp.core.exception import AbortedException
+from dpp.ui.codec_frame import CodecFrame
+from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecFrames(QFrame):

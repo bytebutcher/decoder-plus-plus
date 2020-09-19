@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ui.widget.search_field import SearchField
+from dpp.ui.widget.search_field import SearchField
 from .shortcut_table import KeyboardShortcutTable
-from ui.widget.spacer import Spacer
-from ui.widget.spacer import VSpacer
-from ui.widget.spacer import HSpacer
+from dpp.ui.widget.spacer import Spacer
+from dpp.ui.widget.spacer import VSpacer
+from dpp.ui.widget.spacer import HSpacer
 from .tab_bar import TabBar
-from ui.widget.icon_label import IconLabel
+from dpp.ui.widget.icon_label import IconLabel
 from .codec_tab import CodecTab
 from .main_window_widget import MainWindowWidget
 from .main_window import MainWindow

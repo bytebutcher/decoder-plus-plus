@@ -20,10 +20,10 @@ from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
-import core
-from core.plugin import NullPlugin
-from core.plugin import PluginType
-from ui.widget.combo_box import ComboBox
+import dpp
+from dpp.core.plugin import NullPlugin
+from dpp.core.plugin import PluginType
+from dpp.ui.widget.combo_box import ComboBox
 
 
 class ComboBoxFrame(QFrame):
@@ -120,7 +120,7 @@ class ComboBoxFrame(QFrame):
         combo_box.setCurrentIndex(index)
         combo_box.blockSignals(False)
 
-    def getPluginByTypeAndIndex(self, type, index) -> core.plugin.AbstractPlugin:
+    def getPluginByTypeAndIndex(self, type, index) -> dpp.core.plugin.AbstractPlugin:
         try:
             combo_box = self._combo_boxes[type]
             name = combo_box.itemText(index)
@@ -134,7 +134,7 @@ class ComboBoxFrame(QFrame):
             self._logger.error("Unexpected error. {}".format(e))
             return NullPlugin(self._context)
 
-    def selectedPlugin(self) -> core.plugin.AbstractPlugin:
+    def selectedPlugin(self) -> dpp.core.plugin.AbstractPlugin:
         selected_plugin_types = [plugin_type for plugin_type in self._combo_boxes.keys() if self._combo_boxes[plugin_type].currentIndex() != 0]
         if len(selected_plugin_types) == 1:
             selected_plugin_type = selected_plugin_types[0]

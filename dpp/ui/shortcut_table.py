@@ -20,7 +20,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
 from PyQt5.QtWidgets import QTableView
 from qtpy import QtWidgets
 
-from ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog
+from dpp.ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog
 
 
 class KeyboardShortcutTable(QTableView):

@@ -21,11 +21,11 @@ import qtawesome
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
-from core import Context
-from ui import CodecTab, TabBar
-from ui.builder.action_builder import ActionBuilder
-from ui.widget.search_field import SearchField
-from ui.widget.separater_widget import VSep
+from dpp.core import Context
+from dpp.ui import CodecTab, TabBar
+from dpp.ui.builder.action_builder import ActionBuilder
+from dpp.ui.widget.search_field import SearchField
+from dpp.ui.widget.separater_widget import VSep
 
 
 class MainWindowTabsWidget(QTabWidget):

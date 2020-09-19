@@ -4,9 +4,9 @@ import qtawesome
 
 from PyQt5.QtWidgets import QDialog
 
-from core.exception import AbortedException
-from core.plugin import ScriptPlugin, PluginConfig
-from ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
+from dpp.core.exception import AbortedException
+from dpp.core.plugin import ScriptPlugin, PluginConfig
+from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
 
 
 class Plugin(ScriptPlugin):

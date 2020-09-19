@@ -563,13 +563,20 @@ class PluginLoader:
         """
         plugins = {}
         for path in paths:
-            for f in os.listdir(path):
-                if f.endswith(".py"):
-                    plugin = self._load_plugin(path, f)
-                    if not plugin:
-                        self._logger.error("Loading plugin {} at {} failed!".format(path, f))
-                        continue
-                    plugins[plugin.name(safe_name=True)] = plugin
+            try:
+                if not os.path.exists(path):
+                    self._logger.debug("Creating plugin folder '{}' ...".format(path))
+                    os.makedirs(path)
+                for f in os.listdir(path):
+                    if f.endswith(".py"):
+                        plugin = self._load_plugin(path, f)
+                        if not plugin:
+                            self._logger.error("Loading plugin {} at {} failed!".format(path, f))
+                            continue
+                        plugins[plugin.name(safe_name=True)] = plugin
+            except:
+                self._logger.warning("Loading plugin folder '{}' failed!".format(path))
+
         return [plugins[key] for key in sorted(plugins.keys())]
 
     def _load_plugin(self, path, f):

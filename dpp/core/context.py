@@ -25,9 +25,9 @@ from typing import List
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction
 
-from core.listener import Listener
-from core.plugin import AbstractPlugin, Plugins
-from core.shortcut import Shortcut, NullShortcut
+from dpp.core.listener import Listener
+from dpp.core.plugin import AbstractPlugin, Plugins
+from dpp.core.shortcut import Shortcut, NullShortcut
 
 
 class Context(QObject):
@@ -80,32 +80,29 @@ class Context(QObject):
         SELECT_PLAIN_VIEW = "select_plain_view"
         SELECT_HEX_DOCK = "select_hex_dock"
         SELECT_LOG_DOCK = "select_log_dock"
-        SELECT_IPYTHON_CONSOLE_DOCK = "select_ipython_console_dock"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
         SHOW_PLUGINS = "show_plugins"
 
-    def __init__(self, app_id, namespace):
+    def __init__(self, app_id, app_path, namespace):
         super(__class__, self).__init__()
         self._app_id = app_id
+        self._app_path = app_path
         self._namespace = namespace
         self._logger = {}
         self.config = self._init_config()
         self._debug_mode = self.config.isDebugModeEnabled()
         self._listener = Listener(self)
         self._plugins = Plugins([
-            os.path.join(self.getAppPath(), "plugins"),
+            os.path.join(self._app_path, "plugins"),
             os.path.join(str(Path.home()), ".config", "dpp", "plugins")], self)
         self._shortcuts = {}
         self._installed_packages = []
         self._mode = None
 
     def _init_config(self):
-        """ Returns the configuration. Might return None when initialization fails. """
-        try:
-            from core.config import Config
-            return Config()
-        except:
-            return None
+        """ Returns the configuration. """
+        from dpp.core.config import Config
+        return Config()
 
     def _init_logger(self, log_format):
         """ Returns the logger. """
@@ -138,8 +135,7 @@ class Context(QObject):
 
     def getAppPath(self):
         """ Returns the path where the main application is located. """
-        pathname = os.path.realpath(sys.argv[0])
-        return os.path.dirname(pathname)
+        return self._app_path
 
     def getAppID(self):
         """ Returns the ID of the application. """

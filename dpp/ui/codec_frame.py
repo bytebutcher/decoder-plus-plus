@@ -20,15 +20,15 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame, QVBoxLayout
 
-from core import Context
-from core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
-from ui import VSpacer
-from ui.codec_frame_header import CodecFrameHeader
-from ui.combo_box_frame import ComboBoxFrame
-from ui.view.plain_view import PlainView
-from ui.widget.collapsible_frame import CollapsibleFrame
-from ui.widget.smart_decode_button import SmartDecodeButton
-from ui.widget.status_widget import StatusWidget
+from dpp.core import Context
+from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
+from dpp.ui import VSpacer
+from dpp.ui.codec_frame_header import CodecFrameHeader
+from dpp.ui.combo_box_frame import ComboBoxFrame
+from dpp.ui.view.plain_view import PlainView
+from dpp.ui.widget.collapsible_frame import CollapsibleFrame
+from dpp.ui.widget.smart_decode_button import SmartDecodeButton
+from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecFrame(CollapsibleFrame):
@@ -256,7 +256,7 @@ class CodecFrame(CollapsibleFrame):
         """ Returns the index of the codec frame. """
         return self._codec_frames.getFrameIndex(self._frame_id)
 
-    def getFrame(self) -> 'ui.codec_frame.CodecFrame':
+    def getFrame(self) -> 'dpp.ui.codec_frame.CodecFrame':
         """ Returns the current frame if exists, otherwise an exception is thrown. """
         return self._codec_frames.getFrameByIndex(self.getFrameIndex())
 
@@ -264,7 +264,7 @@ class CodecFrame(CollapsibleFrame):
         """ Checks whether there is a previous frame. Returns either True or False. """
         return self._codec_frames.hasPreviousFrame(self.getFrameIndex())
 
-    def getPreviousFrame(self) -> 'ui.codec_frame.CodecFrame':
+    def getPreviousFrame(self) -> 'dpp.ui.codec_frame.CodecFrame':
         """ Returns the previous frame if any, otherwise an exception is thrown. """
         return self._codec_frames.getFrameByIndex(self.getFrameIndex() - 1)
 
@@ -272,7 +272,7 @@ class CodecFrame(CollapsibleFrame):
         """ Checks whether there is a next frame. Returns either True or False. """
         return self._codec_frames.hasNextFrame(self.getFrameIndex())
 
-    def getNextFrame(self) -> 'ui.codec_frame.CodecFrame':
+    def getNextFrame(self) -> 'dpp.ui.codec_frame.CodecFrame':
         """ Returns the next frame if any, otherwise an exception is thrown. """
         return self._codec_frames.getFrameByIndex(self.getFrameIndex() + 1)
 

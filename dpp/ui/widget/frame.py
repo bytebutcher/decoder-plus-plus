@@ -17,7 +17,7 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame
 
-from core import Context
+from dpp.core import Context
 
 
 class Frame(QFrame):

@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from PyQt5 import QtCore
 
-from ui.widget.clickable_label import ClickableLabel
+from dpp.ui.widget.clickable_label import ClickableLabel
 
 
 class HoverLabel(ClickableLabel):

@@ -31,22 +31,22 @@ with warnings.catch_warnings():
 
 from PyQt5.QtWidgets import QApplication
 
-from core.argparse.ordered_multi_args import OrderedMultiArgs
-from core.argparse.single_args import SingleArgs
-from core.context import Context
-from core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
-from core.plugin import PluginType
+from dpp.core.argparse.ordered_multi_args import OrderedMultiArgs
+from dpp.core.argparse.single_args import SingleArgs
+from dpp.core.context import Context
+from dpp.core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
+from dpp.core.plugin import PluginType
 
-from ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
-from ui.instance_handler import InstanceHandler
+from dpp.ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
+from dpp.ui.instance_handler import InstanceHandler
 
 # Abort program execution on ctrl+c
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
-def init_builder(context: 'core.context.Context'):
+def init_builder(context: 'dpp.core.context.Context'):
 
-    def _init_builder(plugin: 'core.plugin.plugins.PluginHolder', clazz):
+    def _init_builder(plugin: 'dpp.core.plugin.plugins.PluginHolder', clazz):
         def list(self, filter_terms=()) -> List[str]:
             codecs = [method for method in dir(self) if not method.startswith("_") and
                     method not in ["list", "decode", "encode", "hash", "script", "run"]]
@@ -218,7 +218,7 @@ def get_plugin_action(context, action_type_name, action_type_method, method_name
         sys.exit(1)
 
 
-def get_plugin_config(arguments):
+def get_plugin_config(context, arguments):
     result = {}
     for argument in arguments:
         sep_index = argument.find('=')
@@ -242,7 +242,8 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Loads logger, config and plugins.
-    context = Context("net.bytebutcher.decoder_plus_plus", namespace=locals())
+    app_path = os.path.dirname(os.path.abspath(__file__))
+    context = Context("net.bytebutcher.decoder_plus_plus", app_path, namespace=locals())
 
     try:
 
@@ -256,8 +257,6 @@ def main():
                             help="specifies the input-text")
         parser.add_argument('-f', '--file', action=SingleArgs,
                             help="specifies the input-file")
-        parser.add_argument('-i', '--interactive', action='store_true',
-                            help="drops into an interactive python shell")
         parser.add_argument('--new-instance', action='store_true',
                             help="opens new instance instead of new tab in already running instance.")
         parser.add_argument('--dialog', action='store_true',
@@ -288,61 +287,6 @@ def main():
         if args.debug:
             # Enable debug mode for current session.
             context.setDebugMode(True, temporary=True)
-
-        if args.interactive:
-
-            def run_interactive_mode():
-                """ Run interactive mode. """
-
-                def usage():
-                    print(os.linesep.join([
-                        'dpp(<input>).',
-                        '   encode().base64().base32().',
-                        '   decode().base32().',
-                        '   hash().md5().',
-                        '   script().caesar_cipher(shift=2).',
-                        '   run()',
-                        '',
-                        '# List encoders/decoder/hasher/scripts',
-                        'dpp().encode().list()',
-                        '',
-                        '# Show script parameters',
-                        'dpp().script().caesar_cipher(help=True)'
-                    ]))
-                    print()
-                    print("")
-
-                def __list_codecs(attr, args):
-                    return getattr(DecoderPlusPlus(""), attr)().list(args)
-
-                # Update application mode
-                context.setMode(Context.Mode.INTERACTIVE)
-
-                # Setup tab completion
-                setup_syntax_completion()
-
-                # Setup functions to list individual codecs
-                encoders = lambda *args: __list_codecs("encode", args)
-                decoders = lambda *args: __list_codecs("decode", args)
-                hashes = lambda *args: __list_codecs("hash", args)
-                scripts = lambda *args: __list_codecs("script", args)
-
-                # Setup shorthand for the DecoderPlusPlus class
-                dpp = DecoderPlusPlus
-
-                # Start interactive python shell
-                import code
-                banner = os.linesep.join([
-                    'Decoder++ Python Console v{version}'.format(version=context.getAppVersion()),
-                    'Type "copyright", "credits", "license" or "help" for more information.',
-                    'Type "encoders()", "decoders()", "hashes()" or "scripts()" to show a list of codecs.',
-                    'Type "usage()" to show general usage information.'
-                ])
-                code.InteractiveConsole(locals=locals()).interact(banner=banner)
-
-            # Run interactive mode in namespace of function.
-            run_interactive_mode()
-            sys.exit(0)
 
         # Start GUI when no other parameters were used.
         if not args.encode and not args.decode and not args.script and not args.hash and not type(args.list_codecs) == list:
@@ -424,13 +368,14 @@ def main():
             action_type = get_action_type(context, builder, name)
             plugin_action = get_plugin_action(context, name, action_type, method_name)
             show_plugin_help = "help" in values
-            plugin_config = get_plugin_config(filter(lambda x: x != "help", values))
+            plugin_config = get_plugin_config(context, filter(lambda x: x != "help", values))
             if show_plugin_help: plugin_config["help"] = True
             builder = plugin_action(**plugin_config)
 
         print(builder.run())
     except Exception as e:
         context.logger().exception(e, exc_info=context.isDebugModeEnabled())
+
 
 if __name__ == '__main__':
     main()

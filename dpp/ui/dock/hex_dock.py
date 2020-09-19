@@ -20,9 +20,9 @@ from typing import List
 import qtawesome
 from PyQt5.QtWidgets import QWidget
 
-from core import Context
-from ui.view.hex_view import HexView
-from ui.widget.dock_widget import DockWidget
+from dpp.core import Context
+from dpp.ui.view.hex_view import HexView
+from dpp.ui.widget.dock_widget import DockWidget
 
 
 class HexDock(DockWidget):

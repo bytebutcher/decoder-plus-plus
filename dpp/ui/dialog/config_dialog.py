@@ -22,8 +22,8 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
-from ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
-from ui.widget.plugin_tab import PluginTab
+from dpp.ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
+from dpp.ui.widget.plugin_tab import PluginTab
 
 
 class ConfigDialog(QDialog):

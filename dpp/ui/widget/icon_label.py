@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ui.widget.hover_label import HoverLabel
+from dpp.ui.widget.hover_label import HoverLabel
 
 
 class IconLabel(HoverLabel):

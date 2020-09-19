@@ -19,9 +19,9 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
 from qtpy import QtCore
 
-from ui import IconLabel
-from ui.widget.collapsible_frame import CollapsibleFrame
-from ui.widget.elided_label import ElidedLabel
+from dpp.ui import IconLabel
+from dpp.ui.widget.collapsible_frame import CollapsibleFrame
+from dpp.ui.widget.elided_label import ElidedLabel
 
 
 class CodecFrameHeader(QFrame):

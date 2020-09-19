@@ -10,11 +10,6 @@ An extensible application for penetration testers and software developers to dec
 ```bash
 # Install using pip
 pip3 install decoder-plus-plus
-
-# Install from source
-git clone https://github.com/bytebutcher/decoder-plus-plus
-cd decoder-plus-plus
-pip3 install -r requirements.txt
 ```
 
 ## Overview
@@ -46,22 +41,11 @@ $ python3 dpp.py -e base64 -h sha1 "Hello, world!"
 e52d74c6d046c390345ae4343406b99587f2af0d
 ```
 
-### Interactive Python Shell
-
-In addition ```Decoder++``` can be used within the interactive python shell:
-```bash
-python3 dpp.py -i
->>> dpp("Hello, world!").encode().base64().hash().sha1().run()
-'e52d74c6d046c390345ae4343406b99587f2af0d'
-```
-
-
 ### Features
 
 * User Interfaces:
     * Graphical User Interface
     * Command Line Interface
-    * Interactive Python Shell
 * Preinstalled Scripts and Codecs:
     * **Encode/Decode:** Base16, Base32, Base64, Binary, Gzip, Hex, Html, JWT, HTTP64, Octal, Url, Url+, Zlib
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
@@ -129,55 +113,12 @@ $ dpp "Hello, world!" -s search_and_replace search_term="Hello" replace_term="He
 Hey, world!
 ```
 
-### Interactive Python Shell
-
-While I personally don't use the ```Decoder++``` interactive python shell very much it seems like a good option for some of you
- providing you with all the fun and beauty of both worlds.
-
-The ```dpp``` main object provides you with the ```encode()```, ```decode()```,
-```hash()``` and ```script()``` method to access the individual codecs. 
-
-To list all available codecs of a specific type you can use the ```list``` method.
-To narrow down your search the list method accepts additional arguments which are used as filter:
-
-```python
-dpp("Hello, world!").decode().list("base")
-['base16', 'base32', 'base64']
-```
-
-Like the command line interface the ```Decoder++``` interactive python shell allows to use 
-multiple codecs in a row:
-
-```python
-dpp("H4sIAAXmeVsC//NIzcnJ11Eozy/KSVEEAObG5usNAAAA").decode().base64().gzip().run()
-'Hello, world!'
-```
-
-While encoders, decoders and hashers can be used right away, some of the scripts may require additional configuration.
-To show all available options of a specific script you can add the ```help``` parameter:
-
-```python
-dpp("Hello, world!").script().search_and_replace(help=True)
-
-Search & Replace
-================
-
-             Name  Value  Group  Required  Description
-             ----  -----  -----  --------  -----------
-      search_term                yes       the word or phrase to replace
-     replace_term                yes       the word or phrase used as replacement
-should_match_case  True          no        defines whether the search term should match case
-         is_regex  False         no        defines whether the search term is a regular expression
-
-
-```
-
 ### Plugin Development
 
 To add custom codecs just copy them into the ```$HOME/.config/dpp/plugins/``` folder. 
 
 ```python
-from core.plugin.abstract_plugin import DecoderPlugin
+from dpp.core.plugin.abstract_plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """

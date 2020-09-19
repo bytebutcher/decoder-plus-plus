@@ -1,4 +1,4 @@
-from core.plugin import DecoderPlugin
+from dpp.core.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """

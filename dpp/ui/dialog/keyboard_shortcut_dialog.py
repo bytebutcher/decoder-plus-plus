@@ -19,7 +19,7 @@ import os
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
-from ui.widget.icon_label import IconLabel
+from dpp.ui.widget.icon_label import IconLabel
 
 
 class KeyboardShortcutDialog(QDialog):

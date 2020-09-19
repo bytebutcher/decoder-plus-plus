@@ -1,4 +1,4 @@
-from core.plugin import ScriptPlugin
+from dpp.core.plugin import ScriptPlugin
 
 
 class Plugin(ScriptPlugin):

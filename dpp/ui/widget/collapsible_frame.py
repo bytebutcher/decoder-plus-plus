@@ -20,10 +20,10 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
 
-from core import Context
-from ui import HSpacer
-from ui.widget.frame import Frame
-from ui.widget.separater_widget import VSep
+from dpp.core import Context
+from dpp.ui import HSpacer
+from dpp.ui.widget.frame import Frame
+from dpp.ui.widget.separater_widget import VSep
 
 
 class CollapsibleFrame(Frame):
@@ -112,7 +112,7 @@ class CollapsibleFrame(Frame):
         """ Returns whether the collapse state was changed by the user. """
         return self._was_collapse_state_changed_by_user
 
-    def header(self) -> 'ui.collapsible_frame.CollapsibleFrame.HeaderFrame':
+    def header(self) -> 'dpp.ui.collapsible_frame.CollapsibleFrame.HeaderFrame':
         return self._header_frame
 
     def indicateError(self, status: bool):

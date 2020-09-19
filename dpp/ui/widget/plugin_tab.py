@@ -22,11 +22,11 @@ from PyQt5.QtCore import pyqtSignal, QModelIndex, QEvent
 from PyQt5.QtGui import QStandardItem, QBrush
 from PyQt5.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
 
-from core import Context
-from core.plugin import Plugins
-from ui.widget import ListWidget, SearchField
-from ui.widget.dyna_frame import DynaFrame
-from ui.widget.plugin_frame import PluginFrame
+from dpp.core import Context
+from dpp.core.plugin import Plugins
+from dpp.ui.widget import ListWidget, SearchField
+from dpp.ui.widget.dyna_frame import DynaFrame
+from dpp.ui.widget.plugin_frame import PluginFrame
 
 
 class PluginSelectionFrame(QFrame):

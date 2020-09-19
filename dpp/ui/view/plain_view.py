@@ -21,8 +21,8 @@ from PyQt5.QtCore import pyqtSignal, QRegExp, QPoint, QEvent
 from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QAction
 
-from core import Context
-from ui import SearchField
+from dpp.core import Context
+from dpp.ui import SearchField
 
 
 class PlainView(QFrame):

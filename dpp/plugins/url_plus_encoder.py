@@ -1,4 +1,4 @@
-from core.plugin import EncoderPlugin
+from dpp.core.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
     """

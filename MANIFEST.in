@@ -1,0 +1,2 @@
+include dpp/plugins/*
+include dpp/images/*

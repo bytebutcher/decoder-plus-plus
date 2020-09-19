@@ -18,7 +18,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QVBoxLayout, QFrame, QShortcut, QDialogButtonBox
 
-from ui import MainWindow, MainWindowWidget, CodecTab
+from dpp.ui import MainWindow, MainWindowWidget, CodecTab
 
 
 class DecoderPlusPlusWindow(MainWindow):

@@ -19,7 +19,7 @@ import inspect
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QVBoxLayout, QGroupBox, QLabel, QFrame
 
-from core.plugin import AbstractPlugin
+from dpp.core.plugin import AbstractPlugin
 
 
 class PluginFrame(QFrame):
