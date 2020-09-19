@@ -1,2 +1,5 @@
 .idea/
 __pycache__
+dpp.log
+decoder-plus-plus/venv
+

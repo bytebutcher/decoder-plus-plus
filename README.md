@@ -1,6 +1,6 @@
  # Decoder++
 
-![Decoder++ Logo](decoder-plus-plus/images/dpp.png)
+![Decoder++ Logo](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/dpp/images/dpp.png)
 
 An extensible application for penetration testers and software developers to decode/encode data into various formats. 
 
@@ -26,14 +26,14 @@ This section provides you with an overview about the individual ways of interact
 If you prefer a graphical user interface to transform your data 
 ```Decoder++``` gives you two choices: a ```main-window-mode``` and a ```dialog-mode```.
 
-![Decoder++ Screenshot](images/dpp-preview-001.png)
+![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-preview-001.png)
 
 While the ```main-window-mode``` supports tabbing, the ```dialog-mode``` has the ability to return the transformed content to ```stdout``` 
 ready for further processing. This comes quite in handy if you want to call ```Decoder++``` from other tools 
 like BurpSuite (check out the [BurpSuite Send-to extension](https://github.com/bytebutcher/burp-send-to)) or any other script
 in which you want to add a graphical user interface for flexible transformation of any input.
 
-![Decoder++ Screenshot](images/dpp-preview-dialog.png)
+![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-preview-dialog.png)
 
 ### Command Line
 

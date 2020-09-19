@@ -237,8 +237,7 @@ def get_plugin_config(arguments):
         result[name] = value
     return result
 
-
-if __name__ == '__main__':
+def main():
     # Abort program execution on ctrl+c
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -432,3 +431,6 @@ if __name__ == '__main__':
         print(builder.run())
     except Exception as e:
         context.logger().exception(e, exc_info=context.isDebugModeEnabled())
+
+if __name__ == '__main__':
+    main()
