@@ -31,6 +31,14 @@ with warnings.catch_warnings():
 
 from PyQt5.QtWidgets import QApplication
 
+
+# FIX #27: Add 'dpp' to package path if not present. 
+#          This may happen when dpp was not installed via setup.py.
+DPP_PACKAGE_PATH = os.path.dirname(os.path.abspath(__file__))
+if DPP_PACKAGE_PATH not in sys.path:
+    sys.path.append(DPP_PACKAGE_PATH)
+
+
 from dpp.core.argparse.ordered_multi_args import OrderedMultiArgs
 from dpp.core.argparse.single_args import SingleArgs
 from dpp.core.context import Context
@@ -231,8 +239,8 @@ def get_plugin_config(context, arguments):
         value = argument[sep_index+1:]
 
         # Handle boolean values
-        if value is "True" or value is "False":
-            value = value is "True"
+        if value == "True" or value == "False":
+            value = value == "True"
 
         result[name] = value
     return result
