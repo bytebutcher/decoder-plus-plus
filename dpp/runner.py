@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QApplication
 
 # FIX #27: Add 'dpp' to package path if not present. 
 #          This may happen when dpp was not installed via setup.py.
-DPP_PACKAGE_PATH = os.path.dirname(os.path.abspath(__file__))
+DPP_PACKAGE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if DPP_PACKAGE_PATH not in sys.path:
     sys.path.append(DPP_PACKAGE_PATH)
 
