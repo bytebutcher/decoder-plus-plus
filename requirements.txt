@@ -1,5 +1,5 @@
-PyQt5==5.14
-QtAwesomei==0.7.2
+PyQt5==5.15
+QtAwesome==1.0.2
 pysha3==1.0.2
 passlib==1.7.2
 fuzzywuzzy==0.18.0
