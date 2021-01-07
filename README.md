@@ -167,6 +167,16 @@ When starting ```Decoder++``` in ```CygWin``` an error occurs:
 This happens although ```PyQt5``` is installed using pip. Currently there is no fix for that. Instead it is recommended
 to start ```Decoder++``` using the Windows command line.
 
+### No Module PyQt5.sig 
+
+When starting ```Decoder++``` the error ```No module named 'PyQt5.sig'``` is displayed on the console. 
+This may happen when there are competing versions of PyQt5 installed. Reinstalling PyQt5 should fix this error.
+
+```
+$ sudo pip3 uninstall PyQt5  
+$ sudo pip3 install PyQt5
+```
+
 ## Inspired By
 * PortSwigger's Burp Decoder
 
