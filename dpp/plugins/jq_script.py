@@ -1,6 +1,6 @@
 import json
+import os
 
-import pyjq as pyjq
 import qtawesome
 
 from PyQt5.QtWidgets import QDialog
@@ -13,6 +13,19 @@ from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
 class Plugin(ScriptPlugin):
 	"""
 	Opens a dialog to filter xml text by certain jq expression.
+
+	Example:
+
+		Input:
+			{"a": [{"b": "c"}, {"b": "d"}]}
+
+		Expression:
+			.a[].b
+
+		Output:
+			"c"
+			"d"
+
 	"""
 
 	class Option(object):
@@ -22,10 +35,11 @@ class Plugin(ScriptPlugin):
 
 		def run(self, config: PluginConfig, text: str):
 			try:
+				import pyjq as pyjq
 				jq_expression = config.get(Plugin.Option.JQ_Expression).value
-				# TODO: The filter area is not expanded correctly
-				# TODO: The filter area does line wrapping. There should be an option for that for activating/deactivating.
-				return json.dumps(pyjq.all(jq_expression, json.loads(text)))
+				return os.linesep.join([
+					json.dumps(item) for item in pyjq.all(jq_expression, json.loads(text))
+				])
 			except Exception as e:
 				# Ignore exceptions - most likely an error in the jq expression
 				pass

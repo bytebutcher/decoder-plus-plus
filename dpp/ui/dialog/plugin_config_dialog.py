@@ -14,10 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
+from PyQt5 import QtCore
+from PyQt5.QtCore import Qt, QPoint, QEvent
+from PyQt5.QtGui import QKeySequence, QCursor
 from PyQt5.QtWidgets import QLabel, QRadioButton, QCheckBox, QLineEdit, QDialog, QDialogButtonBox, QFormLayout, \
-    QGroupBox, QShortcut, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit
+    QGroupBox, QShortcut, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit, QAction
 
 from dpp.core.plugin import PluginConfig
 
@@ -223,6 +224,9 @@ class PluginConfigPreviewDialog(PluginConfigDialog):
         view_frame_layout = QHBoxLayout()
         self._txt_preview = QPlainTextEdit(self)
         self._txt_preview.setReadOnly(True)
+        self._txt_preview.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self._txt_preview.customContextMenuRequested.connect(self._show_preview_frame_context_menu)
+        self._txt_preview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view_frame_layout.addWidget(self._txt_preview)
         view_frame.setLayout(view_frame_layout)
         return view_frame
@@ -249,3 +253,24 @@ class PluginConfigPreviewDialog(PluginConfigDialog):
             return True
         except BaseException as e:
             return False
+
+    def _show_preview_frame_context_menu(self, point: QPoint=None):
+        """ Displays a customized context menu for the plain view. """
+        def _on_plain_text_context_menu_wrap_lines(e: QEvent):
+            """ Un-/wraps lines when user clicks the wrap-lines action within the plain views context-menu. """
+            if self._txt_preview.lineWrapMode() == QPlainTextEdit.NoWrap:
+                self._txt_preview.setLineWrapMode(QPlainTextEdit.WidgetWidth)
+            else:
+                self._txt_preview.setLineWrapMode(QPlainTextEdit.NoWrap)
+
+        if not point:
+            point = QCursor.pos()
+        context_menu = self._txt_preview.createStandardContextMenu()
+        context_menu.addSeparator()
+        wrap_lines_action = QAction(self)
+        wrap_lines_action.setText("Wrap Lines")
+        wrap_lines_action.setCheckable(True)
+        wrap_lines_action.setChecked(self._txt_preview.lineWrapMode() == QPlainTextEdit.WidgetWidth)
+        wrap_lines_action.triggered.connect(_on_plain_text_context_menu_wrap_lines)
+        context_menu.addAction(wrap_lines_action)
+        context_menu.exec(self._txt_preview.mapToGlobal(point))

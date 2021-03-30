@@ -1,4 +1,3 @@
-from lxml import etree
 import qtawesome
 
 from PyQt5.QtWidgets import QDialog
@@ -11,6 +10,18 @@ from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
 class Plugin(ScriptPlugin):
 	"""
 	Opens a dialog to filter xml text by certain xpath expression.
+
+	Example:
+
+		Input:
+			<a><b>text</b></a>
+
+		Expression:
+			//b
+
+		Output:
+			<b>text</b>
+
 	"""
 
 	class Option(object):
@@ -20,6 +31,7 @@ class Plugin(ScriptPlugin):
 
 		def run(self, config: PluginConfig, text: str):
 			try:
+				from lxml import etree
 				xpath_expression = config.get(Plugin.Option.XPath_Expression).value
 				root = etree.fromstring(text)
 				return "".join(etree.tostring(item).decode('utf-8', errors="surrogateescape")
