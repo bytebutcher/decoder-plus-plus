@@ -63,8 +63,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
 
 ## Advanced Usage
 
-This section provides you with additional information about how the command line interface and interactive 
-python shell can be used.
+This section provides you with additional information about how the command line interface can be used.
 
 ### Command Line Interface
 
@@ -142,7 +141,7 @@ class Plugin(DecoderPlugin):
 
 ## Contribute
 
-Feel free to open a new ticket for any feature request or bugs. Also don't hesitate to issue a pull-requests for new features/plugins.
+Feel free to open a new ticket for feature request or bugs. Also don't hesitate to issue a pull-request for new features/plugins.
 
 Thanks to 
 * Tim Menapace (RIPEMD160, KECCAK256)
