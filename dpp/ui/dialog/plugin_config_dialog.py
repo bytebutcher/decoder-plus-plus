@@ -223,7 +223,6 @@ class PluginConfigPreviewDialog(PluginConfigDialog):
         view_frame_layout = QHBoxLayout()
         self._txt_preview = QPlainTextEdit(self)
         self._txt_preview.setReadOnly(True)
-        self._txt_preview.setFixedHeight(126)
         view_frame_layout.addWidget(self._txt_preview)
         view_frame.setLayout(view_frame_layout)
         return view_frame

@@ -297,7 +297,7 @@ class MainWindowWidget(QWidget):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
         if filename:
             try:
-                self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict())))
+                self._context.saveAsFile(filename, str(json.dumps(self._tabs.toDict(), default=lambda x: x.__dict__)))
                 self._context.logger().info("Successfully saved session in {}!".format(filename))
             except Exception as e:
                 self._context.logger().error("Unexpected error saving file. {}".format(e))

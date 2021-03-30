@@ -60,6 +60,7 @@ class PluginConfig(object):
                 self.description = description
                 self.is_required = is_required
                 self.is_initialized = False
+                self.clazz = str(self.__class__.__name__)
 
             def _name(self):
                 return self.label.name
@@ -122,6 +123,32 @@ class PluginConfig(object):
                 """
                 super(PluginConfig.Option.Group, self).__init__(label, value, description, is_required)
                 self.group_name = group_name
+
+        class Builder:
+            """ Builds the plugin config from a dictionary. """
+
+            def build(self, config: dict) -> dict:
+                """
+                Building the plugin configuration requires special care since we need to map the individual
+                plugin option types (e.g. String, Boolean, ...).
+                :param config: the plugin config as dictionary.
+                :return: the plugin config as dictionary with options resolved to individual classes.
+                """
+                result = {}
+                for name, value in config.items():
+                    try:
+                        clazz = value.pop("clazz")
+                        value["label"] = PluginConfig.Option.Label(value["label"]["key"], value["label"]["name"])
+                        value.pop("is_initialized")
+                        result[name] = {
+                            "String": PluginConfig.Option.String,
+                            "Integer": PluginConfig.Option.Integer,
+                            "Boolean": PluginConfig.Option.Boolean,
+                            "Group": PluginConfig.Option.Group
+                        }.get(clazz)(**value)
+                    except:
+                        raise Exception("Error while loading plugin configuration!")
+                return result
 
     def __init__(self):
         self._config = {}
@@ -536,7 +563,7 @@ class PluginBuilder:
         """ Returns a plugin as specified within configuration item. Returns a NullPlugin on error. """
         try:
             plugin = self._context.getPluginByName(config["name"], config["type"])
-            plugin.setup(config["config"])
+            plugin.setup(PluginConfig.Option.Builder().build(config["config"]))
             return plugin
         except Exception as e:
             self._context.logger().debug("Error building plugin:")

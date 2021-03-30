@@ -4,7 +4,14 @@ from dpp.core.plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Decodes a Base64 string.
+    Decodes a URL-safe BASE64 string.
+
+    URL-safe BASE64 is a BASE64 derivation which remaps following characters:
+
+     Location  Base64  Http64
+     --------  ------  ------
+       62        +       -
+       63        /       _
 
     Example:
 

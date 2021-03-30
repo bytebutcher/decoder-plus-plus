@@ -1,0 +1,12 @@
+#!/bin/bash
+APP_NAME="runner"
+APP_PATH="$(dirname "$(readlink -f "$0")")"
+VENV_PATH="${APP_PATH}/venv"
+VENV_PIP="${VENV_PATH}/bin/pip3"
+VENV_PYTHON="${VENV_PATH}/bin/python3"
+ARGS=( "$@" )
+if [ -d "${VENV_PATH}" ] && [ -f "${VENV_PYTHON}" ] ; then
+	${VENV_PYTHON} "${APP_PATH}/${APP_NAME}.py" "${ARGS[@]}"
+else
+	python3 "${APP_PATH}/${APP_NAME}.py" "${ARGS[@]}"
+fi

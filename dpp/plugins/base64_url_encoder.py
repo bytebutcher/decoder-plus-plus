@@ -2,7 +2,14 @@ from dpp.core.plugin import EncoderPlugin
 
 class Plugin(EncoderPlugin):
     """
-    Encodes a text using Base64.
+    Encodes a text using URL-safe BASE64.
+
+    URL-safe BASE64 is a BASE64 derivation which remaps following characters:
+
+     Location  Base64  Http64
+     --------  ------  ------
+       62        +       -
+       63        /       _
 
     Example:
 
