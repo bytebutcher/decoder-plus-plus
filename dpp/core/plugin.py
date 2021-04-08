@@ -136,6 +136,9 @@ class PluginConfig(object):
                 """
                 result = {}
                 for name, value in config.items():
+                    if isinstance(value, PluginConfig.Option.Base):
+                        result[name] = copy.deepcopy(value)
+                        continue
                     try:
                         clazz = value.pop("clazz")
                         value["label"] = PluginConfig.Option.Label(value["label"]["key"], value["label"]["name"])

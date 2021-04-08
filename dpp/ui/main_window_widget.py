@@ -169,6 +169,11 @@ class MainWindowWidget(QWidget):
                                 "Alt+Shift+R",
                                 lambda: self._tabs.tabBar().rename_tab(),
                                 tab_menu)
+        self._register_shortcut(Context.Shortcut.TAB_DUPLICATE,
+                                "&Duplicate Tab",
+                                "Ctrl+Shift+D",
+                                lambda: self._tabs.duplicateTab(),
+                                tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_NEXT,
                                 "&Next Tab",
                                 "Ctrl+Tab",

@@ -39,7 +39,7 @@ class ActionBuilder:
 
     def callback(self, callback):
         """ The callback which should be triggered when the action is clicked. """
-        self._callback = callback
+        self._callback = callback # void QAction::triggered(bool checked = false)
         return self
 
     def build(self) -> QAction:

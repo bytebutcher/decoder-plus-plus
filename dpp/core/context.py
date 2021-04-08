@@ -56,6 +56,7 @@ class Context(QObject):
         SAVE_AS_FILE = "save_as_file"
         TAB_NEW = "tab_new"
         TAB_RENAME = "tab_rename"
+        TAB_DUPLICATE = "tab_duplicate"
         TAB_NEXT = "tab_next"
         TAB_PREVIOUS = "tab_previous"
         TAB_CLOSE = "tab_close"

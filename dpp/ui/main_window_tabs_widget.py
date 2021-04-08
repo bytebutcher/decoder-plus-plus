@@ -99,19 +99,22 @@ class MainWindowTabsWidget(QTabWidget):
         menu = QMenu(self)
         menu.addAction(ActionBuilder(self)
                        .name("New Tab")
-                       .callback(self.newTab).build())
+                       .callback(lambda checked: self.newTab()).build())
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Rename Tab")
-                       .callback(self.tabBar().rename_tab).build())
+                       .callback(lambda checked: self.tabBar().renameTab()).build())
+        menu.addAction(ActionBuilder(self)
+                       .name("Duplicate Tab")
+                       .callback(lambda checked: self.duplicateTab()).build())
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Close Tab")
-                       .callback(self.closeTab).build())
+                       .callback(lambda checked: self.closeTab()).build())
         menu.addAction(ActionBuilder(self)
                        .name("Close Other Tabs")
                        .enabled(self.tabCount() > 1)
-                       .callback(lambda: self.closeOtherTabs()).build())
+                       .callback(lambda checked: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
     def newTab(self, input: str=None, title :str=None) -> (int, CodecTab):
@@ -134,8 +137,51 @@ class MainWindowTabsWidget(QTabWidget):
         return index, codec_tab
 
     def renameTab(self, index, title):
+        """ Renames the title of a tab.
+        Note: If you require the user to dynamically enter a value checkout the renameTab method in tab_bar.py
+        :param index: the index of the tab to be renamed.
+        """
         self.tabBar().setTabText(index, title)
         return self.tab(index)
+
+    def duplicateTab(self, src_index=None):
+        """
+        Duplicates the content of a tab.
+        :param src_index: the index of the tab to be duplicated.
+        """
+        def does_tab_title_already_exist(title):
+            for index in range(self.count()):
+                if self.tabBar().tabText(index) == title:
+                    return True
+            return False
+
+        def get_duplicate_tab_title(index):
+            count = 1
+            while does_tab_title_already_exist(self.tabBar().tabText(index) + " (Copy " + str(count) + ")"):
+                count += 1
+            return self.tabBar().tabText(index) + " (Copy " + str(count) + ")"
+
+        if src_index is None:
+            src_index = self.currentIndex()
+
+        src_tab = self.tab(src_index)
+        index, tab = self.newTab(title=get_duplicate_tab_title(src_index))
+        frame_index = 0
+        for src_frame in src_tab.frames().getFrames():
+            status_type, status_message = src_frame.status()
+            if frame_index == 0:
+                # New tabs already contain one empty frame
+                frame = tab.frames().getFrames()[0]
+                frame.setInputText(src_frame.getInputText())
+                frame.setStatus(status_type, status_message)
+            else:
+                tab.frames().newFrame(src_frame.getInputText(),
+                                              src_frame.title(),
+                                              frame_index,
+                                              status_type,
+                                              status_message)
+            tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
+            frame_index = frame_index + 1
 
     def selectTab(self, index):
         if index < 0 or index > self.count() - 2:
