@@ -15,7 +15,7 @@ class ElidedLabel(QLabel):
         self.setToolTip(self.full_text)
 
     def setText(self, text: str):
-        self.full_text = text
+        self.full_text = text.split('\n')[0]
         self.__set_elided_text()
 
     def resizeEvent(self, event) -> None:
