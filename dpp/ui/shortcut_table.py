@@ -76,14 +76,30 @@ class KeyboardShortcutTable(QTableView):
         self.model().sourceModel().item(item.row(), 2).setText(keyboard_shortcut)
         self.changed.emit(id, keyboard_shortcut)
 
+    def _get_source_model_item(self, item):
+        """
+        Due to letting users search for keyboard shortcuts we actually have two models:
+        1. the source model containing all keyboard shortcuts
+        2. the proxy model containing the keyboard shortcuts visible to the user due to his search term
+        When an item is clicked Qt returns the item associated with the proxy model which we are likely not interested
+        in. This method is a shorthand for mapping the item of the proxy model to the item of the source model.
+        """
+        return self.model().sourceModel().item(self.model().mapToSource(item).row())
+
     def clickEvent(self, item):
-        self._edit_keyboard_shortcut(item)
+        self._edit_keyboard_shortcut(self._get_source_model_item(item))
 
     def keyReleaseEvent(self, event: QKeyEvent):
-        item = self.model().sourceModel().item(self.currentIndex().row())
+        src_item = self._get_source_model_item(self.currentIndex())
         if event.key() == Qt.Key_Return:
-            self._edit_keyboard_shortcut(item)
+            self._edit_keyboard_shortcut(src_item)
         elif event.key() == Qt.Key_Backspace:
-            self._update_keyboard_shortcut(item, "")
-        elif chr(event.key()).isalnum():
-            self.keyPressed.emit(chr(event.key()))
+            self._update_keyboard_shortcut(src_item, "")
+        else:
+            try:
+                # We only allow alpha numeric keys as shortcut like ctrl + "A" but not ctrl + "!".
+                if chr(event.key()).isalnum():
+                    self.keyPressed.emit(chr(event.key()))
+            except:
+                # Ignore exceptions which occur when the key is not a char.
+                pass
