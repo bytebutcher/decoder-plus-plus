@@ -37,7 +37,7 @@ If you don't want to startup a graphical user interface but still make use of th
  can use the commandline mode:
 
 ```bash
-$ python3 dpp.py -e base64 -h sha1 "Hello, world!"
+$ dpp -e base64 -h sha1 "Hello, world!"
 e52d74c6d046c390345ae4343406b99587f2af0d
 ```
 
@@ -51,7 +51,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
-    * **Scripts:** CSS-Minify, Caesar, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
+    * **Scripts:** CSS-Minify, Caesar, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, JSONPath, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
 * Smart-Decode
 * Plugin System
 * Load & Save Current Session
@@ -130,7 +130,7 @@ class Plugin(DecoderPlugin):
         plugin_author = "Your Name"
         # Python Libraries which are required to be able to execute the run method of this plugin.
         plugin_requirements = ["urllib"]
-        super().__init__(plugin_name, plugin_author, plugin_requirements)
+        super().__init__(plugin_name, plugin_author, plugin_requirements, context)
 
     def run(self, text):
         # Load the required libraries here ...
@@ -141,7 +141,7 @@ class Plugin(DecoderPlugin):
 
 ## Contribute
 
-Feel free to open a new ticket for feature request or bugs. Also don't hesitate to issue a pull-request for new features/plugins.
+Feel free to open a new ticket for feature requests or bugs. Also don't hesitate to issue a pull-request for new features/plugins.
 
 Thanks to 
 * Tim Menapace (RIPEMD160, KECCAK256)

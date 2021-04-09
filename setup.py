@@ -11,7 +11,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="decoder-plus-plus",
-    version="1.1.8",
+    version="1.2.0",
     description="An extensible application for penetration testers and software developers to decode/encode data into various formats.",
     long_description=README,
     long_description_content_type="text/markdown",

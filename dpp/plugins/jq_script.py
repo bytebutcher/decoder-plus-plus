@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 import os
 
 import qtawesome
@@ -29,17 +30,19 @@ class Plugin(ScriptPlugin):
 	"""
 
 	class Option(object):
-		JQ_Expression = PluginConfig.Option.Label("jq_expression", "Expression:")
+		Expression = PluginConfig.Option.Label("expression", "Expression:")
 
-	class XPathCodec:
+	class Codec:
 
 		def run(self, config: PluginConfig, text: str):
 			try:
 				import pyjq as pyjq
-				jq_expression = config.get(Plugin.Option.JQ_Expression).value
+				expression = config.get(Plugin.Option.Expression).value
 				return os.linesep.join([
-					json.dumps(item) for item in pyjq.all(jq_expression, json.loads(text))
+					json.dumps(item) for item in pyjq.all(expression, json.loads(text))
 				])
+			except JSONDecodeError as e:
+				raise Exception("Error decoding json!")
 			except Exception as e:
 				# Ignore exceptions - most likely an error in the jq expression
 				pass
@@ -49,9 +52,9 @@ class Plugin(ScriptPlugin):
 		super().__init__('JQ', "Thomas Engel", ["pyjq"], context)
 		self._context = context
 		self._logger = context.logger
-		self._codec = Plugin.XPathCodec()
+		self._codec = Plugin.Codec()
 		self.config.add(PluginConfig.Option.String(
-			label=Plugin.Option.JQ_Expression,
+			label=Plugin.Option.Expression,
 			value="",
 			description="jq expression to filter by",
 			is_required=True
@@ -75,7 +78,7 @@ class Plugin(ScriptPlugin):
 		return self.run(text)
 
 	def title(self):
-		return "Filter by jq expression '{}'".format(self.config.get(Plugin.Option.JQ_Expression).value)
+		return "Filter by jq expression '{}'".format(self.config.get(Plugin.Option.Expression).value)
 
 	def run(self, text: str):
 		return self._codec.run(self.config, text)
