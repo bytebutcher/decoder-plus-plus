@@ -153,12 +153,12 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
                                 "Select &Next Text Field",
                                 "Alt+Down",
-                                lambda: self._focus_input_text(lambda frame: frame.next()),
+                                lambda: self._focus_input_text(lambda frame: frame.getNextFrame()),
                                 select_menu)
         self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS,
                                 "Select &Previous Text Field",
                                 "Alt+Up",
-                                lambda: self._focus_input_text(lambda frame: frame.previous()),
+                                lambda: self._focus_input_text(lambda frame: frame.getPreviousFrame()),
                                 select_menu)
         return select_menu
 
@@ -167,7 +167,7 @@ class MainWindowWidget(QWidget):
         self._register_shortcut(Context.Shortcut.TAB_RENAME,
                                 "&Rename Tab",
                                 "Alt+Shift+R",
-                                lambda: self._tabs.tabBar().rename_tab(),
+                                lambda: self._tabs.tabBar().renameTab(),
                                 tab_menu)
         self._register_shortcut(Context.Shortcut.TAB_DUPLICATE,
                                 "&Duplicate Tab",
@@ -253,14 +253,14 @@ class MainWindowWidget(QWidget):
             future_frame = callback(frame) or frame
             future_frame.focusInputText()
             # Collapse/Uncollapse frames automatically.
-            if self._tabs.currentWidget().getFramesCount() > 2:
+            if self._tabs.currentWidget().frames().getFramesCount() > 2:
                 if frame != future_frame:
                     if future_frame.isCollapsed():
-                        if future_frame.hasPrevious():
+                        if future_frame.hasPreviousFrame():
                             # Toggle frame, except the first frame which does not have a header
                             future_frame.toggleCollapsed()
                     if not frame.wasCollapseStateChangedByUser():
-                        if frame.hasPrevious():
+                        if frame.hasPreviousFrame():
                             # Collapse frame, except the first frame which does not have a header
                             frame.toggleCollapsed()
 

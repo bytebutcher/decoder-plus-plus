@@ -1,7 +1,7 @@
-from dpp.core.plugin import ScriptPlugin
+from dpp.core.plugin import IdentifyPlugin
 
 
-class Plugin(ScriptPlugin):
+class Plugin(IdentifyPlugin):
     """
     Detects the file type of the input text based on magic bytes.
     """

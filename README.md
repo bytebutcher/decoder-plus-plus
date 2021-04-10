@@ -121,7 +121,7 @@ from dpp.core.plugin.abstract_plugin import DecoderPlugin
 
 class Plugin(DecoderPlugin):
     """
-    Possible plugins are DecoderPlugin, EncoderPlugin, HasherPlugin or ScriptPlugin.
+    Possible plugins are DecoderPlugin, EncoderPlugin, HasherPlugin, ScriptPlugin or IdentifyPlugin.
     See AbstractPlugin or it's implementations for more information.
     """ 
 

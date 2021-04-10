@@ -108,7 +108,7 @@ class Context(QObject):
     def _init_logger(self, log_format):
         """ Returns the logger. """
         logger = logging.getLogger(self._app_id)
-        log_level = logging.DEBUG if self.config.isDebugModeEnabled() else logging.WARN
+        log_level = logging.DEBUG if self.config.isDebugModeEnabled() else logging.INFO
 
         logging.root.setLevel(log_level)
         console_logger = logging.StreamHandler(sys.stderr)

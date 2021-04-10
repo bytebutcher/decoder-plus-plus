@@ -41,6 +41,10 @@ class DecoderPlusPlus(object):
         """ Returns the script interface which encapsulates all possible scripting methods. """
         return Script(self._input)
 
+    def identify(self) -> 'DecoderPlusPlus':
+        """ Returns the identify interface which encapsulates all possible identify methods. """
+        return Identify(self._input)
+
     def run(self):
         """ Starts the transformation process and returns the transformed input. """
         return self._input
@@ -50,3 +54,4 @@ Encoder = type('obj', (DecoderPlusPlus,), {})
 Decoder = type('obj', (DecoderPlusPlus,), {})
 Hasher = type('obj', (DecoderPlusPlus,), {})
 Script = type('obj', (DecoderPlusPlus,), {})
+Identify = type('obj', (DecoderPlusPlus,), {})

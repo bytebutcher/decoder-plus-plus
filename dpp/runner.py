@@ -42,7 +42,7 @@ if DPP_PACKAGE_PATH not in sys.path:
 from dpp.core.argparse.ordered_multi_args import OrderedMultiArgs
 from dpp.core.argparse.single_args import SingleArgs
 from dpp.core.context import Context
-from dpp.core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus
+from dpp.core.decoder_plus_plus import Decoder, Encoder, Hasher, Script, DecoderPlusPlus, Identify
 from dpp.core.plugin import PluginType
 
 from dpp.ui.decoder_plus_plus_gui import DecoderPlusPlusDialog, DecoderPlusPlusWindow
@@ -154,7 +154,13 @@ def init_builder(context: 'dpp.core.context.Context'):
         setattr(clazz, plugin.method_name(), runner(plugin))
 
     plugins = context.plugins()
-    clazz_map = {PluginType.ENCODER: Encoder, PluginType.DECODER: Decoder, PluginType.HASHER: Hasher, PluginType.SCRIPT: Script}
+    clazz_map = {
+        PluginType.ENCODER: Encoder,
+        PluginType.DECODER: Decoder,
+        PluginType.HASHER: Hasher,
+        PluginType.SCRIPT: Script,
+        PluginType.IDENTIFY: Identify
+    }
     for plugin in plugins.plugins():
         if not plugin.type() in clazz_map:
             context.logger().debug("Can not load plugin '{}'! Invalid type '{}'!".format(plugin.name(safe_name=True), plugin.type()))

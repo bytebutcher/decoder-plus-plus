@@ -30,6 +30,7 @@ class PluginType(object):
     ENCODER = "Encoder"
     HASHER = "Hasher"
     SCRIPT = "Script"
+    IDENTIFY = "Identify"
 
 
 class PluginConfig(object):
@@ -271,7 +272,7 @@ class AbstractPlugin(object):
         """
         Initializes a plugin.
         :param name: the name of the plugin.
-        :param type: the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT).
+        :param type: the type of the plugin (either DECODER, ENCODER, HASHER, SCRIPT, IDENTIFY).
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         :param context: the application context.
@@ -341,7 +342,7 @@ class AbstractPlugin(object):
         return self._method_name
 
     def type(self) -> str:
-        """ :returns the type of the plugin (either DECODER, ENCODER, HASHER or SCRIPT). """
+        """ :returns the type of the plugin (either DECODER, ENCODER, HASHER, SCRIPT, IDENTIFY). """
         return self._type
 
     def title(self) -> str:
@@ -540,6 +541,19 @@ class ScriptPlugin(AbstractPlugin):
         super(__class__, self).__init__(name, PluginType.SCRIPT, author, dependencies, context)
 
 
+class IdentifyPlugin(AbstractPlugin):
+
+    def __init__(self, name: str, author: str, dependencies: List[str], context: 'core.context.Context'):
+        """
+        Initializes a plugin.
+        :param name: the name of the plugin.
+        :param author: the author of the plugin.
+        :param dependencies: the dependencies of the plugin (either None or a list of strings).
+        :param context: the application context.
+        """
+        super(__class__, self).__init__(name, PluginType.IDENTIFY, author, dependencies, context)
+
+
 class NullPlugin(AbstractPlugin):
     """ Implements a plugin which can be used as a Null-Object. """
 
@@ -661,7 +675,7 @@ class Plugins:
 
     def types(self) -> List[str]:
         """ Returns all possible plugin types in a list. """
-        return [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT]
+        return [PluginType.DECODER, PluginType.ENCODER, PluginType.HASHER, PluginType.SCRIPT, PluginType.IDENTIFY]
 
     def plugins(self) -> List[AbstractPlugin]:
         return self._plugin_list

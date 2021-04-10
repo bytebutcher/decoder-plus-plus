@@ -27,6 +27,7 @@ from dpp.ui.codec_frame_header import CodecFrameHeader
 from dpp.ui.combo_box_frame import ComboBoxFrame
 from dpp.ui.view.plain_view import PlainView
 from dpp.ui.widget.collapsible_frame import CollapsibleFrame
+from dpp.ui.widget.identify_format_button import IdentifyFormatButton
 from dpp.ui.widget.smart_decode_button import SmartDecodeButton
 from dpp.ui.widget.status_widget import StatusWidget
 
@@ -109,6 +110,9 @@ class CodecFrame(CollapsibleFrame):
         self._smart_decode_button = SmartDecodeButton(self, self._plugins.filter(type=PluginType.DECODER))
         self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
         button_frame_layout.addWidget(self._smart_decode_button)
+        self._identify_format_button = IdentifyFormatButton(self, self._plugins.filter(type=PluginType.IDENTIFY))
+        self._identify_format_button.clicked.connect(self._identify_format_button_click_event)
+        button_frame_layout.addWidget(self._identify_format_button)
         button_frame_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_frame_layout)
         return button_frame
@@ -141,6 +145,8 @@ class CodecFrame(CollapsibleFrame):
 
     def _smart_decode_button_click_event(self):
         input = self._plain_view_widget.toPlainText()
+        if not input:
+            return None
         # TODO: Split Button and Processing
         decoders = self._smart_decode_button.get_possible_decoders(input)
         if not decoders:
@@ -156,6 +162,17 @@ class CodecFrame(CollapsibleFrame):
         decoder = decoders[0]
         self._logger.info("Possible match: {}".format(decoder.title()))
         self.selectComboBoxEntryByPlugin(decoder)
+
+    def _identify_format_button_click_event(self):
+        input = self._plain_view_widget.toPlainText()
+        if not input:
+            return None
+        for decoder in self._smart_decode_button.get_possible_decoders(input):
+            self._logger.info("{}: {}".format("Identify Decoder", decoder.name()))
+        for identifier in self._identify_format_button.get_possible_identifiers(input):
+            result = identifier.run(input)
+            for item in result.splitlines():
+                self._logger.info("{}: {}".format(identifier.name(), item))
 
     def id(self) -> str:
         return self._frame_id

@@ -93,7 +93,7 @@ class CodecFrames(QFrame):
             status = StatusWidget.ERROR
             error = str(e)
             self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
-            self._logger.exception(e, exc_info=self._context.isDebugModeEnabled())
+            self._logger.exception(error, exc_info=self._context.isDebugModeEnabled())
 
         self.newFrame(output, plugin.title(), frame_index, status=status, msg=error).focusInputText()
 
