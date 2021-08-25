@@ -51,7 +51,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
-    * **Scripts:** CSS-Minify, Caesar, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, JSONPath, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
+    * **Scripts:** CSS-Minify, Caesar, Extract URLs, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, JSONPath, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
 * Smart-Decode
 * Plugin System
 * Load & Save Current Session
