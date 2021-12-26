@@ -114,8 +114,12 @@ class CodecFrame(CollapsibleFrame):
                                                       self._logger
         )
         button_frame_layout.addWidget(self._smart_decode_button)
-        self._identify_format_button = IdentifyFormatButton(self, self._plugins.filter(type=PluginType.IDENTIFY))
-        self._identify_format_button.clicked.connect(self._identify_format_button_click_event)
+        self._identify_format_button = IdentifyFormatButton(self,
+                                                            self._plugins.filter(type=PluginType.DECODER) +
+                                                            self._plugins.filter(type=PluginType.IDENTIFY),
+                                                            self._plain_view_widget.toPlainText,
+                                                            self.selectComboBoxEntryByPlugin,
+                                                            self._logger)
         button_frame_layout.addWidget(self._identify_format_button)
         button_frame_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_frame_layout)
@@ -146,18 +150,6 @@ class CodecFrame(CollapsibleFrame):
 
     def _get_tooltip_by_shortcut(self, shortcut):
         return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
-
-
-    def _identify_format_button_click_event(self):
-        input = self._plain_view_widget.toPlainText()
-        if not input:
-            return None
-        for decoder in self._smart_decode_button.get_possible_decoders(input):
-            self._logger.info("{}: {}".format("Identify Decoder", decoder.name()))
-        for identifier in self._identify_format_button.get_possible_identifiers(input):
-            result = identifier.run(input)
-            for item in result.splitlines():
-                self._logger.info("{}: {}".format(identifier.name(), item))
 
     def id(self) -> str:
         return self._frame_id

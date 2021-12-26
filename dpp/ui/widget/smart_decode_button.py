@@ -46,7 +46,6 @@ class SmartDecodeButton(QFrame):
 
     def _can_plugin_decode_input(self, decoder: DecoderPlugin, input: str) -> bool:
         """ Returns whether the decoder can decode the specified input. """
-
         try:
             # Check whether decoder thinks it can decode the input
             if not decoder.can_decode_input(input):

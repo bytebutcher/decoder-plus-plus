@@ -12,7 +12,7 @@ class Plugin(IdentifyPlugin):
 
     def _detect_hash_format(self, input):
         from hashid import HashID
-        return "\n".join(map(str, HashID().identifyHash(input)))
+        return "\n".join(sorted([item.name for item in HashID().identifyHash(input)]))
 
     def run(self, input):
         return self._detect_hash_format(input)
