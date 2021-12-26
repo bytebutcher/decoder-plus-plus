@@ -17,7 +17,7 @@
 from typing import List
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QMenu, QAction
 
 from dpp.core.plugin import DecoderPlugin
 
@@ -25,11 +25,12 @@ from dpp.core.plugin import DecoderPlugin
 class SmartDecodeButton(QFrame):
     """ A button which provides a smart-decode functionality. """
 
-    clicked = pyqtSignal()
-
-    def __init__(self, parent, plugins: List[DecoderPlugin]):
+    def __init__(self, parent, plugins: List[DecoderPlugin], get_input_callback, select_decoder_callback, logger):
         super(__class__, self).__init__(parent)
         self._plugins = plugins
+        self._get_input = get_input_callback
+        self._select_decoder = select_decoder_callback
+        self._logger = logger
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 6, 0, 0)
         self._button = self._init_button()
@@ -38,28 +39,42 @@ class SmartDecodeButton(QFrame):
 
     def _init_button(self):
         button = QPushButton("Smart decode")
-        button.clicked.connect(self._button_click_event)
+        menu = QMenu(self)
+        menu.aboutToShow.connect(lambda: self._populate_button_menu(self._get_input()))
+        button.setMenu(menu)
         return button
 
-    def _button_click_event(self):
-        """ Forwards the "Smart decode" button click event. """
-        self.clicked.emit()
+    def _can_plugin_decode_input(self, decoder: DecoderPlugin, input: str) -> bool:
+        """ Returns whether the decoder can decode the specified input. """
 
-    def _test_decoders(self, input, possible_decoders) -> List[DecoderPlugin]:
-        """ Returns a list of decoders which did not threw an error when executing them with the specified input. """
-        decoders_without_error = []
-        for decoder in possible_decoders:
-            try:
-                decoder.select(input)
-                decoders_without_error.append(decoder)
-            except:
-                pass
-        return decoders_without_error
+        try:
+            # Check whether decoder thinks it can decode the input
+            if not decoder.can_decode_input(input):
+                return False
+            # Check whether decoder actually can decode the input without any error
+            decoder.select(input)
+            return True
+        except:
+            return False
 
-    def get_possible_decoders(self, input) -> List[DecoderPlugin]:
-        """ Returns a list of possible decoders for the specified input. """
-        possible_decoders = []
-        for plugin in self._plugins:
-            if plugin.can_decode_input(input):
-                possible_decoders.append(plugin)
-        return self._test_decoders(input, possible_decoders)
+    def _get_matching_decoders(self, input) -> List[DecoderPlugin]:
+        """ Returns a list of matching decoders for the specified input. """
+        if not input:
+            return []
+
+        return [plugin for plugin in self._plugins if self._can_plugin_decode_input(plugin, input)]
+
+    def _populate_button_menu(self, input):
+        """ Populates the button menu with a list of matching decoders for the specified input. """
+        menu = self._button.menu()
+        menu.clear()
+        decoders = self._get_matching_decoders(input)
+        if not decoders:
+            action = menu.addAction("No matching decoders found ...")
+            action.setEnabled(False)
+            return
+
+        for decoder in decoders:
+            action = QAction(decoder.title(), self)
+            action.triggered.connect(lambda chk, item=decoder: self._select_decoder(item))
+            menu.addAction(action)

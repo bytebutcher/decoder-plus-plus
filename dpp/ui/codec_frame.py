@@ -107,8 +107,12 @@ class CodecFrame(CollapsibleFrame):
         self._combo_box_frame.titleSelected.connect(lambda: self.pluginDeselected.emit(self.id()))
         self._combo_box_frame.pluginSelected.connect(lambda plugin: self.pluginSelected.emit(self.id(), self.getInputText(), plugin))
         button_frame_layout.addWidget(self._combo_box_frame)
-        self._smart_decode_button = SmartDecodeButton(self, self._plugins.filter(type=PluginType.DECODER))
-        self._smart_decode_button.clicked.connect(self._smart_decode_button_click_event)
+        self._smart_decode_button = SmartDecodeButton(self,
+                                                      self._plugins.filter(type=PluginType.DECODER),
+                                                      self._plain_view_widget.toPlainText,
+                                                      self.selectComboBoxEntryByPlugin,
+                                                      self._logger
+        )
         button_frame_layout.addWidget(self._smart_decode_button)
         self._identify_format_button = IdentifyFormatButton(self, self._plugins.filter(type=PluginType.IDENTIFY))
         self._identify_format_button.clicked.connect(self._identify_format_button_click_event)
@@ -143,25 +147,6 @@ class CodecFrame(CollapsibleFrame):
     def _get_tooltip_by_shortcut(self, shortcut):
         return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
 
-    def _smart_decode_button_click_event(self):
-        input = self._plain_view_widget.toPlainText()
-        if not input:
-            return None
-        # TODO: Split Button and Processing
-        decoders = self._smart_decode_button.get_possible_decoders(input)
-        if not decoders:
-            self._logger.error("No matching decoders detected.")
-            return None
-
-        if len(decoders) > 1:
-            decoder_titles = [decoder.title() for decoder in decoders]
-            self._logger.warning("Multiple matching decoders detected: {}".format(", ".join(decoder_titles)))
-            self.selectComboBoxEntryByPlugin(decoders[0])
-            return None
-
-        decoder = decoders[0]
-        self._logger.info("Possible match: {}".format(decoder.title()))
-        self.selectComboBoxEntryByPlugin(decoder)
 
     def _identify_format_button_click_event(self):
         input = self._plain_view_widget.toPlainText()
