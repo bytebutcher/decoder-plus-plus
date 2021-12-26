@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+from datetime import datetime
 
 import qtawesome
 from PyQt5 import QtCore
@@ -72,8 +73,10 @@ class ConfigDialog(QDialog):
         tab = QWidget(self)
         base_layout = QHBoxLayout()
         base_layout.setAlignment(QtCore.Qt.AlignVCenter)
-        logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
-
+        if datetime.now().month == 12:
+            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp_xmas.png')
+        else:
+            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
         icon_frame = QFrame()
         icon_layout = QHBoxLayout()
         icon_label = IconLabel(self, QIcon(logo))
