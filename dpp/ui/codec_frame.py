@@ -212,7 +212,7 @@ class CodecFrame(CollapsibleFrame):
     def setPlugin(self, plugin: AbstractPlugin, blockSignals=True):
         if plugin:
             self.selectComboBoxEntryByPlugin(plugin, blockSignals=blockSignals)
-            self.getPlugin().setup(plugin.config().toDict())
+            self.getPlugin().setup(plugin.config.toDict())
             self.frameChanged.emit(self.id())
 
     def title(self) -> str:

@@ -70,7 +70,7 @@ class IdentifyFormatButton(QFrame):
         menu.clear()
         plugins = self._get_matching_plugins(input)
         if not plugins:
-            action = menu.addAction("No matching identifiers found ...")
+            action = menu.addAction("No matching format found ...")
             action.setEnabled(False)
             return
 
