@@ -47,7 +47,7 @@ e52d74c6d046c390345ae4343406b99587f2af0d
     * Graphical User Interface
     * Command Line Interface
 * Preinstalled Scripts and Codecs:
-    * **Encode/Decode:** Base16, Base32, Base64, Base64 (URL-safe), Binary, Gzip, Hex, Html, JWT, HTTP64, Octal, Url, Url+, Zlib
+    * **Encode/Decode:** Base16, Base32, Base45, Base64, Base64 (URL-safe), Binary, Gzip, Hex, Html, JWT, HTTP64, Octal, Url, Url+, Zlib
     * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
