@@ -1,5 +1,8 @@
 .idea/
 __pycache__
+build
+dist
+*.egg-info
 dpp.log
 decoder-plus-plus/venv
 dpp/venv
