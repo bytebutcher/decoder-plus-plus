@@ -1,5 +1,5 @@
 import qtawesome
-from PyQt5.QtWidgets import QDialog
+from PyQt6.QtWidgets import QDialog
 
 from dpp.core.exception import AbortedException
 from dpp.core.plugin import ScriptPlugin, PluginConfig

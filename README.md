@@ -153,32 +153,49 @@ Thanks to
 
 When starting ```Decoder++``` in Mac OS signals are not working.
 
-This might happen when ```PyQt5``` is installed using homebrew. To fix this issue it is recommended to install the ```libdbus-1```
-library. See http://doc.qt.io/qt-5/osx-issues.html#d-bus-and-macos for more information regarding this issue.  
+This might happen when ```PyQt6``` is installed using homebrew. 
 
 ### Can not start Decoder++ in Windows using CygWin
 
 When starting ```Decoder++``` in ```CygWin``` an error occurs:
 ```
-  ModuleNotFoundError: No module named 'PyQt5'
+  ModuleNotFoundError: No module named 'PyQt6'
 ```
 
-This happens although ```PyQt5``` is installed using pip. Currently there is no fix for that. Instead it is recommended
+This might happen even if ```PyQt6``` is installed using pip. 
+Currently there is no fix for that. Instead it is recommended
 to start ```Decoder++``` using the Windows command line.
 
-### No Module PyQt5.sig 
+### No Module PyQt6 
 
-When starting ```Decoder++``` the error ```No module named 'PyQt5.sig'``` is displayed on the console. 
-This may happen when there are competing versions of PyQt5 installed. Reinstalling PyQt5 should fix this error.
+When starting ```Decoder++``` the error ```No module named 'PyQt6.sig'``` is displayed on the console. 
+This may happen when there are competing versions of PyQt6 installed. Reinstalling PyQt6 should fix this error.
 
 ```
-$ sudo pip3 uninstall PyQt5  
-$ sudo pip3 install PyQt5
+$ sudo pip3 uninstall PyQt6
+$ sudo pip3 install PyQt6
 ```
+
+### Missing Qt6 libraries
+
+At least in Ubuntu 22.04 it might be necessary to install the following packages using ```apt```:
+
+```
+apt install libqt6core6 libqt6network6 libqt6openglwidgets6 libqt6widgets6
+```
+
+### X11-forwarding fails
+
+In order to run dpp inside a container/virtual machine you may need to install the qt6-qpa-plugins and configure the QT_QPA_PLATFORM_PLUGIN_PATH accordingly:
+
+```
+apt install qt6-qpa-plugins
+export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/
+``` 
 
 ## Inspired By
 * PortSwigger's Burp Decoder
 
 ## Powered By
-* PyQt5
+* PyQt6
 * QtAwesome

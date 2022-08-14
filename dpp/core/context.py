@@ -22,8 +22,8 @@ import sys
 from pathlib import Path
 from typing import List
 
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QAction
+from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtGui import QAction
 
 from dpp.core.listener import Listener
 from dpp.core.plugin import AbstractPlugin, Plugins

@@ -14,9 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QPoint
-from PyQt5.QtWidgets import QTabBar, QLineEdit, QWidget
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QPoint
+from PyQt6.QtWidgets import QTabBar, QLineEdit, QWidget
 
 
 class TabBar(QTabBar):

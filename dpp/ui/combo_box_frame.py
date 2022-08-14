@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 
-from PyQt5.QtCore import QTimer, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QFrame, QComboBox, QVBoxLayout
+from PyQt6.QtCore import QTimer, pyqtSignal
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
+from PyQt6.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
 import dpp
 from dpp.core.plugin import NullPlugin
@@ -89,7 +89,7 @@ class ComboBoxFrame(QFrame):
     def _combo_box_item_selected_event(self, type, index):
         self.resetExceptType(type)
         # Remove frames below when title element was selected
-        if index is 0:
+        if index == 0:
             self.titleSelected.emit()
             return
 

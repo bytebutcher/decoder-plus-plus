@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt5.QtCore import QRect, pyqtSignal, QTimer, Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
+from PyQt6.QtCore import QRect, pyqtSignal, QTimer, Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel
 
 from dpp.ui import IconLabel
 from dpp.ui.widget.clickable_label import ClickableLabel

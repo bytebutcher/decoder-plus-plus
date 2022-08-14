@@ -17,8 +17,9 @@
 import qtawesome
 from typing import List
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QMenu, QAction
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QMenu
+from PyQt6.QtGui import QAction
 
 from dpp.core.plugin import DecoderPlugin, IdentifyPlugin, AbstractPlugin
 

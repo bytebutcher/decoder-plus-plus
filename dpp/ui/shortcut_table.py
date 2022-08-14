@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
-from PyQt5.QtWidgets import QTableView
+from PyQt6.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
+from PyQt6.QtWidgets import QTableView
 from qtpy import QtWidgets
 
 from dpp.ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog

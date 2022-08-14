@@ -18,10 +18,10 @@ import os
 from datetime import datetime
 
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
+from PyQt6 import QtCore
+from PyQt6.QtCore import QSize
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
 from dpp.ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
 from dpp.ui.widget.plugin_tab import PluginTab
@@ -105,9 +105,8 @@ class ConfigDialog(QDialog):
         form_layout.addRow(QLabel("Inspired By: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("PortSwigger's Burp Decoder"))
         form_layout.addRow(QLabel("Powered By: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("PyQt5"))
+        form_layout.addRow(QLabel(""), QLabel("PyQt6"))
         form_layout.addRow(QLabel(""), QLabel("QtAwesome"))
-        form_layout.addRow(QLabel(""), QLabel("QScintilla"))
         form_layout.addRow(QLabel("Website: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("<a href='https://github.com/bytebutcher/decoder-plus-plus/'>https://github.com/bytebutcher/decoder-plus-plus</a>"))
         form_frame.setLayout(form_layout)
@@ -135,7 +134,7 @@ class ConfigDialog(QDialog):
         shortcut_table = KeyboardShortcutTable(self, self._context)
         shortcut_table.changed.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))
         shortcut_table.keyPressed.connect(on_keyboard_shortcut_table_key_press)
-        shortcut_filter.textChanged.connect(shortcut_table.model().setFilterRegExp)
+        shortcut_filter.textChanged.connect(shortcut_table.model().setFilterRegularExpression)
         frame_layout.addWidget(shortcut_table)
         frame_layout.setContentsMargins(20, 20, 20, 20)
         frame.setLayout(frame_layout)

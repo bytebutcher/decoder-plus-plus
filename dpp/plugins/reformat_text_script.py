@@ -3,9 +3,9 @@ import re
 import string
 
 import qtawesome
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QLineEdit, QCheckBox, \
+from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QLineEdit, QCheckBox, \
     QDialogButtonBox, QPlainTextEdit, QHBoxLayout, QToolButton
 
 from dpp.core.exception import AbortedException

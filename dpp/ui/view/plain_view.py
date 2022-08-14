@@ -16,10 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, QRegExp, QPoint, QEvent
-from PyQt5.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit, QAction
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, QRegularExpression, QPoint, QEvent
+from PyQt6.QtGui import QAction, QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit
 
 from dpp.core import Context
 from dpp.ui import SearchField
@@ -206,7 +206,7 @@ class PlainView(QFrame):
 
         def highlight_text(text, format):
             cursor = self._plain_text.textCursor()
-            regex = QRegExp(QRegExp.escape(text))
+            regex = QRegularExpression(QRegularExpression.escape(text))
 
             # Process the displayed document
             pos = 0

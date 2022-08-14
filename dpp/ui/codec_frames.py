@@ -1,6 +1,6 @@
 from typing import List
 
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel
 
 from dpp.core.exception import AbortedException
 from dpp.ui.codec_frame import CodecFrame

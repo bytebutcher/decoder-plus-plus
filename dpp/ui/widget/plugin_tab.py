@@ -17,10 +17,10 @@
 from typing import List
 
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, QModelIndex, QEvent
-from PyQt5.QtGui import QStandardItem, QBrush
-from PyQt5.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, QModelIndex, QEvent
+from PyQt6.QtGui import QStandardItem, QBrush
+from PyQt6.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
 
 from dpp.core import Context
 from dpp.core.plugin import Plugins

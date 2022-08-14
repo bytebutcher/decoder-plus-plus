@@ -16,10 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from typing import List
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, QRegExp
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor, QRegExpValidator, QFont, QFontMetrics
-from PyQt5.QtWidgets import QTableView, QLineEdit, QStyledItemDelegate
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, QRegularExpression
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QColor, QRegularExpressionValidator, QFont, QFontMetrics
+from PyQt6.QtWidgets import QTableView, QLineEdit, QStyledItemDelegate
 
 
 class HexValidatorDelegate(QStyledItemDelegate):
@@ -27,7 +27,7 @@ class HexValidatorDelegate(QStyledItemDelegate):
         if not index.isValid():
             return 0
         editor = QLineEdit(widget)
-        validator = QRegExpValidator(QRegExp("[0-9a-fA-F]?[0-9a-fA-F]"))
+        validator = QRegExpValidator(QRegularExpression("[0-9a-fA-F]?[0-9a-fA-F]"))
         editor.setValidator(validator)
         return editor
 

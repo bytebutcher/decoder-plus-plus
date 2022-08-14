@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QTimer
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QLineEdit
+from PyQt6.QtCore import pyqtSignal, Qt, QEvent, QTimer
+from PyQt6.QtGui import QPainter
+from PyQt6.QtWidgets import QLineEdit
 
 
 class SearchField(QLineEdit):

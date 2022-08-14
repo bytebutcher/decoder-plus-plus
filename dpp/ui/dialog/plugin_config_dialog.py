@@ -14,11 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QPoint, QEvent
-from PyQt5.QtGui import QKeySequence, QCursor
-from PyQt5.QtWidgets import QLabel, QRadioButton, QCheckBox, QLineEdit, QDialog, QDialogButtonBox, QFormLayout, \
-    QGroupBox, QShortcut, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit, QAction
+from PyQt6 import QtCore
+from PyQt6.QtCore import Qt, QKeyCombination, QPoint, QEvent
+from PyQt6.QtGui import QKeySequence, QCursor, QShortcut, QAction
+from PyQt6.QtWidgets import QLabel, QRadioButton, QCheckBox, QLineEdit, QDialog, QDialogButtonBox, QFormLayout, \
+    QGroupBox, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit
 
 from dpp.core.plugin import PluginConfig
 
@@ -85,11 +85,11 @@ class PluginConfigDialog(QDialog):
             if self._btn_box(QDialogButtonBox.Ok).isEnabled():
                 self.accept()
 
-        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Return), self)
+        ctrl_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.CTRL, Qt.Key_Return)), self)
         ctrl_return_shortcut.activated.connect(_accept)
-        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_Return), self)
+        alt_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_Return)), self)
         alt_return_shortcut.activated.connect(_accept)
-        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT + Qt.Key_O), self)
+        alt_o_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_O)), self)
         alt_o_shortcut.activated.connect(_accept)
 
     def _init_input_frame(self):

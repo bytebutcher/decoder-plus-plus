@@ -18,10 +18,10 @@
 from typing import List
 
 import qtawesome
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QSortFilterProxyModel, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import QSortFilterProxyModel, pyqtSignal
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
+from PyQt6.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
 from dpp.core.logging import LogEntry
 from dpp.ui.widget.dock_widget import DockWidget

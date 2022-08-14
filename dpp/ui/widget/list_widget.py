@@ -14,10 +14,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5 import QtCore
-from PyQt5.QtCore import QSize, QSortFilterProxyModel, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QListView
+from PyQt6 import QtCore
+from PyQt6.QtCore import QSize, QSortFilterProxyModel, pyqtSignal
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
+from PyQt6.QtWidgets import QListView
 
 
 class ListWidget(QListView):

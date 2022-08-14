@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtCore import QSortFilterProxyModel, Qt
-from PyQt5.QtWidgets import QCompleter, QComboBox
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtWidgets import QCompleter, QComboBox
 
 
 class ComboBox(QComboBox):

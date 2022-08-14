@@ -14,7 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt5.QtWidgets import QWidget, QAction
+from PyQt6.QtWidgets import QWidget
+from PyQt6.QtGui import QAction
 
 
 class Shortcut(QAction):

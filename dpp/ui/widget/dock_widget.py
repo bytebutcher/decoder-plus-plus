@@ -16,11 +16,11 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # The code is based on https://github.com/obdasystems/eddy/blob/master/eddy/ui/dock.py
-from PyQt5 import QtCore
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QTabBar, QDockWidget, QStyle, QApplication, QToolButton, QHBoxLayout, QFrame, QWidget
+from PyQt6 import QtCore
+from PyQt6 import QtGui
+from PyQt6 import QtWidgets
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QTabBar, QDockWidget, QStyle, QApplication, QToolButton, QHBoxLayout, QFrame, QWidget
 
 
 class DockWidget(QtWidgets.QDockWidget):
@@ -184,8 +184,8 @@ class TitleBarWidget(QtWidgets.QWidget):
         Updates the features of the title bar widget.
         :param features: const
         """
-        self.dockButton.setVisible(features & QDockWidget.DockWidgetFloatable)
-        self.closeButton.setVisible(features & QDockWidget.DockWidgetClosable)
+        self.dockButton.setVisible(features.value & QDockWidget.DockWidgetFloatable.value)
+        self.closeButton.setVisible(features.value & QDockWidget.DockWidgetClosable.value)
 
     def mouseDoubleClickEvent(self, mouseEvent):
         """

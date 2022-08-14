@@ -18,8 +18,8 @@
 from typing import List
 
 import qtawesome
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
 from dpp.core import Context
 from dpp.ui import CodecTab, TabBar

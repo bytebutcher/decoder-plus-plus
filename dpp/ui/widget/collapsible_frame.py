@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
 
 from dpp.core import Context
 from dpp.ui import HSpacer

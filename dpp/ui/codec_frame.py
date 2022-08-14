@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import uuid
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFrame, QVBoxLayout
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QFrame, QVBoxLayout
 
 from dpp.core import Context
 from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
@@ -168,7 +168,7 @@ class CodecFrame(CollapsibleFrame):
         self._status_widget.setStatus(type, message)
 
     def flashStatus(self, status, message):
-        self._header_frame.indicateError(status is "ERROR")
+        self._header_frame.indicateError(status == "ERROR")
         self._status_widget.setStatus(status, message)
 
     def selectComboBoxEntryByPlugin(self, plugin, blockSignals=False):

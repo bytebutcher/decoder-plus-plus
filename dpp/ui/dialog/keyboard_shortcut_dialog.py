@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QKeySequence
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
+from PyQt6.QtCore import QKeyCombination, QSize, Qt
+from PyQt6.QtGui import QIcon, QKeySequence
+from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout
 from dpp.ui.widget.icon_label import IconLabel
 
 
@@ -99,7 +99,7 @@ class KeyboardShortcutDialog(QDialog):
             return
 
         try:
-            key_sequence = QKeySequence(event.modifiers() | event.key())
+            key_sequence = QKeySequence(QKeyCombination(event.modifiers(), event.key()))
             key_sequence_ascii_representation = key_sequence.toString().encode('ascii',
                                                                                errors='ignore').decode()
             self.setKeyboardShortcut(key_sequence_ascii_representation)

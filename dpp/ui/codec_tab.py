@@ -17,8 +17,8 @@
 import uuid
 from typing import List
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QScrollArea, QWidget, QFrame, QVBoxLayout, QSplitter, QSizePolicy
 
 from dpp.core import Context
 from dpp.core.plugin import Plugins, PluginBuilder

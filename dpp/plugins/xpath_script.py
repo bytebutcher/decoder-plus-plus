@@ -1,6 +1,6 @@
 import qtawesome
 
-from PyQt5.QtWidgets import QDialog
+from PyQt6.QtWidgets import QDialog
 from lxml.etree import XMLSyntaxError
 
 from dpp.core.exception import AbortedException

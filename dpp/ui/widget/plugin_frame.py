@@ -16,8 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import inspect
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QVBoxLayout, QGroupBox, QLabel, QFrame
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QVBoxLayout, QGroupBox, QLabel, QFrame
 
 from dpp.core.plugin import AbstractPlugin
 
