@@ -195,7 +195,7 @@ apt install qt6-qpa-plugins
 export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/
 ``` 
 
-See the <a href="https://github.com/bytebutcher/decoder-plus-plus/blob/main/docker/">Docker build and run scripts</a> for more information regarding how to build and run Decoder++ a Docker container.
+See the <a href="https://github.com/bytebutcher/decoder-plus-plus/tree/master/docker">Docker build and run scripts</a> for more information regarding how to build and run a Decoder++ Docker container.
 
 ## Inspired By
 * PortSwigger's Burp Decoder
