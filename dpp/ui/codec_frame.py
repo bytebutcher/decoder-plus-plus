@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import uuid
 
-from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import QFrame, QVBoxLayout
+from qtpy import QtCore
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QFrame, QVBoxLayout
 
 from dpp.core import Context
 from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
@@ -33,13 +33,12 @@ from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecFrame(CollapsibleFrame):
-
-    upButtonClicked = pyqtSignal(str)  # frame_id
-    downButtonClicked = pyqtSignal(str)  # frame_id
-    configButtonClicked = pyqtSignal(str)  # frame_id
-    closeButtonClicked = pyqtSignal(str)  # frame_id
-    pluginSelected = pyqtSignal(str, str, 'PyQt_PyObject')  # frame_id, input_text, plugin
-    pluginDeselected = pyqtSignal(str)  # frame_id
+    upButtonClicked = Signal(str)  # frame_id
+    downButtonClicked = Signal(str)  # frame_id
+    configButtonClicked = Signal(str)  # frame_id
+    closeButtonClicked = Signal(str)  # frame_id
+    pluginSelected = Signal(str, str, 'PyQt_PyObject')  # frame_id, input_text, plugin
+    pluginDeselected = Signal(str)  # frame_id
 
     def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: Plugins, text):
         super(__class__, self).__init__(parent, context, uuid.uuid4().hex)

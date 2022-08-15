@@ -20,9 +20,9 @@ import os
 from typing import List
 import qtawesome
 
-from PyQt6.QtCore import QEvent, Qt
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QMainWindow, QDockWidget, QTabBar
+from qtpy.QtCore import QEvent, Qt
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QMainWindow, QDockWidget, QTabBar
 
 from dpp.core.logging import LogEntry, LogFilter
 from dpp.ui import IconLabel

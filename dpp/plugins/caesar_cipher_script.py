@@ -2,10 +2,10 @@ import math
 import string
 
 import qtawesome
-from PyQt6.QtCore import Qt, QKeyCombination
-from PyQt6.QtGui import QKeySequence, QIntValidator, QShortcut
-from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, \
-    QSlider, QHBoxLayout, QPushButton
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QKeySequence, QIntValidator
+from qtpy.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, \
+    QSlider, QHBoxLayout, QPushButton, QShortcut
 
 from dpp.core.exception import AbortedException
 from dpp.core.plugin import ScriptPlugin, PluginConfig
@@ -153,11 +153,11 @@ class CaesarCipherDialog(QDialog):
     #############################################
 
     def _setup_shortcuts(self):
-        ctrl_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.CTRL, Qt.Key_Return)), self)
+        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL, Qt.Key_Return), self)
         ctrl_return_shortcut.activated.connect(self._accept)
-        alt_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_Return)), self)
+        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT, Qt.Key_Return), self)
         alt_return_shortcut.activated.connect(self._accept)
-        alt_o_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_O)), self)
+        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(self._accept)
 
     def _init_button_box(self):

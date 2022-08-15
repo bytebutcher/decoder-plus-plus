@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt6.QtCore import QSortFilterProxyModel, Qt
-from PyQt6.QtWidgets import QCompleter, QComboBox
+from qtpy.QtCore import QSortFilterProxyModel, Qt
+from qtpy.QtWidgets import QCompleter, QComboBox
 
 
 class ComboBox(QComboBox):
-    def __init__(self,  parent = None):
+    def __init__(self, parent=None):
         super(ComboBox, self).__init__(parent)
 
         self.setFocusPolicy(Qt.StrongFocus)

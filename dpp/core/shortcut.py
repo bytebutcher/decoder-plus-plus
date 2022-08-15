@@ -14,8 +14,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QAction
+from qtpy.QtWidgets import QAction, QWidget
+
+from qtpy.QtGui import QKeySequence
+
+
+class KeySequence(QKeySequence):
+
+    def __init__(self, event=None, modifiers=None, key=None):
+        assert (not all(x is None for x in [event, modifiers, key]))
+        if event:
+            modifiers = event.modifiers()
+            key = event.key()
+        try:
+            from PyQt6.QtCore import QKeyCombination
+            super(__class__, self).__init__(QKeyCombination(modifiers, key))
+        except:
+            super(__class__, self).__init__(modifiers + key)
 
 
 class Shortcut(QAction):

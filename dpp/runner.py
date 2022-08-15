@@ -29,8 +29,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from fuzzywuzzy import process
 
-from PyQt6.QtWidgets import QApplication
-
+from qtpy.QtWidgets import QApplication
 
 # FIX #27: Add 'dpp' to package path if not present. 
 #          This may happen when dpp was not installed via setup.py.

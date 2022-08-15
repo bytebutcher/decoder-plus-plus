@@ -14,16 +14,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6 import QtCore
-from PyQt6.QtCore import QSize, QSortFilterProxyModel, pyqtSignal
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QListView
+from qtpy import QtCore
+from qtpy.QtCore import QSize, QSortFilterProxyModel, Signal
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtWidgets import QListView
 
 
 class ListWidget(QListView):
     """ Enhanced QListWidget with additional methods for selecting items by name or index. """
 
-    keyPressed = pyqtSignal("PyQt_PyObject")
+    keyPressed = Signal("PyQt_PyObject")
 
     def __init__(self):
         # TODO: Shouldnt we use super here?

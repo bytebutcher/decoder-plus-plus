@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt6.QtCore import QRect, pyqtSignal, QTimer, Qt
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel
+from qtpy.QtCore import QRect, Signal, QTimer, Qt
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel
 
 from dpp.ui import IconLabel
 from dpp.ui.widget.clickable_label import ClickableLabel
@@ -26,10 +26,10 @@ from dpp.ui.widget.clickable_label import ClickableLabel
 class MessageWidget(QFrame):
     """ Widget which shows messages. """
 
-    messageReceived = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
-    messageClicked = pyqtSignal()
-    infoClicked = pyqtSignal()
-    errorClicked = pyqtSignal()
+    messageReceived = Signal('PyQt_PyObject', 'PyQt_PyObject')
+    messageClicked = Signal()
+    infoClicked = Signal()
+    errorClicked = Signal()
 
     ICON_READY = "ICON_READY"
     ICON_INFO = "ICON_INFO"
@@ -38,7 +38,7 @@ class MessageWidget(QFrame):
     class CountWidget(QFrame):
         """ A widget with an icon and a counter. """
 
-        icon_clicked = pyqtSignal()
+        icon_clicked = Signal()
 
         def __init__(self, icon: QIcon, count: int=0, parent=None):
             super(__class__, self).__init__(parent)

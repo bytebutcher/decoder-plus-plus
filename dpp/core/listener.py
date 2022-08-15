@@ -14,26 +14,26 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6.QtCore import QObject, pyqtSignal
+from qtpy.QtCore import QObject, Signal
 
 
 class Listener(QObject):
     """ A set of global signals to emit or connect to. """
 
     # Signals that a new tab should be created with the specified text
-    newTabRequested = pyqtSignal(str)  # text
+    newTabRequested = Signal(str)  # text
 
     # Signals that the selected frame changed (e.g. to update the hex view)
-    selectedFrameChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
+    selectedFrameChanged = Signal(str, str, str)  # tab_id, frame_id, text
 
     # Signals that the text inside the codec frame changed (e.g. to update the hex view)
-    textChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
+    textChanged = Signal(str, str, str)  # tab_id, frame_id, text
 
     # Signals that the text selection inside the codec frame changed (e.g. to update the hex view)
-    textSelectionChanged = pyqtSignal(str, str, str)  # tab_id, frame_id, text
+    textSelectionChanged = Signal(str, str, str)  # tab_id, frame_id, text
 
     # Signals that text of a codec frame should be changed to the specified text (e.g. when hex view was edited by user)
-    textSubmitted = pyqtSignal(str, str, str) # tab_id, frame_id, text
+    textSubmitted = Signal(str, str, str)  # tab_id, frame_id, text
 
     def __init__(self, context: 'core.context.Context'):
         super(__class__, self).__init__()

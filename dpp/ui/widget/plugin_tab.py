@@ -17,10 +17,10 @@
 from typing import List
 
 import qtawesome
-from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal, QModelIndex, QEvent
-from PyQt6.QtGui import QStandardItem, QBrush
-from PyQt6.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
+from qtpy import QtCore
+from qtpy.QtCore import Signal, QModelIndex, QEvent
+from qtpy.QtGui import QStandardItem, QBrush
+from qtpy.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
 
 from dpp.core import Context
 from dpp.core.plugin import Plugins
@@ -32,11 +32,11 @@ from dpp.ui.widget.plugin_frame import PluginFrame
 class PluginSelectionFrame(QFrame):
     """ Encapsulates the SearchField and ListWidget. """
 
-    enterPressed = pyqtSignal()
-    arrowPressed = pyqtSignal()
-    selectionChanged = pyqtSignal('PyQt_PyObject')
-    itemChanged = pyqtSignal('PyQt_PyObject')
-    textChanged = pyqtSignal('PyQt_PyObject')
+    enterPressed = Signal()
+    arrowPressed = Signal()
+    selectionChanged = Signal('PyQt_PyObject')
+    itemChanged = Signal('PyQt_PyObject')
+    textChanged = Signal('PyQt_PyObject')
 
     def __init__(self, context: Context, plugins: Plugins, parent=None):
         """
@@ -178,7 +178,7 @@ class PluginTab(QFrame):
     selected plugin.
     """
 
-    enterPressed = pyqtSignal()
+    enterPressed = Signal()
 
     def __init__(self, context, parent=None):
         """ Initializes the plugin tab. """

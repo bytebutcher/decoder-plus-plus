@@ -18,7 +18,7 @@
 from typing import List
 
 import qtawesome
-from PyQt6.QtWidgets import QWidget
+from qtpy.QtWidgets import QWidget
 
 from dpp.core import Context
 from dpp.ui.view.hex_view import HexView

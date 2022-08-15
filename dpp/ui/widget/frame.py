@@ -14,8 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import QFrame
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QFrame
 
 from dpp.core import Context
 
@@ -25,7 +25,7 @@ class Frame(QFrame):
     Encapsulates the basic frame behaviour.
     """
 
-    frameChanged = pyqtSignal(str)
+    frameChanged = Signal(str)
 
     def __init__(self, parent, context: Context, frame_id: str):
         super(__class__, self).__init__(parent)

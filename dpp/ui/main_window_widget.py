@@ -17,8 +17,7 @@
 #
 import json
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFileDialog
-from PyQt6.QtGui import QAction
+from qtpy.QtWidgets import QAction, QWidget, QVBoxLayout, QFileDialog
 
 from dpp.core import Context
 from dpp.core.plugin import PluginType

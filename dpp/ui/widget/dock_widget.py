@@ -16,17 +16,18 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # The code is based on https://github.com/obdasystems/eddy/blob/master/eddy/ui/dock.py
-from PyQt6 import QtCore
-from PyQt6 import QtGui
-from PyQt6 import QtWidgets
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QTabBar, QDockWidget, QStyle, QApplication, QToolButton, QHBoxLayout, QFrame, QWidget
+from qtpy import QtCore
+from qtpy import QtGui
+from qtpy import QtWidgets
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QTabBar, QDockWidget, QStyle, QApplication, QToolButton, QHBoxLayout, QFrame, QWidget
 
 
 class DockWidget(QtWidgets.QDockWidget):
     """
     This class implements the container for docking area widgets.
     """
+
     def __init__(self, title: str, icon: QIcon, parent):
         """
         Initialize the dock widget.

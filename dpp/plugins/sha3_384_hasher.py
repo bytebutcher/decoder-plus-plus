@@ -1,4 +1,7 @@
+import hashlib
+
 from dpp.core.plugin import HasherPlugin
+
 
 class Plugin(HasherPlugin):
     """
@@ -17,8 +20,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('SHA3 384', "Thomas Engel", ["_pysha3"], context)
+        super().__init__('SHA3 384', "Thomas Engel", [], context)
 
     def run(self, text):
-        import _pysha3
-        return _pysha3.sha3_384(text.encode('utf-8', errors='surrogateescape')).hexdigest()
+        return hashlib.sha3_384(text.encode('utf-8', errors='surrogateescape')).hexdigest()

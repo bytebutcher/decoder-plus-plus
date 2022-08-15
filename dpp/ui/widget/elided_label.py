@@ -1,6 +1,6 @@
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFontMetrics
-from PyQt6.QtWidgets import QLabel
+from qtpy.QtCore import Qt, QSize
+from qtpy.QtGui import QFontMetrics
+from qtpy.QtWidgets import QLabel
 
 
 class ElidedLabel(QLabel):

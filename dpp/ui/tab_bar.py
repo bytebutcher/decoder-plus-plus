@@ -14,17 +14,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal, pyqtSlot, QPoint
-from PyQt6.QtWidgets import QTabBar, QLineEdit, QWidget
+from qtpy import QtCore
+from qtpy.QtCore import Signal, Slot, QPoint
+from qtpy.QtWidgets import QTabBar, QLineEdit, QWidget
 
 
 class TabBar(QTabBar):
     """QTabBar with double click signal and tab rename behavior."""
 
     # tabRenamed(index, old_name, new_name)
-    tabRenamed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    tabDoubleClicked = pyqtSignal(int)
+    tabRenamed = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    tabDoubleClicked = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -85,7 +85,7 @@ class TabBar(QTabBar):
         self.__edit.setFocus()
         self.__edit.editingFinished.connect(self.finish_rename)
 
-    @pyqtSlot()
+    @Slot()
     def finish_rename(self):
         old_name = self.tabText(self.__edited_tab)
         new_name = self.__edit.text()

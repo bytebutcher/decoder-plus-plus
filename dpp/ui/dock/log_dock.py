@@ -18,19 +18,20 @@
 from typing import List
 
 import qtawesome
-from PyQt6 import QtWidgets, QtCore
-from PyQt6.QtCore import QSortFilterProxyModel, pyqtSignal
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
+from qtpy import QtWidgets, QtCore
+from qtpy.QtCore import QSortFilterProxyModel, Signal
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
 from dpp.core.logging import LogEntry
 from dpp.ui.widget.dock_widget import DockWidget
 from dpp.ui.widget.spacer import VSpacer
 
+
 class LogDock(DockWidget):
     """ A widget to show log events. """
 
-    clearEvent = pyqtSignal()
+    clearEvent = Signal()
 
     class Filter:
 

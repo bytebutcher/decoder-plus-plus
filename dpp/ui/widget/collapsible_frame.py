@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QPainter, QColor
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
+from qtpy import QtCore
+from qtpy.QtCore import Signal, Qt
+from qtpy.QtGui import QPainter, QColor
+from qtpy.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePolicy, QWidget
 
 from dpp.core import Context
 from dpp.ui import HSpacer
@@ -31,11 +31,11 @@ class CollapsibleFrame(Frame):
     Frame with ability to un-/collapse content via clickable arrow-handles.
     """
 
-    arrowClicked = pyqtSignal()
-    upButtonClicked = pyqtSignal()
-    downButtonClicked = pyqtSignal()
-    configButtonClicked = pyqtSignal()
-    closeButtonClicked = pyqtSignal()
+    arrowClicked = Signal()
+    upButtonClicked = Signal()
+    downButtonClicked = Signal()
+    configButtonClicked = Signal()
+    closeButtonClicked = Signal()
 
     def __init__(self, parent, context: Context, frame_id: str):
         """
@@ -164,11 +164,11 @@ class CollapsibleFrame(Frame):
                 super(__class__, self).__init__(parent)
                 self.setCentralWidget(HSpacer(self))
 
-        arrowClicked = pyqtSignal()
-        upButtonClicked = pyqtSignal()
-        downButtonClicked = pyqtSignal()
-        configButtonClicked = pyqtSignal()
-        closeButtonClicked = pyqtSignal()
+        arrowClicked = Signal()
+        upButtonClicked = Signal()
+        downButtonClicked = Signal()
+        configButtonClicked = Signal()
+        closeButtonClicked = Signal()
 
         def __init__(self, parent: 'ui.widget.CollapsibleFrame'):
             super(__class__, self).__init__(parent)

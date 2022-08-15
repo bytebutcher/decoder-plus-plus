@@ -18,8 +18,8 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context):
         # Name, Author, Dependencies
-        super().__init__('KECCAK 512', "Thomas Engel", ["_pysha3"], context)
+        super().__init__('KECCAK 512', "Thomas Engel", ["pycryptodome"], context)
 
     def run(self, text):
-        import _pysha3
-        return _pysha3.keccak_512(text.encode('utf-8', errors='surrogateescape')).hexdigest()
+        from Crypto.Hash import keccak
+        return keccak.new(digest_bits=512, data=text.encode('utf-8', errors='surrogateescape')).hexdigest()

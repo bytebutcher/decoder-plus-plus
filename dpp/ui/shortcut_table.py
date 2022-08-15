@@ -15,18 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from PyQt6.QtCore import QSortFilterProxyModel, pyqtSignal, Qt
-from PyQt6.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
-from PyQt6.QtWidgets import QTableView
+from qtpy.QtCore import QSortFilterProxyModel, Signal, Qt
+from qtpy.QtGui import QStandardItemModel, QStandardItem, QKeyEvent
+from qtpy.QtWidgets import QTableView
 from qtpy import QtWidgets
 
 from dpp.ui.dialog.keyboard_shortcut_dialog import KeyboardShortcutDialog
 
 
 class KeyboardShortcutTable(QTableView):
-
-    changed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
-    keyPressed = pyqtSignal(str)
+    changed = Signal('PyQt_PyObject', 'PyQt_PyObject')
+    keyPressed = Signal(str)
 
     def __init__(self, parent, context):
         super(KeyboardShortcutTable, self).__init__(parent)

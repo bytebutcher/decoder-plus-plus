@@ -15,18 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt6.QtCore import pyqtSignal, Qt, QEvent, QTimer
-from PyQt6.QtGui import QPainter
-from PyQt6.QtWidgets import QLineEdit
+from qtpy.QtCore import Signal, Qt, QEvent, QTimer
+from qtpy.QtGui import QPainter
+from qtpy.QtWidgets import QLineEdit
 
 
 class SearchField(QLineEdit):
     """ Enhances the standard QLineEdit with an icon and additional key-press-events. """
 
-    enterPressed = pyqtSignal()
-    escapePressed = pyqtSignal()
-    arrowPressed = pyqtSignal()
-    closeEvent = pyqtSignal()
+    enterPressed = Signal()
+    escapePressed = Signal()
+    arrowPressed = Signal()
+    closeEvent = Signal()
 
     def __init__(self, parent):
         super(__class__, self).__init__(parent)

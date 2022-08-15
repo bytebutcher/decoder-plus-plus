@@ -17,16 +17,16 @@
 
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal
+from qtpy.QtCore import QObject, Signal
 
 
 class LogFilter(logging.Filter, QObject):
     """ Extends logging.Filter to emit signals for each logged message. """
 
-    logInfoEvent = pyqtSignal('PyQt_PyObject')
-    logWarnEvent = pyqtSignal('PyQt_PyObject')
-    logErrorEvent = pyqtSignal('PyQt_PyObject')
-    logDebugEvent = pyqtSignal('PyQt_PyObject')
+    logInfoEvent = Signal('PyQt_PyObject')
+    logWarnEvent = Signal('PyQt_PyObject')
+    logErrorEvent = Signal('PyQt_PyObject')
+    logDebugEvent = Signal('PyQt_PyObject')
 
     def __init__(self, parent):
         super(logging.Filter, self).__init__()

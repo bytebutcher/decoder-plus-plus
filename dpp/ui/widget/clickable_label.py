@@ -14,15 +14,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import QLabel
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QLabel
 
 
 class ClickableLabel(QLabel):
     """ A label which emits click signals. """
 
-    clicked = pyqtSignal('PyQt_PyObject') # event
-    doubleClicked =  pyqtSignal('PyQt_PyObject') # event
+    clicked = Signal('PyQt_PyObject')  # event
+    doubleClicked = Signal('PyQt_PyObject')  # event
 
     def __init__(self, parent=None):
         super(ClickableLabel, self).__init__(parent)

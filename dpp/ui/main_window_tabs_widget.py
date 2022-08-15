@@ -18,8 +18,8 @@
 from typing import List
 
 import qtawesome
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
 
 from dpp.core import Context
 from dpp.ui import CodecTab, TabBar
@@ -31,15 +31,15 @@ from dpp.ui.widget.separater_widget import VSep
 class MainWindowTabsWidget(QTabWidget):
 
     # tabAdded(index, name)
-    tabAdded = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    tabAdded = Signal('PyQt_PyObject', 'PyQt_PyObject')
     # tabClosed(index, name)
-    tabClosed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    tabClosed = Signal('PyQt_PyObject', 'PyQt_PyObject')
     # tabRenamed(index, old_name, new_name)
-    tabRenamed = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    tabRenamed = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     # tabMovedToPrevious(old_index, new_index, name)
-    tabMovedToPrevious = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    tabMovedToPrevious = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     # tabMovedToNext(old_index, new_index, name)
-    tabMovedToNext = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    tabMovedToNext = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
     def __init__(self, context: Context, plugins, parent=None):
         super(__class__, self).__init__(parent)

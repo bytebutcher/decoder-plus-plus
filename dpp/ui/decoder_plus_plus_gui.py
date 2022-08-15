@@ -14,17 +14,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt6.QtCore import QKeyCombination, Qt
-from PyQt6.QtGui import QKeySequence, QShortcut
-from PyQt6.QtWidgets import QVBoxLayout, QFrame, QDialogButtonBox
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QVBoxLayout, QFrame, QDialogButtonBox, QShortcut
 
+from dpp.core.shortcut import KeySequence
 from dpp.ui import MainWindow, MainWindowWidget, CodecTab
 
 
 class DecoderPlusPlusWindow(MainWindow):
     """ The DecoderPlusPlus application. """
 
-    def __init__(self, context: 'core.context.Context', input: str=None):
+    def __init__(self, context: 'core.context.Context', input: str = None):
         """
         Initializes the DecoderPlusPlus application.
         :param context: the application context.
@@ -82,11 +82,11 @@ class DecoderPlusPlusDialog(MainWindow):
 
     def _setup_shortcuts(self):
         """ Setup shortcuts to allow user to quickly hit the accept button. """
-        ctrl_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.CTRL, Qt.Key_Return)), self)
+        ctrl_return_shortcut = QShortcut(KeySequence(Qt.CTRL, Qt.Key_Return), self)
         ctrl_return_shortcut.activated.connect(self.onAccept)
-        alt_return_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_Return)), self)
+        alt_return_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_Return), self)
         alt_return_shortcut.activated.connect(self.onAccept)
-        alt_o_shortcut = QShortcut(QKeySequence(QKeyCombination(Qt.ALT, Qt.Key_O)), self)
+        alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(self.onAccept)
 
     def _init_button_box(self):

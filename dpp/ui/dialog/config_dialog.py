@@ -18,17 +18,16 @@ import os
 from datetime import datetime
 
 import qtawesome
-from PyQt6 import QtCore
-from PyQt6.QtCore import QSize
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
+from qtpy import QtCore
+from qtpy.QtCore import QSize
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
 from dpp.ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
 from dpp.ui.widget.plugin_tab import PluginTab
 
 
 class ConfigDialog(QDialog):
-
     TAB_ABOUT = "About"
     TAB_PLUGINS = "Plugins"
     TAB_KEYBOARD_SHORTCUTS = "Keyboard Shortcuts"

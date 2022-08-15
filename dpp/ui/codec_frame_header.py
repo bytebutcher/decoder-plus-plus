@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import qtawesome
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
+from qtpy.QtCore import Signal, Qt
+from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
 from qtpy import QtCore
 
 from dpp.ui import IconLabel
@@ -32,8 +32,8 @@ class CodecFrameHeader(QFrame):
             self.codec_frame = codec_frame
 
     class ClickableCodecFrameHeaderItem(AbstractCodecFrameHeaderItem):
-        clicked = pyqtSignal('PyQt_PyObject')  # event
-        doubleClicked = pyqtSignal('PyQt_PyObject')  # event
+        clicked = Signal('PyQt_PyObject')  # event
+        doubleClicked = Signal('PyQt_PyObject')  # event
 
         def mousePressEvent(self, event):
             # suppress mouse clicks - click signals are used instead

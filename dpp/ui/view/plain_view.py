@@ -16,10 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import qtawesome
-from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal, QRegularExpression, QPoint, QEvent
-from PyQt6.QtGui import QAction, QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPlainTextEdit
+from qtpy import QtCore
+from qtpy.QtCore import QRegularExpression, QPoint, QEvent
+from qtpy.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
+from qtpy.QtWidgets import QAction, QFrame, QVBoxLayout, QPlainTextEdit
 
 from dpp.core import Context
 from dpp.ui import SearchField

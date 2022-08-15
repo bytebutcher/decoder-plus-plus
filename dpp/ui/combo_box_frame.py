@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 
-from PyQt6.QtCore import QTimer, pyqtSignal
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QFrame, QComboBox, QVBoxLayout
+from qtpy.QtCore import QTimer, Signal
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
 import dpp
 from dpp.core.plugin import NullPlugin
@@ -27,8 +27,8 @@ from dpp.ui.widget.combo_box import ComboBox
 
 
 class ComboBoxFrame(QFrame):
-    titleSelected = pyqtSignal()
-    pluginSelected = pyqtSignal('PyQt_PyObject')
+    titleSelected = Signal()
+    pluginSelected = Signal('PyQt_PyObject')
 
     def __init__(self, parent, context):
         super(ComboBoxFrame, self).__init__(parent)
