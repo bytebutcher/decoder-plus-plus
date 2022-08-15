@@ -186,12 +186,16 @@ apt install libqt6core6 libqt6network6 libqt6openglwidgets6 libqt6widgets6
 
 ### X11-forwarding fails
 
-In order to run dpp inside a container/virtual machine you may need to install the qt6-qpa-plugins and configure the QT_QPA_PLATFORM_PLUGIN_PATH accordingly:
+In order to run dpp inside a container/virtual machine you may need to install the 
+```qt6-qpa-plugins``` inside the container/virtual machine and configure the 
+```QT_QPA_PLATFORM_PLUGIN_PATH``` accordingly:
 
 ```
 apt install qt6-qpa-plugins
 export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/
 ``` 
+
+See the <a href="https://github.com/bytebutcher/decoder-plus-plus/blob/main/docker/">Docker build and run scripts</a> for more information regarding how to build and run Decoder++ a Docker container.
 
 ## Inspired By
 * PortSwigger's Burp Decoder

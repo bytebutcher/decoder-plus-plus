@@ -1,0 +1,10 @@
+#!/bin/bash
+# ##################################################
+# NAME:
+#   docker-build-dpp
+# DESCRIPTION:
+#   Builds Decoder++ container
+# AUTHOR:
+#   bytebutcher
+# ##################################################
+docker build -t bytebutcher/decoder-plus-plus:1.3.0 .

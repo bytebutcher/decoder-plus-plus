@@ -1,0 +1,19 @@
+#!/bin/bash
+# ##################################################
+# NAME:
+#   docker-run-dpp
+# DESCRIPTION:
+#   Runs Decoder++ within a container
+# AUTHOR:
+#   bytebutcher
+# ##################################################
+
+DEVICE="/dev/null"
+if [ -f /dev/dri ] ; then
+	DEVICE="/dev/dri/"
+fi
+docker run -it --rm \
+	--device "${DEVICE}" \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-e DISPLAY="${DISPLAY}" \
+	bytebutcher/decoder-plus-plus:1.3.0
