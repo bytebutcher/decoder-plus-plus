@@ -1,24 +1,57 @@
- # Decoder++
+# Decoder++
 
 ![Decoder++ Logo](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/dpp/images/dpp.png)
 
-An extensible application for penetration testers and software developers to decode/encode data into various formats. 
+An extensible application for penetration testers and software developers to decode/encode data into various formats.
 
 ## Setup
 
-```Decoder++``` can be either installed by using ```pip``` or by pulling the source from this repository: 
+```Decoder++``` can be either installed by using ```pip``` or by pulling the source from this repository.
+
+### Pip
+
 ```bash
-# Install using pip
-pip3 install decoder-plus-plus
+# Install using pip (latest:qt6)
+pip3 install decoder-plus-plus[qt6]
+
+# Install using pip (backport:qt5)
+pip3 install decoder-plus-plus[qt5]
+```
+
+### Git
+
+```bash
+git clone https://github.com/bytebutcher/decoder-plus-plus
+# Install using pip (latest:qt6)
+pip3 install decoder-plus-plus/.[qt6]
+
+# Install using pip (backport:qt5)
+pip3 install decoder-plus-plus/.[qt5]
+```
+
+### Docker container
+
+```Decoder++``` can also be run as Docker container.
+
+```bash
+git clone https://github.com/bytebutcher/decoder-plus-plus
+cd decoder-plus-plus/docker
+
+# Build and run dpp with qt6 (latest)
+bash docker-build-dpp qt6 && bash docker-run-dpp qt6
+
+# Build and run dpp with qt5 (backport)
+bash docker-build-dpp qt5 && bash docker-run-dpp qt5
 ```
 
 ## Overview
 
-This section provides you with an overview about the individual ways of interacting with ```Decoder++```.
- For additional usage information check out the ```Advanced Usage``` section.
- 
+This section provides you with an overview about the individual ways of interacting with ```Decoder++```. For additional
+usage information check out the ```Advanced Usage``` section.
+
 ### Graphical User Interface
-If you prefer a graphical user interface to transform your data 
+
+If you prefer a graphical user interface to transform your data
 ```Decoder++``` gives you two choices: a ```main-window-mode``` and a ```dialog-mode```.
 
 ![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-preview-001.png)
@@ -201,5 +234,6 @@ See the <a href="https://github.com/bytebutcher/decoder-plus-plus/tree/master/do
 * PortSwigger's Burp Decoder
 
 ## Powered By
-* PyQt6
+
+* QtPy / PyQt5 / PyQt6
 * QtAwesome

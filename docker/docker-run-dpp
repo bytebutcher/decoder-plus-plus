@@ -8,12 +8,29 @@
 #   bytebutcher
 # ##################################################
 
-DEVICE="/dev/null"
-if [ -f /dev/dri ] ; then
-	DEVICE="/dev/dri/"
+if [ $# -eq 0 ] ; then
+    echo "usage: $(basename $0) qtlib=qt5|qt6" >&2
+    exit 1
 fi
+
+qtlib="${1}"
+if [[ "${qtlib}" != "qt5" ]] && [[ "${qtlib}" != "qt6" ]] ; then
+        echo "ERROR: Invalid qtlib argument! Valid options are: qt5|qt6" >&2
+        exit 1
+fi
+
+if ! [ -f "../setup.py" ] ; then
+        echo "ERROR: Missing required setup.py in source code repository!" >&2
+        exit 1
+fi
+
+device="/dev/null"
+if [ -f /dev/dri ] ; then
+	device="/dev/dri/"
+fi
+version="$(python3 ../setup.py --version)"
 docker run -it --rm \
-	--device "${DEVICE}" \
+	--device "${device}" \
 	-v /tmp/.X11-unix:/tmp/.X11-unix \
 	-e DISPLAY="${DISPLAY}" \
-	bytebutcher/decoder-plus-plus:1.3.0
+	bytebutcher/decoder-plus-plus-${qtlib}:${version}

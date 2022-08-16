@@ -104,7 +104,7 @@ class ConfigDialog(QDialog):
         form_layout.addRow(QLabel("Inspired By: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("PortSwigger's Burp Decoder"))
         form_layout.addRow(QLabel("Powered By: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("PyQt6"))
+        form_layout.addRow(QLabel(""), QLabel("QtPy / PyQt5 / PyQt6"))
         form_layout.addRow(QLabel(""), QLabel("QtAwesome"))
         form_layout.addRow(QLabel("Website: "), QLabel(""))
         form_layout.addRow(QLabel(""), QLabel("<a href='https://github.com/bytebutcher/decoder-plus-plus/'>https://github.com/bytebutcher/decoder-plus-plus</a>"))
