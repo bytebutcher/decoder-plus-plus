@@ -6,9 +6,7 @@ An extensible application for penetration testers and software developers to dec
 
 ## Setup
 
-```Decoder++``` can be either installed by using ```pip``` or by pulling the source from this repository.
-
-### Pip
+```Decoder++``` can be either installed by using ```pip```.
 
 ```bash
 # Install using pip (latest:qt6)
@@ -18,31 +16,7 @@ pip3 install decoder-plus-plus[qt6]
 pip3 install decoder-plus-plus[qt5]
 ```
 
-### Git
-
-```bash
-git clone https://github.com/bytebutcher/decoder-plus-plus
-# Install using pip (latest:qt6)
-pip3 install decoder-plus-plus/.[qt6]
-
-# Install using pip (backport:qt5)
-pip3 install decoder-plus-plus/.[qt5]
-```
-
-### Docker container
-
-```Decoder++``` can also be run as Docker container.
-
-```bash
-git clone https://github.com/bytebutcher/decoder-plus-plus
-cd decoder-plus-plus/docker
-
-# Build and run dpp with qt6 (latest)
-bash docker-build-dpp qt6 && bash docker-run-dpp qt6
-
-# Build and run dpp with qt5 (backport)
-bash docker-build-dpp qt5 && bash docker-run-dpp qt5
-```
+Please refer to the [Installation Guide](INSTALL.md) for more information regarding individual setups. 
 
 ## Overview
 

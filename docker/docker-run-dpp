@@ -14,6 +14,7 @@ if [ $# -eq 0 ] ; then
 fi
 
 qtlib="${1}"
+shift
 if [[ "${qtlib}" != "qt5" ]] && [[ "${qtlib}" != "qt6" ]] ; then
         echo "ERROR: Invalid qtlib argument! Valid options are: qt5|qt6" >&2
         exit 1
@@ -33,4 +34,4 @@ docker run -it --rm \
 	--device "${device}" \
 	-v /tmp/.X11-unix:/tmp/.X11-unix \
 	-e DISPLAY="${DISPLAY}" \
-	bytebutcher/decoder-plus-plus-${qtlib}:${version}
+	bytebutcher/decoder-plus-plus-${qtlib}:${version} $@

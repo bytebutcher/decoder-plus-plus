@@ -25,7 +25,7 @@ setup(
     ],
     packages=setuptools.find_packages(),
     install_requires=[
-        'qtpy==2.2.0',
+        'qtpy>=2.0.0',
         'QtAwesome>=1.0.2',
         'passlib>=1.7.4',
         'fuzzywuzzy>=0.18.0',
@@ -36,8 +36,8 @@ setup(
         'pycryptodome>=3.15.0'
     ],
     extras_require={
-        'qt5': ['pyqt5<5.16'],
-        'qt6': ['pyqt5<6.2.0']
+        'qt5': ['PyQt5<5.16'],
+        'qt6': ['PyQt6<6.2.0']
     },
     data_files=[
         ('share/icons/hicolor/scalable/apps', ['data/dpp.png']),
