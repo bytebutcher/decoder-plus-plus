@@ -19,7 +19,7 @@ from typing import List
 from qtpy.QtWidgets import QFrame, QVBoxLayout
 
 from dpp.core.exception import AbortedException
-from dpp.ui.codec_frame import CodecFrame
+from dpp.ui.view.classic.codec_frame import CodecFrame
 from dpp.ui.widget.status_widget import StatusWidget
 
 
@@ -203,7 +203,7 @@ class CodecFrames(QFrame):
             self._logger.debug("Refill frame at index {}".format(frame_index))
             return self._refill_frame(text, title, frame_index, status, msg)
 
-        self._logger.debug("Add new frame")
+        self._logger.debug("Add new codec frame")
         previous_frame = self.getFrameByIndex(frame_index - 1)
         new_frame = CodecFrame(self, self._context, self._tab_id, self, self._plugins, text)
         self.layout().addWidget(new_frame)

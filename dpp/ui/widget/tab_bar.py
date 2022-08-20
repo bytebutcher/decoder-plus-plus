@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QTabBar, QLineEdit, QWidget
 class TabBar(QTabBar):
     """QTabBar with double click signal and tab rename behavior."""
 
-    # tabRenamed(index, old_name, new_name)
+    # tabRenamed(index, old_title, new_title)
     tabRenamed = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     tabDoubleClicked = Signal(int)
 
@@ -87,10 +87,9 @@ class TabBar(QTabBar):
 
     @Slot()
     def finish_rename(self):
-        old_name = self.tabText(self.__edited_tab)
-        new_name = self.__edit.text()
+        old_title = self.tabText(self.__edited_tab)
+        new_title = self.__edit.text()
         self.setTabText(self.__edited_tab, self.__edit.text())
         self.__edit.deleteLater()
         self.__edit_mode_activated = False
-        self.tabRenamed.emit(self.__edited_tab, old_name, new_name)
-
+        self.tabRenamed.emit(self.__edited_tab, old_title, new_title)

@@ -129,7 +129,7 @@ class PlainView(QFrame):
     def _on_plain_text_context_menu_open_selection_in_new_tab(self, e: QEvent):
         """ Fires a signal that context-menu entry to open selection in new tab was triggered. """
         selectedText = self._plain_text.textCursor().selectedText()
-        self._listener.newTabRequested.emit(selectedText)
+        self._listener.newTabRequested.emit(None, selectedText)
 
     def _on_plain_text_drag_enter_event(self, e):
         """ Catches the drag-enter-event which is triggered when media is dragged into the plain text area. """
@@ -209,16 +209,13 @@ class PlainView(QFrame):
             regex = QRegularExpression(QRegularExpression.escape(text))
 
             # Process the displayed document
-            pos = 0
-            index = regex.indexIn(self._plain_text.toPlainText(), pos)
-            while index != -1:
+            iterator = regex.globalMatch(self._plain_text.toPlainText())
+            while iterator.hasNext():
+                match = iterator.next()
                 # Select the matched text and apply the desired format
-                cursor.setPosition(index)
-                cursor.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor, len(text))
+                cursor.setPosition(match.capturedStart())
+                cursor.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor, match.capturedLength())
                 cursor.mergeCharFormat(format)
-                # Move to the next match
-                pos = index + regex.matchedLength()
-                index = regex.indexIn(self.toPlainText(), pos)
 
         self._do_highlight_clear()
         self._plain_text.blockSignals(True)

@@ -19,7 +19,7 @@
 from qtpy import QtCore
 from qtpy import QtGui
 from qtpy import QtWidgets
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QCloseEvent
 from qtpy.QtWidgets import QTabBar, QDockWidget, QStyle, QApplication, QToolButton, QHBoxLayout, QFrame, QWidget
 
 
@@ -88,7 +88,7 @@ class DockWidget(QtWidgets.QDockWidget):
     #   Events
     #############################################
 
-    def closeEvent(self, QCloseEvent):
+    def closeEvent(self, event: QCloseEvent):
         """ Closes the dock. """
         self.hide()
 
@@ -98,12 +98,7 @@ class TitleBarWidget(QtWidgets.QWidget):
     This class implements the title area of docking area widgets.
     """
     def __init__(self, title: str, icon: QIcon, parent):
-        """
-        Initialize the widget.
-        :type title: str
-        :type icon: QIcon
-        :type parent: QDockWidget
-        """
+        """ Initialize the widget. """
         super().__init__(parent)
 
         # Create title bar icon and title
@@ -166,7 +161,7 @@ class TitleBarWidget(QtWidgets.QWidget):
         """
         Redraw the widget by updating its layout.
         """
-        # CLEAR CURRENTY LAYOUT
+        # CLEAR CURRENT LAYOUT
         for i in reversed(range(self.mainLayout.count())):
             item = self.mainLayout.itemAt(i)
             self.mainLayout.removeItem(item)
@@ -185,12 +180,18 @@ class TitleBarWidget(QtWidgets.QWidget):
         Updates the features of the title bar widget.
         :param features: const
         """
-        self.dockButton.setVisible(features.value & QDockWidget.DockWidgetFloatable.value)
-        self.closeButton.setVisible(features.value & QDockWidget.DockWidgetClosable.value)
+
+        def _value(item):
+            # BUG: In PyQt6 QDockWidget.DockWidgetFeature(s) need to be accessed via value attribute.
+            # SOLUTION: Handle access to QDockWidget.DockWidgetFeatures according to current PyQt version.
+            return item.value if hasattr(item, 'value') else item
+
+        self.dockButton.setVisible(_value(features) & _value(QDockWidget.DockWidgetFloatable))
+        self.closeButton.setVisible(_value(features) & _value(QDockWidget.DockWidgetClosable))
 
     def mouseDoubleClickEvent(self, mouseEvent):
         """
-        Executed when the mouse is double clicked on the widget.
+        Executed when the mouse is double-clicked on the widget.
         :type mouseEvent: QMouseEvent
         """
         pass

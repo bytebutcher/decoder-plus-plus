@@ -21,8 +21,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QScrollArea, QFrame, QVBoxLayout
 
 from dpp.core import Context
-from dpp.core.plugin import Plugins, PluginBuilder
-from dpp.ui.codec_frames import CodecFrames
+from dpp.core.plugin import Plugins
+from dpp.ui.view.classic.codec_frames import CodecFrames
 from dpp.ui.widget.spacer import VSpacer
 from dpp.ui.widget.status_widget import StatusWidget
 

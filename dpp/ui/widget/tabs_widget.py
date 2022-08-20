@@ -15,77 +15,57 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from typing import List
 
 import qtawesome
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QFrame, QHBoxLayout
+from qtpy.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QWidget
 
 from dpp.core import Context
-from dpp.ui import CodecTab, TabBar
+from dpp.ui.view.classic import CodecTab
+from dpp.ui.widget.tab_bar import TabBar
 from dpp.ui.builder.action_builder import ActionBuilder
-from dpp.ui.widget.search_field import SearchField
-from dpp.ui.widget.separater_widget import VSep
 
 
-class MainWindowTabsWidget(QTabWidget):
-
-    # tabAdded(index, name)
-    tabAdded = Signal('PyQt_PyObject', 'PyQt_PyObject')
-    # tabClosed(index, name)
+class TabsWidget(QTabWidget):
+    # onTabAddButtonClick(title, input)
+    onTabAddButtonClick = Signal('PyQt_PyObject', 'PyQt_PyObject')
+    # onTabDuplicateButtonClick(title, src_tab)
+    onTabDuplicateButtonClick = Signal('PyQt_PyObject', 'PyQt_PyObject')
+    # tabAdded(index, title, tab, input)
+    tabAdded = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabDuplicated(src_tab, dst_tab)
+    tabDuplicated = Signal('PyQt_PyObject', 'PyQt_PyObject')
+    # tabClosed(index, title)
     tabClosed = Signal('PyQt_PyObject', 'PyQt_PyObject')
-    # tabRenamed(index, old_name, new_name)
-    tabRenamed = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    # tabMovedToPrevious(old_index, new_index, name)
-    tabMovedToPrevious = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    # tabMovedToNext(old_index, new_index, name)
-    tabMovedToNext = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabRenamed(index, old_title, new_title, tab)
+    tabRenamed = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabMovedToPrevious(old_index, new_index, title, tab)
+    tabMovedToPrevious = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # tabMovedToNext(old_index, new_index, title, tab)
+    tabMovedToNext = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
-    def __init__(self, context: Context, plugins, parent=None):
-        super(__class__, self).__init__(parent)
+    def __init__(self, parent, context: Context):
+        super().__init__(parent)
         self._parent = parent
         self._context = context
         self._current_tab_number = 1
-        self._init_listener(context)
-        self._plugins = plugins
+        self._listener = context.listener()
+        self._listener.newTabRequested.connect(self.onTabAddButtonClick.emit)
+        self._plugins = context.plugins()
         bar = TabBar()
         bar.customContextMenuRequested.connect(self._show_context_menu)
-        bar.tabRenamed.connect(self.tabRenamed.emit)
+        bar.tabRenamed.connect(
+            lambda index, old_title, new_title: self.tabRenamed.emit(index, old_title, new_title, self.tab(index)))
         self.setTabBar(bar)
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
         tab_new_button = QToolButton()
         tab_new_button.setToolTip("New Tab")
-        tab_new_button.clicked.connect(lambda: self.newTab())
+        tab_new_button.clicked.connect(lambda event: self.onTabAddButtonClick.emit(None, None))
         tab_new_button.setIcon(qtawesome.icon("fa.plus"))
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
-
-    def _init_search_field(self):
-        search_field_frame = QFrame()
-        search_field_layout = QHBoxLayout()
-        search_field_layout.addWidget(VSep(self))
-
-        self._search_field = SearchField(self)
-        self._search_field.setIcon(qtawesome.icon("fa.search"))
-        self._search_field.setPlaceholderText("Search codec")
-        self._search_field.textChanged.connect(lambda text: {})
-        search_field_layout.addWidget(self._search_field)
-
-        self._search_field_button = QToolButton()
-        self._search_field_button.setIcon(qtawesome.icon("fa.arrow-circle-right"))
-        self._search_field_button.setContentsMargins(0, 0, 0, 0)
-        search_field_layout.addWidget(self._search_field_button)
-
-        search_field_frame.setLayout(search_field_layout)
-        search_field_frame.setContentsMargins(5, 0, 5, 5) # left, top, right, bottom
-        search_field_frame.layout().setContentsMargins(0, 0, 0, 0)
-        return search_field_frame
-
-    def _init_listener(self, context):
-        self._listener = context.listener()
-        self._listener.newTabRequested.connect(self.newTab)
 
     def _show_context_menu(self, point):
         if not point:
@@ -99,7 +79,7 @@ class MainWindowTabsWidget(QTabWidget):
         menu = QMenu(self)
         menu.addAction(ActionBuilder(self)
                        .name("New Tab")
-                       .callback(lambda checked: self.newTab()).build())
+                       .callback(lambda checked: self.onTabAddButtonClick.emit(None, None)).build())
         menu.addSeparator()
         menu.addAction(ActionBuilder(self)
                        .name("Rename Tab")
@@ -117,24 +97,19 @@ class MainWindowTabsWidget(QTabWidget):
                        .callback(lambda checked: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
-    def newTab(self, input: str=None, title :str=None) -> (int, CodecTab):
+    def newTab(self, widget: QWidget, title: str = None, input: str = None) -> (int, QWidget):
         """
-        Opens a new tab and writes input into first codec-frame.
-        :param input: The input which should be placed into the first codec-frame.
+        Opens a new tab with the specified widget as content.
         :param title: The title of the tab.
+        :param input: The input for the tab.
         """
-        codec_tab = CodecTab(self, self._context, self._plugins)
-        name = "Tab {}".format(self._current_tab_number) if not title else title
+        title = "Tab {}".format(self._current_tab_number) if not title else title
         self._current_tab_number += 1
-        self.insertTab(self.count() - 1, codec_tab, name)
+        self.insertTab(self.count() - 1, widget, title)
         index = self.count() - 2
         self.setCurrentIndex(index)
-        self.tabAdded.emit(index, name)
-        codec_tab.frames().getFocusedFrame().setInputText(input)
-        # BUG: Input-text of newly added codec-tab is not focused correctly.
-        # FIX: Refocus input-text.
-        codec_tab.frames().getFocusedFrame().focusInputText()
-        return index, codec_tab
+        self.tabAdded.emit(index, title, widget, input)
+        return index, widget
 
     def renameTab(self, index, title):
         """ Renames the title of a tab.
@@ -165,23 +140,8 @@ class MainWindowTabsWidget(QTabWidget):
             src_index = self.currentIndex()
 
         src_tab = self.tab(src_index)
-        index, tab = self.newTab(title=get_duplicate_tab_title(src_index))
-        frame_index = 0
-        for src_frame in src_tab.frames().getFrames():
-            status_type, status_message = src_frame.status()
-            if frame_index == 0:
-                # New tabs already contain one empty frame
-                frame = tab.frames().getFrames()[0]
-                frame.setInputText(src_frame.getInputText())
-                frame.setStatus(status_type, status_message)
-            else:
-                tab.frames().newFrame(src_frame.getInputText(),
-                                              src_frame.title(),
-                                              frame_index,
-                                              status_type,
-                                              status_message)
-            tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
-            frame_index = frame_index + 1
+        title = get_duplicate_tab_title(src_index)
+        self.onTabDuplicateButtonClick.emit(title, src_tab)
 
     def selectTab(self, index):
         if index < 0 or index > self.count() - 2:
@@ -191,13 +151,13 @@ class MainWindowTabsWidget(QTabWidget):
     def closeTab(self, index=None):
         if index is None:
             index = self.currentIndex()
-        name = self.tabText(index)
+        title = self.tabText(index)
         self.removeTab(index)
         if self.count() <= 1:
-            self.newTab()
+            self.onTabAddButtonClick.emit(None, None)
         else:
             self.setCurrentIndex(index - 1)
-        self.tabClosed.emit(index, name)
+        self.tabClosed.emit(index, title)
 
     def closeOtherTabs(self, current_index=None):
         if current_index is None:
@@ -213,17 +173,17 @@ class MainWindowTabsWidget(QTabWidget):
 
     def nextTab(self):
         old_index = self.currentIndex()
-        name = self.tabText(old_index)
+        title = self.tabText(old_index)
         new_index = (old_index + 1) % (self.count() - 1)
         self.setCurrentIndex(new_index)
-        self.tabMovedToNext.emit(old_index, new_index, name)
+        self.tabMovedToNext.emit(old_index, new_index, title, self.tab(new_index))
 
     def previousTab(self):
         old_index = self.currentIndex()
-        name = self.tabText(old_index)
+        title = self.tabText(old_index)
         new_index = (old_index - 1) % (self.count() - 1)
         self.setCurrentIndex(new_index)
-        self.tabMovedToPrevious.emit(old_index, new_index, name)
+        self.tabMovedToPrevious.emit(old_index, new_index, title, self.tab(new_index))
 
     def tab(self, index) -> CodecTab:
         return self.widget(index)
@@ -234,9 +194,3 @@ class MainWindowTabsWidget(QTabWidget):
 
     def focusCodecSearch(self):
         self._search_field.setFocus()
-
-    def toDict(self) -> List[dict]:
-        return [ {
-            "name": self.tabBar().tabText(tabIndex),
-            "frames": self.tab(tabIndex).toDict()
-        } for tabIndex in range(0, self.tabCount()) ]

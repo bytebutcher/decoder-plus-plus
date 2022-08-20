@@ -85,11 +85,11 @@ class PluginConfigDialog(QDialog):
             if self._btn_box(QDialogButtonBox.Ok).isEnabled():
                 self.accept()
 
-        ctrl_return_shortcut = QShortcut(KeySequence(modifiers=Qt.CTRL, key=Qt.Key_Return), self)
+        ctrl_return_shortcut = QShortcut(KeySequence(Qt.CTRL, Qt.Key_Return), self)
         ctrl_return_shortcut.activated.connect(_accept)
-        alt_return_shortcut = QShortcut(KeySequence(modifiers=Qt.ALT, key=Qt.Key_Return), self)
+        alt_return_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_Return), self)
         alt_return_shortcut.activated.connect(_accept)
-        alt_o_shortcut = QShortcut(KeySequence(modifiers=Qt.ALT, key=Qt.Key_O), self)
+        alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(_accept)
 
     def _init_input_frame(self):

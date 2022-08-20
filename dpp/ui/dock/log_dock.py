@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import datetime
 from typing import List
 
 import qtawesome
@@ -23,8 +23,11 @@ from qtpy.QtCore import QSortFilterProxyModel, Signal
 from qtpy.QtGui import QStandardItemModel, QStandardItem
 from qtpy.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
-from dpp.core.logging import LogEntry
+from dpp.core import Context
+from dpp.core.logging import LogEntry, LogFilter
 from dpp.ui.widget.dock_widget import DockWidget
+from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
+from dpp.ui.widget.message_widget import MessageWidget
 from dpp.ui.widget.spacer import VSpacer
 
 
@@ -72,12 +75,65 @@ class LogDock(DockWidget):
             super(LogDock.Item, self).__init__(text)
             self.setEditable(False)
 
-    def __init__(self, log_entries: List[LogEntry], parent: QWidget):
+    def __init__(self, parent: DockTabsWidget, logger):
         super(LogDock, self).__init__("Logs", qtawesome.icon("fa.align-left"), parent)
+        self._parent = parent
+        self._logger = logger
+        self._log_entries = []
+        self._message_widget = self._init_message_widget()
+        self._logger.handlers[0].addFilter(self._init_log_filter(self._message_widget))
         self._init_button_frame()
-        self._init_table_frame(log_entries)
+        self._init_table_frame(self._log_entries)
         self.addWidget(self._button_frame)
         self.addWidget(self._table_frame)
+        self.clearEvent.connect(self._message_widget.resetCount)
+
+    def logMessageWidget(self):
+        return self._message_widget
+
+    def _init_log_filter(self, message_widget):
+        """ Initializes the log filter which catches log events to be shown in the statusbar. """
+        log_filter = LogFilter(self)
+        log_filter.logInfoEvent.connect(message_widget.showInfo)
+        log_filter.logErrorEvent.connect(message_widget.showError)
+        log_filter.logDebugEvent.connect(message_widget.showDebug)
+        return log_filter
+
+    def _toggle_log_dock_widget(self, *filters: List[str], **kwargs):
+        """ Shows/Hides the log dock. """
+        self._parent.toggleDockWidget(Context.DockWidget.LOG_DOCK_WIDGET)
+        is_log_dock_widget_visible = not self._parent.isVisible(Context.DockWidget.LOG_DOCK_WIDGET)
+        if not is_log_dock_widget_visible:
+            for filter in self.getFilters():
+                self.setFilterChecked(filter, filter in filters)
+
+    def _init_message_widget(self) -> MessageWidget:
+        """ Inits the message widget located in the statusbar. """
+        message_widget = MessageWidget()
+        message_widget.messageReceived.connect(self._log_message)
+        message_widget.infoClicked.connect(
+            lambda: self._toggle_log_dock_widget(LogDock.Filter.INFO))
+        message_widget.errorClicked.connect(
+            lambda: self._toggle_log_dock_widget(LogDock.Filter.ERROR))
+        message_widget.messageClicked.connect(
+            lambda: self._toggle_log_dock_widget(LogDock.Filter.INFO, LogDock.Filter.ERROR))
+        return message_widget
+
+    def _log_message(self, type: str, message: str):
+        """
+        Adds the message to the log dock.
+        :param type: the type of the message (e.g. info, error, debug).
+        :param message: the message.
+        """
+        now = datetime.datetime.now().time()
+        log_entry = LogEntry(
+            "{hour:02d}:{minute:02d}:{second:02d}".format(hour=now.hour, minute=now.minute, second=now.second), type,
+            message)
+        try:
+            self._parent.dockWidget(Context.DockWidget.LOG_DOCK_WIDGET).addItem(log_entry)
+        except:
+            pass
+        self._log_entries.append(log_entry)
 
     def _init_button_frame(self):
         self._button_frame = QFrame()

@@ -3,12 +3,13 @@ import string
 
 import qtawesome
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QKeySequence, QIntValidator
+from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, \
     QSlider, QHBoxLayout, QPushButton, QShortcut
 
 from dpp.core.exception import AbortedException
 from dpp.core.plugin import ScriptPlugin, PluginConfig
+from dpp.core.shortcut import KeySequence
 
 
 class Plugin(ScriptPlugin):
@@ -153,11 +154,11 @@ class CaesarCipherDialog(QDialog):
     #############################################
 
     def _setup_shortcuts(self):
-        ctrl_return_shortcut = QShortcut(QKeySequence(Qt.CTRL, Qt.Key_Return), self)
+        ctrl_return_shortcut = QShortcut(Qt.CTRL, Qt.Key_Return, self)
         ctrl_return_shortcut.activated.connect(self._accept)
-        alt_return_shortcut = QShortcut(QKeySequence(Qt.ALT, Qt.Key_Return), self)
+        alt_return_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_Return), self)
         alt_return_shortcut.activated.connect(self._accept)
-        alt_o_shortcut = QShortcut(QKeySequence(Qt.ALT, Qt.Key_O), self)
+        alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(self._accept)
 
     def _init_button_box(self):

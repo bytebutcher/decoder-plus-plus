@@ -306,7 +306,7 @@ def main():
             # Setup excepthook to handle uncaught exceptions.
             setup_excepthook(context.logger())
             # Update application mode
-            context.setMode(Context.Mode.GRAPHICAL_UI)
+            context.setMode(Context.Mode.GUI_MODERN)
             try:
                 app = QApplication(sys.argv)
                 instance_handler = InstanceHandler(app, context.getAppID())
@@ -328,6 +328,7 @@ def main():
                 else:
                     context.logger().info("Starting Decoder++ GUI...")
                     ex = DecoderPlusPlusWindow(context, input)
+                    # Handle commandline input from users during runtime.
                     instance_handler.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as e:

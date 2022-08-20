@@ -14,14 +14,36 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QVBoxLayout, QFrame, QDialogButtonBox, QShortcut
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QMainWindow, QFrame, QDialogButtonBox, QShortcut, QVBoxLayout
 
 from dpp.core.shortcut import KeySequence
-from dpp.ui import MainWindow, MainWindowWidget, CodecTab
+from dpp.ui.view.classic.classic_main_window_widget import ClassicMainWindowWidget
+
+from dpp.ui.view.classic import CodecTab
 
 
-class DecoderPlusPlusWindow(MainWindow):
+class DecoderPlusPlusGui(QMainWindow):
+
+    def __init__(self, context: 'core.context.Context'):
+        super().__init__()
+        self._context = context
+        self._init_window_size()
+        self.setWindowTitle("Decoder++")
+        self.setWindowIcon(QIcon(os.path.join(self._context.getAppPath(), 'images', 'dpp_128.png')))
+
+    def _init_window_size(self):
+        """ Initializes the window size. Looks and uses any previously saved sizing. """
+        if self._context.config.getSize():
+            self.resize(self._context.config.getSize())
+        self.setMinimumWidth(520)
+        self.setMinimumHeight(300)
+
+
+class DecoderPlusPlusWindow(DecoderPlusPlusGui):
     """ The DecoderPlusPlus application. """
 
     def __init__(self, context: 'core.context.Context', input: str = None):
@@ -30,17 +52,21 @@ class DecoderPlusPlusWindow(MainWindow):
         :param context: the application context.
         :param input: the user input.
         """
-        super().__init__(context, input)
-        self._main_window_widget = MainWindowWidget(self, self._context, input)
-        self.setCentralWidget(self._main_window_widget)
+        super().__init__(context)
+        self.setCentralWidget(ClassicMainWindowWidget(self, self._context, input))
         self.show()
 
     def newTab(self, input: str):
-        """ Opens a new tab with the specified input as content for the first codec frame. """
-        self._main_window_widget.newTab(input)
+        """
+        Opens a new tab with the specified input as content for the first codec frame.
+        This function is used when user runs Decoder++ when it is already running and the --new-instance switch
+        was not used.
+        """
+        self._context.logger().info("Opening input in new tab...")
+        self.centralWidget().tabsWidget().onTabAddButtonClick.emit(None, input)
 
 
-class DecoderPlusPlusDialog(MainWindow):
+class DecoderPlusPlusDialog(DecoderPlusPlusGui):
     """
     The DecoderPlusPlusDialog with OK- and Cancel button.
     When the OK-button is triggered the transformed text is printed to stdout.
@@ -48,28 +74,27 @@ class DecoderPlusPlusDialog(MainWindow):
     printed to stdout.
     """
 
-    def __init__(self, context: 'core.context.Context', input: str=None):
+    def __init__(self, context: 'core.context.Context', input: str = None):
         """
         Initializes the DecoderPlusPlus dialog.
         :param context: the application context.
         :param input: the user input.
         """
-        super().__init__(context, input)
-
         # Store the initial user input which is returned when the user cancels application.
         self._user_input = input
 
         # As long as the "OK"-button is not triggered we assume that the application was closed by the user.
         self._application_was_canceled = True
 
-        # Build main window
-        self._main_window_widget = QFrame()
-        self._main_window_widget.setLayout(QVBoxLayout())
+        super().__init__(context)
+
+        # Build main window and codec tab
+        self.setCentralWidget(QFrame())
+        self.centralWidget().setLayout(QVBoxLayout())
         self._codec_tab_widget = CodecTab(self, self._context, context.plugins())
         self._codec_tab_widget.frames().getFocusedFrame().setInputText(input)
-        self._main_window_widget.layout().addWidget(self._codec_tab_widget)
-        self._main_window_widget.layout().addWidget(self._init_button_box())
-        self.setCentralWidget(self._main_window_widget)
+        self.centralWidget().layout().addWidget(self._codec_tab_widget)
+        self.centralWidget().layout().addWidget(self._init_button_box())
 
         # Setup additional shortcuts to allow user to quickly hit the accept button.
         self._setup_shortcuts()
@@ -98,20 +123,13 @@ class DecoderPlusPlusDialog(MainWindow):
         return button_box
 
     def onAccept(self):
-        """ """
+        # Return the transformed input when user triggered the OK-button.
+        codec_frames = self._codec_tab_widget.frames().getFrames()
+        print(codec_frames[-1].getInputText(), end='')
         self._application_was_canceled = False
         self.close()
 
     def onReject(self):
+        # Return the initial user input (here: no change) when user cancelled application.
+        print(self._user_input, end='')
         self.close()
-
-    def closeEvent(self, event):
-        """ Handles the closeEvent which is triggered when the user exits the application. """
-        if self._application_was_canceled:
-            # Return the initial user input (here: no change) when user cancelled application.
-            print(self._user_input, end='')
-        else:
-            # Return the transformed input when user triggered the OK-button.
-            codec_frames = self._codec_tab_widget.getFrames()
-            print(codec_frames[-1].getInputText(), end = '')
-        super().closeEvent(event)

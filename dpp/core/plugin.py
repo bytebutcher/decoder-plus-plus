@@ -686,10 +686,10 @@ class Plugins:
         :param name: The name of the plugin (e.g. SHA1/sha1).
         :param type: The type of the plugin (e.g. DECODER/decoder).
         """
-        the_type = type.lower()
-        the_plugin_name = name.lower()
+        plugin_type = type.lower()
+        plugin_name = name.lower()
         for plugin in self._plugin_list:
-            if plugin.type().lower() == the_type and plugin.name().lower() == the_plugin_name:
+            if plugin.type().lower() == plugin_type and plugin.name().lower() == plugin_name:
                 return plugin
         raise Exception("Undefined plugin '{}::{}'!".format(name, type))
 
@@ -711,11 +711,11 @@ class Plugins:
             except:
                 return []
         if name:
-            the_plugin_name = name.lower()
-            return [plugin for plugin in self._plugin_list if plugin.name().lower() == the_plugin_name]
+            plugin_name = name.lower()
+            return [plugin for plugin in self._plugin_list if plugin.name().lower() == plugin_name]
         if type:
-            the_type_name = type.lower()
-            return [plugin for plugin in self._plugin_list if plugin.type().lower() == the_type_name]
+            type_name = type.lower()
+            return [plugin for plugin in self._plugin_list if plugin.type().lower() == type_name]
         raise Exception("Unknown Error '{}::{}'!".format(name, type))
 
     def __getitem__(self, item):

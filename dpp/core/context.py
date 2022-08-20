@@ -40,14 +40,16 @@ class Context(QObject):
     shortcutUpdated = Signal('PyQt_PyObject')
 
     class Mode:
-        """ A list of different application modes. """
-        GRAPHICAL_UI = "gfx" # graphical user interface
-        COMMAND_LINE = "cmd" # command shell
-        INTERACTIVE = "interactive" # Python Interactive Shell
+        GUI_MODERN = "gui-modern"
+        GUI_CLASSIC = "gui-classic"
+        COMMAND_LINE = "cmd"
+
+    class DockWidget:
+        EMPTY_DOCK_WIDGET = "empty_dock_widget"
+        LOG_DOCK_WIDGET = "log_dock_widget"
+        HEX_DOCK_WIDGET = "hex_dock_widget"
 
     class Shortcut:
-        """ A set of all shortcut ids which can be used within the application. """
-
         FILE_EXIT = "file_exit"
         EDIT_CUT = "edit_cut"
         EDIT_COPY = "edit_copy"
@@ -78,7 +80,8 @@ class Context(QObject):
         FOCUS_INPUT_TEXT = "focus_input_text"
         FOCUS_INPUT_TEXT_NEXT = "focus_input_text_next"
         FOCUS_INPUT_TEXT_PREVIOUS = "focus_input_text_previous"
-        SELECT_PLAIN_VIEW = "select_plain_view"
+        SELECT_MODERN_GUI = "select_modern_gui"
+        SELECT_CLASSIC_GUI = "select_classic_gui"
         SELECT_HEX_DOCK = "select_hex_dock"
         SELECT_LOG_DOCK = "select_log_dock"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
@@ -90,7 +93,6 @@ class Context(QObject):
         self._app_path = app_path
         self._namespace = namespace
         self._logger = {}
-        self.config = self._init_config()
         self._debug_mode = self.config.isDebugModeEnabled()
         self._listener = Listener(self)
         self._plugins = Plugins([
@@ -100,10 +102,13 @@ class Context(QObject):
         self._installed_packages = []
         self._mode = None
 
-    def _init_config(self):
+    @property
+    def config(self):
         """ Returns the configuration. """
-        from dpp.core.config import Config
-        return Config()
+        if not hasattr(self, '_config') or not self._config:
+            from dpp.core.config import Config
+            self._config = Config()
+        return self._config
 
     def _init_logger(self, log_format):
         """ Returns the logger. """
@@ -201,51 +206,56 @@ class Context(QObject):
             self._installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
         return package in self._installed_packages
 
-    def registerShortcut(self, the_id: str, the_name: str, the_default_shortcut_key: str, the_callback, the_widget) -> QAction:
+    def registerShortcut(self, id: str, name: str, default_shortcut_key: str, callback, widget) -> QAction:
         """
         Registers a shortcut with the specified parameters.
-        :param the_id: the id of the shortcut.
-        :param the_name: the name of the shortcut which is displayed to the user.
-        :param the_default_shortcut_key: the default shortcut key which may be overwritten by the user.
-        :param the_callback: the callback which should be triggered when the shortcut is used.
-        :param the_widget: the widget to which the shortcut is bound to.
+        :param id: the id of the shortcut.
+        :param name: the name of the shortcut which is displayed to the user.
+        :param default_shortcut_key: the default shortcut key which may be overwritten by the user.
+        :param callback: the callback which should be triggered when the shortcut is used.
+        :param widget: the widget to which the shortcut is bound to.
         """
-        the_shortcut_key = self.config.getShortcutKey(the_id)
-        if not the_shortcut_key:
-            the_shortcut_key = the_default_shortcut_key
-        self.logger().debug("Registering shortcut {} to {}".format(the_id, the_shortcut_key))
-        shortcut = Shortcut(the_id, the_name, the_shortcut_key, the_callback, the_widget)
-        self._shortcuts[the_id] = shortcut
-        self.config.setShortcutKey(the_id, the_shortcut_key)
+        shortcut_key = self.config.getShortcutKey(id)
+        if not shortcut_key:
+            shortcut_key = default_shortcut_key
+
+        self.logger().debug("Registering shortcut {} to {}".format(id, shortcut_key))
+        if id in self._shortcuts:
+            self.logger().debug("Retrieving previously registered shortcut {}".format(id, shortcut_key))
+            return self._shortcuts[id].clone(name)
+
+        shortcut = Shortcut(id, name, shortcut_key, callback, widget)
+        self._shortcuts[id] = shortcut
+        self.config.setShortcutKey(id, shortcut_key)
         self.shortcutUpdated.emit(shortcut)
         return shortcut
 
-    def updateShortcutKey(self, the_id: str, the_shortcut_key: str):
+    def updateShortcutKey(self, id: str, shortcut_key: str):
         """
         Updates the shortcut with the specified id.
-        :param the_id: the id of the shortcut.
-        :param the_shortcut_key: the shortcut key which should be used onwards.
+        :param id: the id of the shortcut.
+        :param shortcut_key: the shortcut key which should be used onwards.
         """
-        if the_id not in self._shortcuts:
-            self.logger().error("Shortcut {} is not defined".format(the_id))
+        if id not in self._shortcuts:
+            self.logger().error("Shortcut {} is not defined".format(id))
             return
 
-        self.logger().debug("Updating shortcut {} to {}".format(the_id, the_shortcut_key))
-        shortcut = self._shortcuts[the_id]
-        shortcut.setKey(the_shortcut_key)
-        self.config.setShortcutKey(the_id, the_shortcut_key)
+        self.logger().debug("Updating shortcut {} to {}".format(id, shortcut_key))
+        shortcut = self._shortcuts[id]
+        shortcut.setKey(shortcut_key)
+        self.config.setShortcutKey(id, shortcut_key)
         self.shortcutUpdated.emit(shortcut)
 
     def getShortcuts(self) -> List[Shortcut]:
         """ Returns a list of shortcuts. """
         return self._shortcuts.values()
 
-    def getShortcutById(self, the_id: str):
+    def getShortcutById(self, id: str):
         """ Returns the shortcut with the specified id. """
-        if the_id not in self._shortcuts:
-            self.logger().error("Shortcut {} is not defined".format(the_id))
+        if id not in self._shortcuts:
+            self.logger().error("Shortcut {} is not defined".format(id))
             return NullShortcut()
-        return self._shortcuts[the_id]
+        return self._shortcuts[id]
 
     def getPluginByName(self, name: str, type: str) -> AbstractPlugin:
         return self.plugins().plugin(name, type)

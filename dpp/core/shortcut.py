@@ -21,11 +21,7 @@ from qtpy.QtGui import QKeySequence
 
 class KeySequence(QKeySequence):
 
-    def __init__(self, event=None, modifiers=None, key=None):
-        assert (not all(x is None for x in [event, modifiers, key]))
-        if event:
-            modifiers = event.modifiers()
-            key = event.key()
+    def __init__(self, modifiers=None, key=None):
         try:
             from PyQt6.QtCore import QKeyCombination
             super(__class__, self).__init__(QKeyCombination(modifiers, key))
@@ -48,7 +44,10 @@ class Shortcut(QAction):
         super(__class__, self).__init__(name, widget)
         self._id = id
         self._name = name
-        self.setShortcut(shortcut_key)
+        self._callback = callback
+        self._widget = widget
+        if shortcut_key:
+            self.setShortcut(shortcut_key)
         self.triggered.connect(callback)
 
     def id(self) -> str:
@@ -74,6 +73,13 @@ class Shortcut(QAction):
     def setKey(self, key: str):
         """ Sets the shortcut key (e.g. "Alt+Down") which triggers an action. """
         self.setShortcut(key)
+
+    def clone(self, name):
+        """
+        Returns this Shortcut with a different name. Note, that the shortcut key is not set in the clone in order
+        to avoid ambiguous shortcut overload errors.
+        """
+        return Shortcut(self.id(), name, None, self._callback, self._widget)
 
 
 class NullShortcut(Shortcut):

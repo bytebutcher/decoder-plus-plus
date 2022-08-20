@@ -101,7 +101,7 @@ class KeyboardShortcutDialog(QDialog):
             return
 
         try:
-            key_sequence = KeySequence(event)
+            key_sequence = KeySequence(event.modifiers(), event.key())
             key_sequence_ascii_representation = key_sequence.toString().encode('ascii',
                                                                                errors='ignore').decode()
             self.setKeyboardShortcut(key_sequence_ascii_representation)

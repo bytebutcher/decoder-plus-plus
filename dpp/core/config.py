@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from qtpy.QtCore import QSettings, QSize
 
+from dpp.core import Context
+
 
 class Config(QSettings):
     """ The main settings of the application. """
@@ -32,6 +34,17 @@ class Config(QSettings):
         # BUG: Storing boolean True/False does not work (see https://github.com/mfitzp/pyqtconfig/issues/18)
         # FIX: String string "True"/"False" instead.
         self.setValue('debug', "True" if status else "False")
+
+    def isModernGUI(self) -> bool:
+        return self.getGUIMode() == Context.Mode.GUI_MODERN
+
+    def getGUIMode(self) -> str:
+        """ Returns the graphical user interface to render. """
+        return self.value('gui', Context.Mode.GUI_MODERN)
+
+    def setGUIMode(self, gui_mode: str):
+        """ Sets the graphical user interface to render. """
+        self.setValue('gui', gui_mode)
 
     def getSize(self) -> QSize:
         """

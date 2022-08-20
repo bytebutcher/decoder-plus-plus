@@ -21,7 +21,7 @@ class Listener(QObject):
     """ A set of global signals to emit or connect to. """
 
     # Signals that a new tab should be created with the specified text
-    newTabRequested = Signal(str)  # text
+    newTabRequested = Signal(str, str)  # title, text
 
     # Signals that the selected frame changed (e.g. to update the hex view)
     selectedFrameChanged = Signal(str, str, str)  # tab_id, frame_id, text
@@ -38,10 +38,11 @@ class Listener(QObject):
     def __init__(self, context: 'core.context.Context'):
         super(__class__, self).__init__()
         # Logs each event when being triggered
-        self.newTabRequested.connect(lambda text:
-            context.logger().debug("newTabRequested({})".format(text)))
+        self.newTabRequested.connect(lambda title, text:
+                                     context.logger().debug("newTabRequested({})".format(text)))
         self.selectedFrameChanged.connect(lambda tab_id, frame_id, text:
-            context.logger().debug("selectedFrameChanged({}, {}, {})".format(tab_id, frame_id, text)))
+                                          context.logger().debug(
+                                              "selectedFrameChanged({}, {}, {})".format(tab_id, frame_id, text)))
         self.textChanged.connect(lambda tab_id, frame_id, text:
             context.logger().debug("textChanged({}, {}, {})".format(tab_id, frame_id, text)))
         self.textSelectionChanged.connect(lambda tab_id, frame_id, text:

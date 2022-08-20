@@ -23,9 +23,9 @@ from qtpy.QtWidgets import QFrame, QVBoxLayout
 from dpp.core import Context
 from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
 from dpp.ui import VSpacer
-from dpp.ui.codec_frame_header import CodecFrameHeader
-from dpp.ui.combo_box_frame import ComboBoxFrame
-from dpp.ui.view.plain_view import PlainView
+from dpp.ui.view.classic.codec_frame_header import CodecFrameHeader
+from dpp.ui.view.classic.combo_box_frame import ComboBoxFrame
+from dpp.ui.widget.plain_view import PlainView
 from dpp.ui.widget.collapsible_frame import CollapsibleFrame
 from dpp.ui.widget.identify_format_button import IdentifyFormatButton
 from dpp.ui.widget.smart_decode_button import SmartDecodeButton
@@ -139,12 +139,12 @@ class CodecFrame(CollapsibleFrame):
             return
         self._logger.debug("Updated tooltip within codec-frame for {id} to {tooltip}".format(id=id, tooltip=tooltip))
 
-    def _update_tooltip(self, the_widget, the_shortcut_id):
-        tooltip = self._get_tooltip_by_shortcut_id(the_shortcut_id)
-        the_widget.setToolTip(tooltip)
+    def _update_tooltip(self, widget, shortcut_id):
+        tooltip = self._get_tooltip_by_shortcut_id(shortcut_id)
+        widget.setToolTip(tooltip)
 
-    def _get_tooltip_by_shortcut_id(self, the_shortcut_id):
-        shortcut = self._context.getShortcutById(the_shortcut_id)
+    def _get_tooltip_by_shortcut_id(self, shortcut_id):
+        shortcut = self._context.getShortcutById(shortcut_id)
         return self._get_tooltip_by_shortcut(shortcut)
 
     def _get_tooltip_by_shortcut(self, shortcut):
