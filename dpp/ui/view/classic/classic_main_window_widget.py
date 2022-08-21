@@ -19,11 +19,10 @@ import json
 
 from qtpy.QtWidgets import QMenu
 
-from dpp.core import Context
 from dpp.core.plugin import PluginType
 from dpp.ui.view.classic import CodecTab
 from dpp.ui.view.classic.codec_frame import CodecFrame
-from dpp.ui.view.main_window_widget import MainWindowWidget
+from dpp.ui.view.main_window_widget import MainWindowWidget, menu, MenuItem
 
 
 class ClassicMainWindowWidget(MainWindowWidget):
@@ -33,6 +32,101 @@ class ClassicMainWindowWidget(MainWindowWidget):
         self.tabsWidget().onTabAddButtonClick.connect(self._new_codec_tab)
         self.tabsWidget().onTabDuplicateButtonClick.connect(self._tab_duplicate)
         self._new_codec_tab(input=input)
+
+    #############################################
+    # Menu
+    #############################################
+
+    def _init_menu_items(self):
+        self._register_shortcuts('&File', [])
+        self._register_shortcuts('&Edit', [
+            [MenuItem.EDIT_PASTE, MenuItem.EDIT_COPY, MenuItem.EDIT_CUT],
+            [MenuItem.TOGGLE_SEARCH_FIELD]
+        ])
+        self._register_shortcuts('&View', [])
+        self._register_shortcuts("&Select", [
+            [MenuItem.FOCUS_DECODER, MenuItem.FOCUS_ENCODER, MenuItem.FOCUS_HASHER, MenuItem.FOCUS_SCRIPT],
+            [MenuItem.FOCUS_INPUT_TEXT, MenuItem.FOCUS_INPUT_TEXT_NEXT, MenuItem.FOCUS_INPUT_TEXT_PREVIOUS]
+        ])
+        self._register_shortcuts('&Tabs', [])
+        self._register_shortcuts('&Help', [])
+        super()._init_menu_items()
+
+    @menu.register_menu_item(id=MenuItem.EDIT_CUT, text="C&ut", shortcut_key="Ctrl+X")
+    def _cut_text(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.cutSelectedInputText())
+
+    @menu.register_menu_item(id=MenuItem.EDIT_COPY, text="&Copy", shortcut_key="Ctrl+C")
+    def _copy_text(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.copySelectedInputText())
+
+    @menu.register_menu_item(id=MenuItem.EDIT_PASTE, text="&Paste", shortcut_key="Ctrl+V")
+    def _paste_text(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.pasteSelectedInputText())
+
+    @menu.register_menu_item(id=MenuItem.TOGGLE_SEARCH_FIELD, text="Toggle &Search Field", shortcut_key="Ctrl+F")
+    def _toggle_search_field(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.toggleSearchField())
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_DECODER, text="Select &Decoder", shortcut_key="Alt+Shift+D")
+    def _focus_decoder(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER))
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_ENCODER, text="Select &Encoder", shortcut_key="Alt+Shift+E")
+    def _focus_encoder(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER))
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_HASHER, text="Select &Hasher", shortcut_key="Alt+Shift+H")
+    def _focus_hasher(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER))
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_SCRIPT, text="Select &Script", shortcut_key="Alt+Shift+S")
+    def _focus_script(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT))
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT, text="Select &Text Field", shortcut_key="Alt+Shift+I")
+    def _select_text_field(self):
+        self._call_focused_frame(lambda focused_frame: focused_frame.focusInputText())
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_NEXT, text="Select &Next Text Field", shortcut_key="Alt+Down")
+    def _focus_next_input_text(self):
+        self._focus_input_text(lambda frame: frame.getNextFrame())
+
+    @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_PREVIOUS, text="Select &Previous Text Field",
+                             shortcut_key="Alt+Up")
+    def _focus_previous_input_text(self):
+        self._focus_input_text(lambda frame: frame.getPreviousFrame())
+
+    #############################################
+    # Helper functions
+    #############################################
+
+    def _call_focused_frame(self, callback):
+        focused_frame = self._get_focused_frame()
+        if focused_frame:
+            callback(focused_frame)
+
+    def _get_focused_frame(self) -> CodecFrame:
+        return self.tabsWidget().currentWidget().frames().getFocusedFrame()
+
+    def _focus_input_text(self, callback):
+        frame = self._get_focused_frame()
+        if frame:
+            future_frame = callback(frame) or frame
+            future_frame.focusInputText()
+            # Collapse/Uncollapse frames automatically.
+            if self.tabsWidget().currentWidget().frames().getFramesCount() > 2:
+                if frame != future_frame:
+                    if future_frame.isCollapsed():
+                        if future_frame.hasPreviousFrame():
+                            # Toggle frame, except the first frame which does not have a header
+                            future_frame.toggleCollapsed()
+                    if not frame.wasCollapseStateChangedByUser():
+                        if frame.hasPreviousFrame():
+                            # Collapse frame, except the first frame which does not have a header
+                            frame.toggleCollapsed()
+
+            self.tabsWidget().currentWidget().ensureWidgetVisible(future_frame)
 
     def _new_codec_tab(self, title: str = None, input: str = None) -> (int, CodecTab):
         tab = CodecTab(self, self._context, self._plugins)
@@ -97,112 +191,9 @@ class ClassicMainWindowWidget(MainWindowWidget):
             dst_tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
             frame_index = frame_index + 1
 
-    def _init_edit_menu(self) -> QMenu:
-        edit_menu = super()._init_edit_menu()
-        self._register_shortcut(Context.Shortcut.EDIT_CUT,
-                                "C&ut",
-                                "Ctrl+X",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.cutSelectedInputText()),
-                                edit_menu)
-        self._register_shortcut(Context.Shortcut.EDIT_COPY,
-                                "&Copy",
-                                "Ctrl+C",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.copySelectedInputText()),
-                                edit_menu)
-        self._register_shortcut(Context.Shortcut.EDIT_PASTE,
-                                "&Paste",
-                                "Ctrl+P",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.pasteSelectedInputText()),
-                                edit_menu)
-        edit_menu.addSeparator()
-        self._register_shortcut(Context.Shortcut.TOGGLE_SEARCH_FIELD,
-                                "Toggle &Search Field",
-                                "Ctrl+F",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.toggleSearchField()),
-                                edit_menu)
-        return edit_menu
-
-    def _init_select_menu(self):
-        select_menu = super()._init_select_menu()
-        # self._register_shortcut(Context.Shortcut.FOCUS_CODEC_SEARCH,
-        #                        "Select Codec Search",
-        #                        "Ctrl+Space",
-        #                        lambda: self._tabs.focusCodecSearch(),
-        #                        select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_DECODER,
-                                "Select &Decoder",
-                                "Alt+Shift+D",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER)),
-                                select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_ENCODER,
-                                "Select &Encoder",
-                                "Alt+Shift+E",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER)),
-                                select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_HASHER,
-                                "Select &Hasher",
-                                "Alt+Shift+H",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER)),
-                                select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_SCRIPT,
-                                "Select &Script",
-                                "Alt+Shift+S",
-                                lambda: self._call_focused_frame(
-                                    lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT)),
-                                select_menu)
-
-        select_menu.addSeparator()
-
-        self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT,
-                                "Select &Text Field",
-                                "Alt+Shift+I",
-                                lambda: self._call_focused_frame(lambda focused_frame: focused_frame.focusInputText()),
-                                select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_NEXT,
-                                "Select &Next Text Field",
-                                "Alt+Down",
-                                lambda: self._focus_input_text(lambda frame: frame.getNextFrame()),
-                                select_menu)
-        self._register_shortcut(Context.Shortcut.FOCUS_INPUT_TEXT_PREVIOUS,
-                                "Select &Previous Text Field",
-                                "Alt+Up",
-                                lambda: self._focus_input_text(lambda frame: frame.getPreviousFrame()),
-                                select_menu)
-        return select_menu
-
-    def _call_focused_frame(self, callback):
-        focused_frame = self._get_focused_frame()
-        if focused_frame:
-            callback(focused_frame)
-
-    def _get_focused_frame(self) -> CodecFrame:
-        return self.tabsWidget().currentWidget().frames().getFocusedFrame()
-
-    def _focus_input_text(self, callback):
-        frame = self._get_focused_frame()
-        if frame:
-            future_frame = callback(frame) or frame
-            future_frame.focusInputText()
-            # Collapse/Uncollapse frames automatically.
-            if self.tabsWidget().currentWidget().frames().getFramesCount() > 2:
-                if frame != future_frame:
-                    if future_frame.isCollapsed():
-                        if future_frame.hasPreviousFrame():
-                            # Toggle frame, except the first frame which does not have a header
-                            future_frame.toggleCollapsed()
-                    if not frame.wasCollapseStateChangedByUser():
-                        if frame.hasPreviousFrame():
-                            # Collapse frame, except the first frame which does not have a header
-                            frame.toggleCollapsed()
-
-            self.tabsWidget().currentWidget().ensureWidgetVisible(future_frame)
+    #############################################
+    # Public functions
+    #############################################
 
     def toDict(self):
         return [{

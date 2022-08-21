@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from qtpy.QtWidgets import QAction, QWidget
-
 from qtpy.QtGui import QKeySequence
 
 
@@ -26,7 +25,20 @@ class KeySequence(QKeySequence):
             from PyQt6.QtCore import QKeyCombination
             super(__class__, self).__init__(QKeyCombination(modifiers, key))
         except:
-            super(__class__, self).__init__(modifiers + key)
+            super(__class__, self).__init__(modifiers | key)
+
+
+class MenuRegistry:
+
+    def __init__(self):
+        self.registry = dict()
+
+    def register_menu_item(self, id, text, shortcut_key=None):
+        def func_wrapper(f):
+            self.registry[id] = (text, shortcut_key, f)
+            return f
+
+        return func_wrapper
 
 
 class Shortcut(QAction):
@@ -48,7 +60,7 @@ class Shortcut(QAction):
         self._widget = widget
         if shortcut_key:
             self.setShortcut(shortcut_key)
-        self.triggered.connect(callback)
+        self.triggered.connect(lambda e: callback())
 
     def id(self) -> str:
         """ Returns the unique id of the shortcut (e.g. "next_frame_focus"). """

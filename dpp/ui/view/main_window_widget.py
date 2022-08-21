@@ -15,11 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+from typing import List, Union
 
 from qtpy.QtCore import QEvent
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QAction, QVBoxLayout, QFileDialog, QMenu, QWidget
 
+from dpp.core.shortcut import MenuRegistry
 from dpp.ui import IconLabel
 from dpp.ui.dock.hex_dock import HexDock
 from dpp.ui.dock.log_dock import LogDock
@@ -28,7 +30,11 @@ from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
 from dpp.core import Context
 from dpp.ui.view.classic import CodecTab
 from dpp.ui.dialog.config_dialog import ConfigDialog
+from dpp.ui.widget.menu_bar import MenuBar
 from dpp.ui.widget.tabs_widget import TabsWidget
+
+menu = MenuRegistry()
+MenuItem = Context.Shortcut
 
 
 class MainWindowWidget(QWidget):
@@ -52,96 +58,43 @@ class MainWindowWidget(QWidget):
         #############################################
         #   Initialize status bar
         #############################################
-
         parent.statusBar().addWidget(self._log_dock_widget.logMessageWidget())
         parent.statusBar().addPermanentWidget(self._init_hidden_dialog())
 
         #############################################
         #   Initialize shortcuts
         #############################################
-        self._init_shortcuts()
+        self._menu_bar = MenuBar(self._parent.menuBar())
+        self._init_menu_items()
 
-    def menuBar(self):
-        return self._parent.menuBar()
+    #############################################
+    # Menu
+    #############################################
 
-    def _init_shortcuts(self):
-        self._file_menu = self._init_file_menu()
-        self._edit_menu = self._init_edit_menu()
-        self._view_menu = self._init_view_menu()
-        self._select_menu = self._init_select_menu()
-        self._tab_menu = self._init_tab_menu()
-        self._help_menu = self._init_help_menu()
+    def _init_menu_items(self):
+        self._register_shortcuts('&File', [
+            [Context.Shortcut.TAB_NEW, Context.Shortcut.TAB_CLOSE],
+            [Context.Shortcut.OPEN_FILE, Context.Shortcut.SAVE_AS_FILE],
+            [Context.Shortcut.SHOW_PLUGINS],
+            [Context.Shortcut.FILE_EXIT]
+        ])
+        self._register_shortcuts('&View', [
+            [Context.Shortcut.SELECT_LOG_DOCK, Context.Shortcut.SELECT_HEX_DOCK]
+        ])
+        self._init_tabs_menu()
+        self._register_shortcuts('&Help', [
+            [
+                Context.Shortcut.SHOW_KEYBOARD_SHORTCUTS, Context.Shortcut.SHOW_ABOUT
+            ]
+        ])
 
-    def _init_help_menu(self) -> QMenu:
-        help_menu = self.menuBar().addMenu('&Help')
-        keyboard_shortcuts_action = QAction("&Keyboard Shortcuts...", self)
-        keyboard_shortcuts_action.triggered.connect(
-            lambda: self._show_hidden_dialog(ConfigDialog.TAB_KEYBOARD_SHORTCUTS))
-        help_menu.addAction(keyboard_shortcuts_action)
-        about_action = QAction("&About", self)
-        about_action.triggered.connect(self._show_hidden_dialog)
-        help_menu.addAction(about_action)
-        return help_menu
-
-    def _init_edit_menu(self) -> QMenu:
-        return self.menuBar().addMenu('&Edit')
-
-    def _init_view_menu(self) -> QMenu:
-        view_menu = self.menuBar().addMenu('&View')
-        # self._register_shortcut(Context.Shortcut.SELECT_CLASSIC_GUI,
-        #                        "&Classic",
-        #                        "Alt+Shift+C",
-        #                        lambda: self._select_classic_gui(),
-        #                        view_menu)
-        # self._register_shortcut(Context.Shortcut.SELECT_MODERN_GUI,
-        #                        "&Modern",
-        #                        "Alt+Shift+M",
-        #                        lambda: self._select_modern_gui(),
-        #                        view_menu)
-        # view_menu.addSeparator()
-        self._register_shortcut(Context.Shortcut.SELECT_LOG_DOCK,
-                                "&Log",
-                                "Alt+Shift+L",
-                                lambda: self.docksWidget().toggleDockWidget(Context.DockWidget.LOG_DOCK_WIDGET),
-                                view_menu)
-        self._register_shortcut(Context.Shortcut.SELECT_HEX_DOCK,
-                                "He&x",
-                                "Alt+Shift+X",
-                                lambda: self.docksWidget().toggleDockWidget(Context.DockWidget.HEX_DOCK_WIDGET),
-                                view_menu)
-        return view_menu
-
-    def _init_select_menu(self) -> QMenu:
-        return self.menuBar().addMenu('&Select')
-
-    def _init_tab_menu(self) -> QMenu:
-        tab_menu = self.menuBar().addMenu('&Tabs')
-        self._register_shortcut(Context.Shortcut.TAB_NEW,
-                                "&New Tab",
-                                "Ctrl+T",
-                                lambda: self.tabsWidget().onTabAddButtonClick.emit(None, None),
-                                tab_menu)
-        self._register_shortcut(Context.Shortcut.TAB_RENAME,
-                                "&Rename Tab",
-                                "Alt+Shift+R",
-                                lambda: self.tabsWidget().tabBar().renameTab(),
-                                tab_menu)
-        self._register_shortcut(Context.Shortcut.TAB_DUPLICATE,
-                                "&Duplicate Tab",
-                                "Ctrl+Shift+D",
-                                lambda: self.tabsWidget().duplicateTab(),
-                                tab_menu)
-        self._register_shortcut(Context.Shortcut.TAB_NEXT,
-                                "&Next Tab",
-                                "Ctrl+Tab",
-                                lambda: self.tabsWidget().nextTab(),
-                                tab_menu)
-        self._register_shortcut(Context.Shortcut.TAB_PREVIOUS,
-                                "&Previous Tab",
-                                "Ctrl+Shift+Tab",
-                                lambda: self.tabsWidget().previousTab(),
-                                tab_menu)
-
+    def _init_tabs_menu(self):
+        tab_menu = self._register_shortcuts('&Tabs', [
+            [
+                Context.Shortcut.TAB_NEW, Context.Shortcut.TAB_RENAME, Context.Shortcut.TAB_DUPLICATE,
+                Context.Shortcut.TAB_NEXT, Context.Shortcut.TAB_PREVIOUS
+            ]
+        ])
         tab_menu.addSeparator()
         self._tabs_select_action = []
 
@@ -156,45 +109,64 @@ class MainWindowWidget(QWidget):
                                              tab_menu)
             action.setVisible(False)
             self._tabs_select_action.append(action)
-        return tab_menu
 
-    def _init_file_menu(self) -> QMenu:
-        file_menu = self.menuBar().addMenu('&File')
-        self._register_shortcut(Context.Shortcut.TAB_NEW,
-                                "&New Tab", "Ctrl+T",
-                                lambda: self.tabsWidget().onTabAddButtonClick.emit(None, None),
-                                file_menu)
-        self._register_shortcut(Context.Shortcut.TAB_CLOSE,
-                                "&Close Tab",
-                                "Ctrl+W",
-                                lambda: self.tabsWidget().closeTab(),
-                                file_menu)
-        file_menu.addSeparator()
-        self._register_shortcut(Context.Shortcut.OPEN_FILE,
-                                "&Open File...", "Ctrl+O",
-                                lambda: self._open_file(),
-                                file_menu)
-        self._register_shortcut(Context.Shortcut.SAVE_AS_FILE,
-                                "&Save As...", "Ctrl+S",
-                                lambda: self._save_as_file(),
-                                file_menu)
-        file_menu.addSeparator()
-        self._register_shortcut(Context.Shortcut.SHOW_PLUGINS,
-                                "&Plugins...", "Ctrl+Shift+P",
-                                lambda: self._show_plugins_dialog(),
-                                file_menu)
-        file_menu.addSeparator()
-        self._register_shortcut(Context.Shortcut.FILE_EXIT,
-                                "E&xit",
-                                "Ctrl+Q",
-                                lambda: self._parent.close(),
-                                file_menu)
-        return file_menu
+    @menu.register_menu_item(id=MenuItem.SHOW_KEYBOARD_SHORTCUTS, text="&Keyboard Shortcuts...")
+    def _show_keyboard_shortcuts(self):
+        self._show_hidden_dialog(ConfigDialog.TAB_KEYBOARD_SHORTCUTS)
 
-    def _register_shortcut(self, id, text, shortcut_key, callback, menu) -> QAction:
-        action = self._context.registerShortcut(id, text, shortcut_key, callback, self)
-        menu.addAction(action)
-        return action
+    @menu.register_menu_item(id=MenuItem.SHOW_ABOUT, text="&About")
+    def _show_about(self):
+        self._show_hidden_dialog()
+
+    @menu.register_menu_item(id=MenuItem.SELECT_LOG_DOCK, text="&Log", shortcut_key="Alt+Shift+L")
+    def _toggle_log_dock_widget(self):
+        self.docksWidget().toggleDockWidget(Context.DockWidget.LOG_DOCK_WIDGET)
+
+    @menu.register_menu_item(id=MenuItem.SELECT_HEX_DOCK, text="He&x", shortcut_key="Alt+Shift+X")
+    def _toggle_hex_dock_widget(self):
+        self.docksWidget().toggleDockWidget(Context.DockWidget.HEX_DOCK_WIDGET)
+
+    @menu.register_menu_item(id=MenuItem.TAB_NEW, text="&New Tab", shortcut_key="Ctrl+T")
+    def _new_tab(self):
+        self.tabsWidget().onTabAddButtonClick.emit(None, None)
+
+    @menu.register_menu_item(id=MenuItem.TAB_RENAME, text="&Rename Tab", shortcut_key="Alt+Shift+R")
+    def _rename_tab(self):
+        self.tabsWidget().tabBar().renameTab()
+
+    @menu.register_menu_item(id=MenuItem.TAB_DUPLICATE, text="&Duplicate Tab", shortcut_key="Ctrl+Shift+D")
+    def _duplicate_tab(self):
+        self.tabsWidget().duplicateTab()
+
+    @menu.register_menu_item(id=MenuItem.TAB_NEXT, text="&Next Tab", shortcut_key="Ctrl+Tab")
+    def _next_tab(self):
+        self.tabsWidget().nextTab()
+
+    @menu.register_menu_item(id=MenuItem.TAB_PREVIOUS, text="&Previous Tab", shortcut_key="Ctrl+Shift+Tab")
+    def _previous_tab(self):
+        self.tabsWidget().previousTab()
+
+    @menu.register_menu_item(id=MenuItem.TAB_CLOSE, text="&Close Tab", shortcut_key="Ctrl+W")
+    def _close_tab(self):
+        self.tabsWidget().closeTab()
+
+    @menu.register_menu_item(id=MenuItem.OPEN_FILE, text="&Open File...", shortcut_key="Ctrl+O")
+    def _open_file(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
+        return filename
+
+    @menu.register_menu_item(id=MenuItem.SAVE_AS_FILE, text="&Save As...", shortcut_key="Ctrl+S")
+    def _save_as_file(self):
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
+        return filename
+
+    @menu.register_menu_item(id=MenuItem.SHOW_PLUGINS, text="&Plugins...", shortcut_key="Ctrl+Shift+P")
+    def _show_plugins_dialog(self):
+        self._show_hidden_dialog("Plugins")
+
+    @menu.register_menu_item(id=MenuItem.FILE_EXIT, text="E&xit", shortcut_key="Ctrl+Q")
+    def _close_application(self):
+        self._parent.close()
 
     def _select_classic_gui(self):
         pass
@@ -202,16 +174,40 @@ class MainWindowWidget(QWidget):
     def _select_modern_gui(self):
         pass
 
-    def _open_file(self) -> str:
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
-        return filename
+    #############################################
+    # Helpers
+    #############################################
 
-    def _save_as_file(self) -> str:
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
-        return filename
+    def _register_shortcuts(self, menu_item: Union[str, QMenu], items: List[List]):
+        def register_shortcut(id, text, shortcut_key, callback, menu_widget):
+            """ This method is required in order to get the callback working. """
+            self._register_shortcut(id, text, shortcut_key, lambda: callback(self), menu_widget)
 
-    def _show_plugins_dialog(self):
-        self._show_hidden_dialog("Plugins")
+        if isinstance(menu_item, str):
+            if self.menuBar().hasMenu(menu_item):
+                menu_widget = self.menuBar().getMenu(menu_item)
+            else:
+                menu_widget = self.menuBar().addMenu(menu_item)
+        elif isinstance(menu_item, QMenu):
+            menu_widget = menu_item
+        else:
+            raise Exception(f'Invalid type {type(menu)}')
+
+        index = 0
+        for shortcut_key_id_list in items:
+            index += 1
+            for shortcut_key_id in shortcut_key_id_list:
+                text, shortcut_key, callback = menu.registry[shortcut_key_id]
+                register_shortcut(shortcut_key_id, text, shortcut_key, callback, menu_widget)
+            if index < len(items):
+                # Add a separator inbetween items
+                menu_widget.addSeparator()
+        return menu_widget
+
+    def _register_shortcut(self, id, text, shortcut_key, callback, menu) -> QAction:
+        action = self._context.registerShortcut(id, text, shortcut_key, callback, self)
+        menu.addAction(action)
+        return action
 
     def _show_hidden_dialog(self, tab_select: str = None):
         """ Shows the hidden dialog. """
@@ -231,6 +227,13 @@ class MainWindowWidget(QWidget):
         about_label = IconLabel(self, QIcon(os.path.join(self._context.getAppPath(), 'images', 'hidden.png')))
         about_label.mousePressEvent = lambda e: self._show_hidden_dialog()
         return about_label
+
+    #############################################
+    # Public functions
+    #############################################
+
+    def menuBar(self):
+        return self._menu_bar
 
     def tabsWidget(self):
         if not hasattr(self, '_tabs_widget'):

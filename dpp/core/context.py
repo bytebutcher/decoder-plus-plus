@@ -86,6 +86,8 @@ class Context(QObject):
         SELECT_LOG_DOCK = "select_log_dock"
         TOGGLE_SEARCH_FIELD = "toggle_search_field"
         SHOW_PLUGINS = "show_plugins"
+        SHOW_KEYBOARD_SHORTCUTS = "show_keyboard_shortcuts"
+        SHOW_ABOUT = "show_about"
 
     def __init__(self, app_id, app_path, namespace):
         super(__class__, self).__init__()
