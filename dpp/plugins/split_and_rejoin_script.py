@@ -1,9 +1,24 @@
-import qtawesome
-from qtpy.QtWidgets import QDialog
-
-from dpp.core.exception import AbortedException
-from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.ui.dialog.plugin_config_dialog import PluginConfigDialog
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from dpp.core.exceptions import ValidationError
+from dpp.core.icons import Icon
+from dpp.core.plugin import ScriptPlugin
+from dpp.core.plugin.config import Label
+from dpp.core.plugin.config.options import String, Group
 
 
 class Plugin(ScriptPlugin):
@@ -33,106 +48,85 @@ class Plugin(ScriptPlugin):
     """
 
     class Option(object):
-        SplitText = PluginConfig.Option.Label("split_term", "Split by:")
-        SplitByLength = PluginConfig.Option.Label("split_by_length", "Length")
-        SplitByChars = PluginConfig.Option.Label("split_by_chars", "Character")
-        RejoinWithChars = PluginConfig.Option.Label("rejoin_with_chars", "Rejoin with:")
+        SplitText = Label("split_term", "Split by:")
+        SplitByLength = Label("split_by_length", "Length")
+        SplitByChars = Label("split_by_chars", "Character")
+        RejoinWithChars = Label("rejoin_with_chars", "Rejoin with:")
 
     class SplitAndRejoinCodec:
 
         def _chunk_string(self, string, length):
             return [string[0 + i:length + i] for i in range(0, len(string), length)]
 
-        def run(self, config, input):
-            if config.get(Plugin.Option.SplitByLength).is_checked:
-                input = self._chunk_string(input, int(config.get(Plugin.Option.SplitText).value))
-            elif config.get(Plugin.Option.SplitByChars).is_checked:
-                input = input.split(config.get(Plugin.Option.SplitText).value)
-            return config.get(Plugin.Option.RejoinWithChars).value.join(input)
+        def run(self, config, input_text):
+            if config.option(Plugin.Option.SplitByLength).is_checked:
+                input_text = self._chunk_string(input_text, int(config.value(Plugin.Option.SplitText)))
+            elif config.option(Plugin.Option.SplitByChars).is_checked:
+                input_text = input_text.split(config.value(Plugin.Option.SplitText))
+            return config.value(Plugin.Option.RejoinWithChars).join(input_text)
 
-    def __init__(self, context):
-        # Name, Author, Dependencies
-        super().__init__('Split & Rejoin', "Thomas Engel", [], context)
+    def __init__(self, context: 'dpp.core.context.Context'):
+        # Name, Author, Dependencies, Icon
+        super().__init__('Split & Rejoin', "Thomas Engel", [], context, Icon.EDIT)
         self._init_config()
         self._codec = Plugin.SplitAndRejoinCodec()
-        self._dialog = None
-        self._dialog_return_code = None
 
     def _init_config(self):
-        def _validate_split_text(config: PluginConfig, codec, input):
-            print("WHAT")
-            if not config.get(Plugin.Option.SplitText).value:
-                return "Split by should not be empty."
-            if config.get(Plugin.Option.SplitByLength).value:
+        def _validate_split_text(plugin: 'AbstractPlugin', input_text: str):
+            if not plugin.config.value(Plugin.Option.SplitText):
+                raise ValidationError("Split by should not be empty.")
+            if plugin.config.value(Plugin.Option.SplitByLength):
                 try:
-                    length = int(config.get(Plugin.Option.SplitText).value)
+                    length = int(plugin.config.value(Plugin.Option.SplitText))
                     if length <= 0:
-                        return "Split by should be greater than 0."
+                        raise ValidationError("Split by should be greater than 0.")
                 except:
-                    return "Split by should be an integer."
+                    raise ValidationError("Split by should be an integer.")
 
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.SplitText,
-            value=",", # default, since non-empty is not allowed (see validator)
+            value=",",  # default, since non-empty is not allowed (see validator)
             description="the parameter used for splitting",
             is_required=True
         ), validator=_validate_split_text)
-        self.config.add(PluginConfig.Option.Group(
+        self.config.add(Group(
             label=Plugin.Option.SplitByChars,
             value=True,
             description="specifies whether text should be split at chars",
             is_required=False,
             group_name="split_behaviour"
         ))
-        self.config.add(PluginConfig.Option.Group(
+        self.config.add(Group(
             label=Plugin.Option.SplitByLength,
             value=False,
             description="specifies whether text should be split at interval",
             is_required=False,
             group_name="split_behaviour"
         ))
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.RejoinWithChars,
             value="",
             description="the chars used to join the split text",
             is_required=True
         ))
 
+    @property
     def title(self):
-        if self.config.get(Plugin.Option.SplitByLength).is_checked:
+        if self.config.option(Plugin.Option.SplitByLength).is_checked:
             return "Split by length {} and rejoin with '{}'".format(
-                self.config.get(Plugin.Option.SplitText).value,
-                self.config.get(Plugin.Option.RejoinWithChars).value
+                self.config.value(Plugin.Option.SplitText),
+                self.config.value(Plugin.Option.RejoinWithChars)
             )
-        elif self.config.get(Plugin.Option.SplitByChars).is_checked:
+        elif self.config.option(Plugin.Option.SplitByChars).is_checked:
             return "Split by characters '{}' and rejoin with '{}'".format(
-                self.config.get(Plugin.Option.SplitText).value,
-                self.config.get(Plugin.Option.RejoinWithChars).value
+                self.config.value(Plugin.Option.SplitText),
+                self.config.value(Plugin.Option.RejoinWithChars)
             )
         else:
-            self.logger().debug("Invalid option.")
+            self._logger.debug("Invalid option.")
             return "Split and Rejoin"
 
-    def select(self, text: str):
-        if not self._dialog:
-            try:
-                self._dialog = PluginConfigDialog(
-                    self._context, self.config.clone(), "Split & Rejoin", self._codec.run, qtawesome.icon("fa.edit"))
-            except BaseException as e:
-                self._context.logger().exception(e, exc_info=self._context.isDebugModeEnabled())
-
-        self._dialog.setInput(text)
-        self._dialog_return_code = self._dialog.exec_()
-
-        if self._dialog_return_code != QDialog.Accepted:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
-
-        self.config.update(self._dialog.config)
-
-        return self.run(text)
-
-    def run(self, text: str):
-        if text:
-            return self._codec.run(self.config, text)
+    def run(self, input_text: str) -> str:
+        if input_text:
+            return self._codec.run(self.config, input_text)
         return ''

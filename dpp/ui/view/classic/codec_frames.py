@@ -16,9 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from typing import List
 
-from qtpy.QtWidgets import QFrame, QVBoxLayout
+from qtpy.QtWidgets import QDialog, QFrame, QVBoxLayout
 
-from dpp.core.exception import AbortedException
+from dpp.core.plugin import AbstractPlugin
+from dpp.ui.dialog.plugin_config_dialog import PluginConfigDialog
 from dpp.ui.view.classic.codec_frame import CodecFrame
 from dpp.ui.widget.status_widget import StatusWidget
 
@@ -28,7 +29,6 @@ class CodecFrames(QFrame):
     def __init__(self, parent, context, tab_id, plugins):
         super(__class__, self).__init__(parent)
         self._context = context
-        self._logger = context.logger()
         self._tab_id = tab_id
         self._plugins = plugins
         self._frames_layout = QVBoxLayout()
@@ -76,7 +76,20 @@ class CodecFrames(QFrame):
 
             frame = self._execute_plugin_run(frame.id(), input_text, plugin)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    def _on_plugin_selected(self, frame_id: str, input_text: str,
+                            combo_box_type: str, combo_box_index: int, plugin: AbstractPlugin):
+        frame = self.getFrameById(frame_id)
+        if self._show_plugin_config(frame_id, input_text, plugin) != QDialog.Accepted:
+            # User clicked the cancel-button within the plugin config dialog.
+            # BUG: Item gets selected although dialog was canceled.
+            # FIX: Reselect last item prior to current selection.
+            frame.getComboBoxes().reselectLastItem(block_signals=True)
+        else:
+            # BUG: Item gets deselected when running dialogs.
+            # FIX: Reselect Item
+            frame.getComboBoxes().reselectItem(combo_box_index, combo_box_type)
+
+        # ------------------------------------------------------------------------------------------------------------------
 
     def _execute_plugin_run(self, frame_id, input_text, plugin) -> CodecFrame:
         frame_index = self.getFrameIndex(frame_id) + 1
@@ -88,32 +101,31 @@ class CodecFrames(QFrame):
         except BaseException as e:
             status = StatusWidget.ERROR
             error = str(e)
-            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
+            self._context.logger.error('{} {}: {}'.format(plugin.name, plugin.type, error))
 
-        return self.newFrame(output_text, plugin.title(), frame_index, status=status, msg=error)
+        return self.newFrame(output_text, plugin.title, frame_index, status=status, msg=error)
 
-    def _execute_plugin_select(self, frame_id, input_text, plugin):
-        frame_index = self.getFrameIndex(frame_id) + 1
+    def _show_plugin_config(self, frame_id, input_text, plugin) -> int:
+        new_frame_index = self.getFrameIndex(frame_id) + 1
+        output = ""
+        error = None
         try:
-            plugin.set_aborted(False)
-            output = plugin.select(input_text)
+            if plugin.is_configurable():
+                result = PluginConfigDialog(self._context, plugin, input_text).exec_()
+                if result != QDialog.Accepted:
+                    return result
+            output = plugin.run(input_text)
             status = StatusWidget.SUCCESS
-            error = None
-        except AbortedException as e:
-            # User aborted selection. This usually happens when a user clicks the cancel-button within a codec-dialog.
-            plugin.set_aborted(True)
-            self._logger.debug(str(e))
-            return
-        except BaseException as e:
-            output = ""
+        except BaseException as err:
             status = StatusWidget.ERROR
-            error = str(e)
-            self._logger.error('{} {}: {}'.format(plugin.name(), plugin.type(), error))
-            self._logger.exception(error, exc_info=self._context.isDebugModeEnabled())
+            self._context.logger.error(f'{plugin.name} {plugin.type}: {str(err)}')
+            self._context.logger.exception(err, exc_info=self._context.isDebugModeEnabled())
 
-        self.newFrame(output, plugin.title(), frame_index, status=status, msg=error).focusInputText()
+        self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error).focusInputText()
+        return QDialog.Accepted
 
     def _refill_frame(self, text, title, frame_index, status, msg=None):
+        self._context.logger.trace(f'Refill frame at index {frame_index}')
         if status == StatusWidget.ERROR:
             # ERROR usually indicates that codec execution failed and there is no text to display.
             # However, we indicate to the user that there is an error (flashStatus) for this frame and any
@@ -136,20 +148,11 @@ class CodecFrames(QFrame):
 
         return frame
 
-    def _get_plugin_config(self, frame_id: str):
-        # Remember: We press the config-button of a frame, but want the plugin-config of the previous frame ...
-        frame_index = self.getFrameIndex(frame_id)
-        previous_frame = self.getFrameByIndex(frame_index - 1)
-        if previous_frame:
-            plugin = previous_frame.getPlugin()
-            input_text = previous_frame.getInputText()
-            self._execute_plugin_select(previous_frame.id(), input_text, plugin)
-
-    def _reset_frames(self, frame_id):
+    def _on_plugin_deselected(self, frame_id):
         _frame_index = self.getFrameIndex(frame_id)
-        self._logger.debug("Reset frames after index {} up until {}".format(_frame_index, self.getFramesCount() - 1))
+        self._context.logger.debug(f'Reset frames after index {_frame_index} up until {self.getFramesCount() - 1}')
         for frame_index in range(self.getFramesCount() - 1, _frame_index, -1):
-            self._logger.debug("Reset frame with index {}".format(frame_index))
+            self._context.logger.debug(f'Reset frame with index {frame_index}')
             self.getFrameByIndex(frame_index).deleteLater()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -200,20 +203,19 @@ class CodecFrames(QFrame):
 
     def newFrame(self, text, title, frame_index, status, msg=None) -> CodecFrame:
         if frame_index < self.getFramesCount():
-            self._logger.debug("Refill frame at index {}".format(frame_index))
             return self._refill_frame(text, title, frame_index, status, msg)
 
-        self._logger.debug("Add new codec frame")
+        self._context.logger.debug(f'Adding new codec frame {title} at {frame_index} ...')
         previous_frame = self.getFrameByIndex(frame_index - 1)
         new_frame = CodecFrame(self, self._context, self._tab_id, self, self._plugins, text)
         self.layout().addWidget(new_frame)
 
-        new_frame.pluginSelected.connect(self._execute_plugin_select)
-        new_frame.pluginDeselected.connect(self._reset_frames)
-        new_frame.configButtonClicked.connect(lambda frame_id: self._get_plugin_config(frame_id))
-        new_frame.upButtonClicked.connect(self.moveFrameUp)
-        new_frame.downButtonClicked.connect(self.moveFrameDown)
-        new_frame.closeButtonClicked.connect(self.closeFrame)
+        new_frame.pluginSelected.connect(self._on_plugin_selected)
+        new_frame.pluginDeselected.connect(self._on_plugin_deselected)
+        new_frame.configButtonClicked.connect(self._on_frame_config_button_clicked)
+        new_frame.upButtonClicked.connect(self._on_frame_up_button_clicked)
+        new_frame.downButtonClicked.connect(self._on_frame_down_button_clicked)
+        new_frame.closeButtonClicked.connect(self._on_frame_close_button_clicked)
 
         if frame_index > 0:
             # Every new frame (except the first frame) should signal success/error.
@@ -229,14 +231,14 @@ class CodecFrames(QFrame):
         if previous_frame: previous_frame.header().refresh()
         return new_frame
 
-    def closeFrame(self, frame_id):
+    def _on_frame_close_button_clicked(self, frame_id):
         """
         Closes/Removes the frame with the specified frame-id.
         """
         _frame_index = self.getFrameIndex(frame_id)
-        self._logger.debug("Close frame {}:{}".format(_frame_index, frame_id))
+        self._context.logger.debug(f'Close frame {_frame_index}:{frame_id}')
         if _frame_index <= 0:
-            self._logger.error("Invalid close! Can not close first or invalid frame.".format(_frame_index, frame_id))
+            self._context.logger.error('Illegal operation! Can not close first or invalid frame.')
             return
 
         frame = self.getFrameByIndex(_frame_index)
@@ -260,7 +262,7 @@ class CodecFrames(QFrame):
             next_frame.header().refresh()
             previous_frame.header().refresh()
 
-    def moveFrameUp(self, frame_id: str):
+    def _on_frame_up_button_clicked(self, frame_id: str):
         # Example:
         #
         #   1. "Hello, world" - Base64 - open
@@ -290,14 +292,14 @@ class CodecFrames(QFrame):
         codec_frame = self.getFrameByIndex(frame_index)
         if not codec_frame or frame_index < 2:
             # First and second frame can not be moved up.
-            self._logger.debug('moveFrameUp({}:{}): invalid move'.format(frame_index, frame_id))
+            self._context.logger.debug(f'Illegal operation! moveFrameUp({frame_index}:{frame_id})')
             return
 
-        self.switchFrames(frame_index - 2, frame_index - 1)
+        self._switch_frames(frame_index - 2, frame_index - 1)
         codec_frame = self.getFrameByIndex(frame_index - 2)
         self._text_changed_event(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)
 
-    def moveFrameDown(self, frame_id: str):
+    def _on_frame_down_button_clicked(self, frame_id: str):
         # Example:
         #
         #   1. "Hello, world" - Base64 - open
@@ -327,20 +329,29 @@ class CodecFrames(QFrame):
         codec_frame = self.getFrameByIndex(frame_index)
         if not codec_frame or frame_index == 0 or frame_index == self.getFramesCount() - 1:
             # First and last frame can not be moved down.
-            self._logger.debug('moveFrameDown({}:{}): invalid move'.format(frame_index, frame_id))
+            self._context.logger.debug('moveFrameDown({}:{}): invalid move'.format(frame_index, frame_id))
             return
 
-        self.switchFrames(frame_index - 1, frame_index)
+        self._switch_frames(frame_index - 1, frame_index)
         codec_frame = self.getFrameByIndex(frame_index - 1)
         self._text_changed_event(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)
 
-    def switchFrames(self, index1, index2):
+    def _switch_frames(self, index1, index2):
         frame1 = self.getFrameByIndex(index1)
         plugin1 = frame1.getPlugin()
         frame2 = self.getFrameByIndex(index2)
         plugin2 = frame2.getPlugin()
         frame2.setPlugin(plugin1)
         frame1.setPlugin(plugin2)
+
+    def _on_frame_config_button_clicked(self, frame_id: str):
+        # Remember: We press the config-button of a frame, but want to show the plugin-config of the previous frame ...
+        frame_index = self.getFrameIndex(frame_id)
+        previous_frame = self.getFrameByIndex(frame_index - 1)
+        if previous_frame:
+            plugin = previous_frame.getPlugin()
+            input_text = previous_frame.getInputText()
+            self._show_plugin_config(previous_frame.id(), input_text, plugin)
 
     # ------------------------------------------------------------------------------------------------------------------
 

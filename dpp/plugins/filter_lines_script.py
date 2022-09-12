@@ -1,12 +1,26 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
-import qtawesome
 
-from qtpy.QtWidgets import QDialog
-
-from dpp.core.exception import AbortedException
+from dpp.core.icons import Icon
 from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
+from dpp.core.plugin.config import Label
+from dpp.core.plugin.config.options import String, Boolean
 
 
 class Plugin(ScriptPlugin):
@@ -15,18 +29,18 @@ class Plugin(ScriptPlugin):
     """
 
     class Option(object):
-        Filter_Term = PluginConfig.Option.Label("filter_term", "Filter:")
-        Should_Match_Case = PluginConfig.Option.Label("should_match_case", "Match Case")
-        Should_Invert_Match = PluginConfig.Option.Label("should_invert_match", "Invert Lines")
-        Is_Regex = PluginConfig.Option.Label("is_regex", "Regex")
+        Filter_Term = Label("filter_term", "Filter:")
+        Should_Match_Case = Label("should_match_case", "Match Case")
+        Should_Invert_Match = Label("should_invert_match", "Invert Lines")
+        Is_Regex = Label("is_regex", "Regex")
 
     class FilterCodec:
 
         def run(self, config: PluginConfig, text: str):
             lines = []
-            filter_term = config.get(Plugin.Option.Filter_Term).value
-            is_regex = config.get(Plugin.Option.Is_Regex).value
-            should_match_case = config.get(Plugin.Option.Should_Match_Case).value
+            filter_term = config.value(Plugin.Option.Filter_Term)
+            is_regex = config.value(Plugin.Option.Is_Regex)
+            should_match_case = config.value(Plugin.Option.Should_Match_Case)
             for text_line in text.splitlines():
                 try:
                     if self._should_filter(text_line, config):
@@ -44,10 +58,10 @@ class Plugin(ScriptPlugin):
             return os.linesep.join(lines)
 
         def _should_filter(self, text_line: str, config: PluginConfig):
-            filter_term = config.get(Plugin.Option.Filter_Term).value
-            is_regex = config.get(Plugin.Option.Is_Regex).value
-            should_match_case = config.get(Plugin.Option.Should_Match_Case).value
-            should_invert_match = config.get(Plugin.Option.Should_Invert_Match).value
+            filter_term = config.value(Plugin.Option.Filter_Term)
+            is_regex = config.value(Plugin.Option.Is_Regex)
+            should_match_case = config.value(Plugin.Option.Should_Match_Case)
+            should_invert_match = config.value(Plugin.Option.Should_Invert_Match)
             if is_regex and should_match_case:
                 result = re.match(filter_term, text_line, flags=re.IGNORECASE) is not None
             elif is_regex:
@@ -61,71 +75,53 @@ class Plugin(ScriptPlugin):
             else:
                 return result
 
-
-    def __init__(self, context):
+    def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('Filter Lines', "Thomas Engel", [], context)
+        super().__init__('Filter Lines', "Thomas Engel", [], context, Icon.FILTER)
         self._context = context
-        self._logger = context.logger
         self._codec = Plugin.FilterCodec()
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.Filter_Term,
             value="",
             description="term to filter by",
             is_required=True
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.Should_Match_Case,
             value=True,
             description="defines whether filter should match case",
             is_required=False
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.Should_Invert_Match,
             value=False,
             description="defines whether filter should invert match",
             is_required=False
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.Is_Regex,
             value=False,
             description="defines whether filter term is a regex",
             is_required=False
         ))
-        self._dialog = None
-        self._dialog_return_code = QDialog.Accepted
 
-    def select(self, text: str):
-        if not self._dialog:
-            self._dialog = PluginConfigPreviewDialog(self._context, self.config.clone(), "Filter Lines",
-                                                     self._codec.run, qtawesome.icon("fa.filter"))
-
-        self._dialog.setInput(text)
-        self._dialog_return_code = self._dialog.exec_()
-
-        if self._dialog_return_code != QDialog.Accepted:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
-
-        self.config.update(self._dialog.config)
-        return self.run(text)
-
+    @property
     def title(self):
         return "Filter lines by '{}' using {}".format(
-            self.config.get(Plugin.Option.Filter_Term).value, self._getOptionAsHumanReadableString())
+            self.config.value(Plugin.Option.Filter_Term), self._getOptionAsHumanReadableString())
 
     def _getOptionAsHumanReadableString(self):
         options = []
-        if self.config.get(Plugin.Option.Should_Match_Case).value:
+        if self.config.value(Plugin.Option.Should_Match_Case):
             options.append('Match Case')
         else:
             options.append('Ignore Case')
-        if self.config.get(Plugin.Option.Is_Regex).value:
+        if self.config.value(Plugin.Option.Is_Regex):
             options.append('Regular Expression')
-        if self.config.get(Plugin.Option.Should_Invert_Match).value:
+        if self.config.value(Plugin.Option.Should_Invert_Match):
             options.append('Invert Match')
 
         return self._join_options_as_human_readable_string(options)
 
-    def run(self, text: str):
-        return self._codec.run(self.config, text)
+    def run(self, input_text: str) -> str:
+        return self._codec.run(self.config, input_text)

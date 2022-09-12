@@ -20,7 +20,7 @@ from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QDialog, QLabel, QVBoxLayout
 
-from dpp.core.shortcut import KeySequence
+from dpp.core.shortcuts import KeySequence
 from dpp.ui.widget.icon_label import IconLabel
 
 

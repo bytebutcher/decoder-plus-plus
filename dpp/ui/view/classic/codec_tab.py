@@ -21,24 +21,20 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QScrollArea, QFrame, QVBoxLayout
 
 from dpp.core import Context
-from dpp.core.plugin import Plugins
+from dpp.core.plugin.manager import PluginManager
 from dpp.ui.view.classic.codec_frames import CodecFrames
-from dpp.ui.widget.spacer import VSpacer
+from dpp.ui.widget.spacers import VSpacer
 from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecTab(QScrollArea):
 
-    def __init__(self, parent, context: Context, plugins: Plugins):
+    def __init__(self, parent, context: Context, plugins: PluginManager):
         super(__class__, self).__init__(parent)
         self._context = context
         self._tab_id = uuid.uuid4().hex
-
-        self._logger = context.logger()
         self._plugins = plugins
-
         self._frames = CodecFrames(self, context, self._tab_id, plugins)
-
         self._main_frame = QFrame(self)
         self._main_frame_layout = QVBoxLayout()
         self._main_frame_layout.setAlignment(Qt.AlignTop)
@@ -46,7 +42,6 @@ class CodecTab(QScrollArea):
         self._main_frame_layout.addWidget(VSpacer(self))
         self._main_frame.setLayout(self._main_frame_layout)
         self._frames.newFrame("", "", 0, StatusWidget.DEFAULT)
-
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setWidgetResizable(True)
         self.setWidget(self._main_frame)

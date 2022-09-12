@@ -16,14 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from typing import List
 
-import qtawesome
 from qtpy import QtCore
 from qtpy.QtCore import Signal, QModelIndex, QEvent
 from qtpy.QtGui import QStandardItem, QBrush
 from qtpy.QtWidgets import QVBoxLayout, QFrame, QHBoxLayout
 
 from dpp.core import Context
-from dpp.core.plugin import Plugins
+from dpp.core.icons import Icon, icon
+from dpp.core.plugin.manager import PluginManager
 from dpp.ui.widget import ListWidget, SearchField
 from dpp.ui.widget.dyna_frame import DynaFrame
 from dpp.ui.widget.plugin_frame import PluginFrame
@@ -38,7 +38,7 @@ class PluginSelectionFrame(QFrame):
     itemChanged = Signal('PyQt_PyObject')
     textChanged = Signal('PyQt_PyObject')
 
-    def __init__(self, context: Context, plugins: Plugins, parent=None):
+    def __init__(self, context: Context, plugins: PluginManager, parent=None):
         """
         Initializes the Plugin Selection Frame.
         :param context: the context of the application.
@@ -46,14 +46,13 @@ class PluginSelectionFrame(QFrame):
         """
         super(__class__, self).__init__(parent)
         self._context = context
-        self._logger = context.logger()
         self._plugins = plugins
 
         base_layout = QVBoxLayout()
 
         self._search_field = SearchField(self)
         self._search_field.setPlaceholderText("Search plugin...")
-        self._search_field.setIcon(qtawesome.icon("fa.search"))
+        self._search_field.setIcon(icon(Icon.SEARCH))
         self._search_field.enterPressed.connect(self._on_search_field_enter_key_pressed)
         self._search_field.arrowPressed.connect(self._on_search_field_arrow_pressed)
         self._search_field.textChanged.connect(self._on_search_field_text_changed)
@@ -85,7 +84,7 @@ class PluginSelectionFrame(QFrame):
     def _init_list_items(self):
         """ Add all plugins into a list. """
         for plugin in sorted(self._plugins, key=lambda x: getattr(x, '_name')):
-            name = plugin.full_name()
+            name = plugin.full_name
             item = QStandardItem(name)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
@@ -115,14 +114,13 @@ class PluginSelectionFrame(QFrame):
     def _get_item_by_name(self, name: str):
         """ Returns the plugin matching the name, otherwise None. """
         for plugin in self._plugins:
-            if plugin.full_name() == name:
+            if plugin.full_name == name:
                 return plugin
         return None
 
     def _get_item_names(self):
         """ Returns all plugin names in a list. """
-        self._logger.debug(self._plugins[0])
-        return [plugin.full_name() for plugin in self._plugins]
+        return [plugin.full_name for plugin in self._plugins]
 
     def setFocus(self):
         """ Overrides the setFocus method to focus the command list widget instead of the meaningless frame. """
@@ -184,7 +182,6 @@ class PluginTab(QFrame):
         """ Initializes the plugin tab. """
         super(__class__, self).__init__(parent)
         self._context = context
-        self._logger = context.logger()
         self._plugins = context.plugins()
         self._plugin_selection_frame = PluginSelectionFrame(context, self._plugins, self)
 

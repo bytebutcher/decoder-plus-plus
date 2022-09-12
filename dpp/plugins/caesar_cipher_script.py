@@ -1,56 +1,69 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 import math
 import string
 
-import qtawesome
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QIntValidator
-from qtpy.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QPlainTextEdit, \
-    QSlider, QHBoxLayout, QPushButton, QShortcut
 
-from dpp.core.exception import AbortedException
-from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.core.shortcut import KeySequence
+from dpp.core.exceptions import CodecException
+from dpp.core import plugin
+from dpp.core.icons import Icon
+from dpp.core.plugin.config import options
+from dpp.core.plugin.config.ui import Layout
+from dpp.core.plugin.config.ui.layouts import HBoxLayout
+from dpp.core.plugin.config.ui.widgets import Button
 
 
-class Plugin(ScriptPlugin):
+class Plugin(plugin.ScriptPlugin):
     """ Opens a dialog to transform text using caesar-cipher. """
 
     class Option(object):
+        Shift = plugin.config.Label("shift", "Shift:")
 
-        Shift = PluginConfig.Option.Label("shift", "Shift:")
-
-    def __init__(self, context):
+    def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('Caesar Cipher', "Thomas Engel", [], context)
-
-        self.config.add(PluginConfig.Option.Integer(
+        super().__init__('Caesar Cipher', "Thomas Engel", [], context, Icon.EDIT)
+        self.config.add(plugin.config.options.Slider(
             label=Plugin.Option.Shift,
             value=0,
             description="integer by which the value of the letters should be shifted.",
             is_required=True,
             range=[0, 26]
         ))
-        self._dialog = None
         self._codec = CaesarCipher()
 
-    def select(self, text: str):
-        if not self._dialog:
-            self._dialog = CaesarCipherDialog(text, self.config.clone(), self._codec)
-        else:
-            self._dialog.setInput(text)
+    def layout(self, input_text: str) -> Layout:
+        return HBoxLayout(widgets=[
+            self._config.option(Plugin.Option.Shift.key),
+            Button(
+                label="Calculate",
+                on_click=lambda event: self._calculate_shift(self._config, input_text)
+            )
+        ])
 
-        if self._dialog.exec_() != QDialog.Accepted:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
+    def _calculate_shift(self, config, input_text):
+        config.update({Plugin.Option.Shift.key: self._codec.calculate_offset(input_text)})
 
-        self.config.update(self._dialog.config)
-        return self.run(text)
-
+    @property
     def title(self):
-        return "{} shift {}".format("Caesar Cipher", self.config.get(Plugin.Option.Shift).value)
+        return "{} shift {}".format("Caesar Cipher", self.config.value(Plugin.Option.Shift))
 
-    def run(self, text: str):
-        return self._codec.run(text, self.config.get(Plugin.Option.Shift).value)
+    def run(self, input_text: str):
+        return self._codec.run(self.config, input_text)
 
 
 class CaesarCipher:
@@ -60,6 +73,7 @@ class CaesarCipher:
     """
 
     def __init__(self):
+        self._logger = logging.getLogger()
         # Frequency of letters used in English, taken from Wikipedia.
         # http://en.wikipedia.org/wiki/Letter_frequency
         self.frequency = {
@@ -90,165 +104,57 @@ class CaesarCipher:
             'y': 0.01974,
             'z': 0.00074}
 
-    def _calculate_entropy(self, input):
+    def _calculate_entropy(self, input_text):
         """
         Calculates the entropy of a string based on known frequency.
-        :param input: the input string.
+        :param input_text: the input string.
         :return: a negative float with the total entropy of the input (higher is better).
         """
         total = 0
-        for char in input:
+        for char in input_text:
             if char.isalpha() and char in self.frequency:
                 prob = self.frequency[char.lower()]
                 total += - math.log(prob) / math.log(2)
         return total
 
-    def run(self, input, offset):
+    def _translate(self, _input_text, offset, alphabet):
+        shifted_alphabet = alphabet[offset:] + alphabet[:offset]
+        table = str.maketrans(alphabet, shifted_alphabet)
+        return _input_text.translate(table)
+
+    def _run(self, input_text, offset):
+
+        try:
+            return self._translate(
+                self._translate(input_text, offset, string.ascii_lowercase), offset, string.ascii_uppercase
+            )
+        except Exception as err:
+            self._logger.exception(err)
+            raise CodecException('Calculating caesar cipher failed!')
+
+    def run(self, config, input_text):
         """
         Applies the caesar cipher.
-        :param input: the input string.
-        :param offset: integer by which the value of the letters should be shifted.
+        :param config: the input parameters.
+        :param input_text: the input string.
         :return: String with cipher applied.
         """
-        def translate(input, offset, alphabet):
-            shifted_alphabet = alphabet[offset:] + alphabet[:offset]
-            table = str.maketrans(alphabet, shifted_alphabet)
-            return input.translate(table)
-        return translate(translate(input, offset, string.ascii_lowercase), offset, string.ascii_uppercase)
+        # integer by which the value of the letters should be shifted.
+        offset = int(config.value(Plugin.Option.Shift))
+        return self._run(input_text, offset)
 
-    def calculate_offset(self, input):
+    def calculate_offset(self, input_text):
         """
         Attempts to calculate offset of ciphertext using frequency of letters in English.
-        :param input: the input string.
+        :param input_text: the input string.
         :return: the most likely offset
         """
         entropy_values = {}
         for i in range(26):
             offset = i * -1
-            test_cipher = self.run(input, offset)
+            test_cipher = self._run(input_text, offset)
             entropy_values[i] = self._calculate_entropy(test_cipher)
 
         sorted_by_entropy = sorted(entropy_values, key=entropy_values.get)
         offset = sorted_by_entropy[0] * -1
         return 26 + offset
-
-
-class CaesarCipherDialog(QDialog):
-
-    def __init__(self, input: str, config: PluginConfig, codec):
-        super(CaesarCipherDialog, self).__init__()
-        self.config = config
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self._init_editor_frame())
-        main_layout.addWidget(self._init_button_box())
-        self.setLayout(main_layout)
-        self.setWindowIcon(qtawesome.icon("fa.edit"))
-        self.setWindowTitle("Caesar Cipher")
-        self._setup_shortcuts()
-        self._input = input
-        self._text_area.setPlainText(self._input)
-        self._codec = codec
-
-    #############################################
-    #   Initialize
-    #############################################
-
-    def _setup_shortcuts(self):
-        ctrl_return_shortcut = QShortcut(Qt.CTRL, Qt.Key_Return, self)
-        ctrl_return_shortcut.activated.connect(self._accept)
-        alt_return_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_Return), self)
-        alt_return_shortcut.activated.connect(self._accept)
-        alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
-        alt_o_shortcut.activated.connect(self._accept)
-
-    def _init_button_box(self):
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self._accept)
-        button_box.rejected.connect(self.reject)
-        return button_box
-
-    def _init_editor_frame(self):
-        main_frame = QFrame()
-        main_frame_layout = QVBoxLayout()
-
-        slider_frame = self._init_slider_frame()
-        main_frame_layout.addWidget(slider_frame)
-
-        self._text_area = QPlainTextEdit()
-        self._text_area.setReadOnly(True)
-        self._text_area.setFixedHeight(126)
-        main_frame_layout.addWidget(self._text_area)
-
-        main_frame.setLayout(main_frame_layout)
-        return main_frame
-
-    def _init_slider_frame(self):
-        slider_frame = QFrame()
-        slider_frame_layout = QHBoxLayout()
-
-        self._shift_slider = QSlider(Qt.Horizontal)
-        self._shift_slider.setMinimum(0)
-        self._shift_slider.setMaximum(26)
-        self._shift_slider.setValue(self.config.get(Plugin.Option.Shift).value)
-        self._shift_slider.valueChanged.connect(self._shift_slider_changed)
-        slider_frame_layout.addWidget(self._shift_slider)
-
-        self._shift_text = QLineEdit()
-        self._shift_text.setText(str(self.config.get(Plugin.Option.Shift).value))
-        self._shift_text.setFixedWidth(30)
-        self._shift_text.setValidator(QIntValidator(0, 26))
-        self._shift_text.textChanged.connect(self._shift_text_changed)
-        slider_frame_layout.addWidget(self._shift_text)
-
-        self._shift_calculate_button = QPushButton("Calculate")
-        self._shift_calculate_button.clicked.connect(self._shift_calculate_button_clicked)
-        slider_frame_layout.addWidget(self._shift_calculate_button)
-
-        slider_frame.setLayout(slider_frame_layout)
-        return slider_frame
-
-    #############################################
-    #   Events
-    #############################################
-
-    def _shift_calculate_button_clicked(self):
-        offset = self._codec.calculate_offset(self._input)
-        self._shift_slider.setSliderPosition(offset)
-
-    def _shift_slider_changed(self, shift):
-        if not shift:
-            shift = 0
-        self._shift_changed(shift)
-
-    def _shift_text_changed(self, shift):
-        if not shift:
-            shift = 0
-        self._shift_changed(int(shift))
-
-    def _shift_changed(self, shift):
-        self._shift_text.blockSignals(True)
-        self._shift_slider.blockSignals(True)
-        self._shift_slider.setValue(shift)
-        self._shift_text.setText(str(shift))
-        self._text_area.setPlainText(self._codec.run(self._input, shift))
-        self._shift_slider.blockSignals(False)
-        self._shift_text.blockSignals(False)
-
-    #############################################
-    #   Private interface
-    #############################################
-
-    def _get_shift(self):
-        return self._shift_slider.value()
-
-    def _accept(self):
-        self.config.update({Plugin.Option.Shift.key: self._get_shift()})
-        self.accept()
-
-    #############################################
-    #   Public interface
-    #############################################
-
-    def setInput(self, input) -> str:
-        self._input = input
-        self._shift_changed(self._get_shift())

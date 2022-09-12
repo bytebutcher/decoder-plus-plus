@@ -1,16 +1,34 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 import string
 
-import qtawesome
 from qtpy.QtCore import QUrl
 from qtpy.QtGui import QDesktopServices
-from qtpy.QtWidgets import QDialog, QVBoxLayout, QFrame, QLabel, QLineEdit, QCheckBox, \
-    QDialogButtonBox, QPlainTextEdit, QHBoxLayout, QToolButton
 
-from dpp.core.exception import AbortedException
-from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
+from dpp.core.exceptions import ValidationError
+from dpp.core.icons import Icon
+from dpp.core.plugin import ScriptPlugin
+from dpp.core.plugin.config import Label
+from dpp.core.plugin.config.options import String, Boolean
+from dpp.core.plugin.config.ui import Layout
+from dpp.core.plugin.config.ui.layouts import FormLayout, HBoxLayout
+from dpp.core.plugin.config.ui.widgets import ToolButton, Frame, Option
 
 
 class Plugin(ScriptPlugin):
@@ -35,105 +53,106 @@ class Plugin(ScriptPlugin):
 
     class Option(object):
 
-        Format = PluginConfig.Option.Label("format_string", "Format:")
-        SplitChars = PluginConfig.Option.Label("split_chars", "Split by:")
-        IsRegex = PluginConfig.Option.Label("is_regex", "Regex")
-        HandleNewlines = PluginConfig.Option.Label("handle_newlines", "Handle Newlines")
+        Format = Label("format_string", "Format:")
+        SplitChars = Label("split_chars", "Split by:")
+        IsRegex = Label("is_regex", "Regex")
+        HandleNewlines = Label("handle_newlines", "Handle Newlines")
 
-    def __init__(self, context):
-        # Name, Author, Dependencies
-        super().__init__('Reformat Text', "Thomas Engel", [], context)
+    def __init__(self, context: 'dpp.core.context.Context'):
+        # Name, Author, Dependencies, Icon
+        super().__init__('Reformat Text', "Thomas Engel", [], context, Icon.EDIT)
 
-        def _validate_split_chars(config, codec, input):
+        def _validate_split_chars(plugin: 'AbstractPlugin', input_text: str):
 
             def _validate_regex():
                 try:
-                    re.compile(config.get(Plugin.Option.SplitChars).value)
+                    re.compile(plugin.config.value(Plugin.Option.SplitChars))
                     return True
                 except:
                     return False
 
-            if not config.get(Plugin.Option.SplitChars).value:
-                return "Split by should not be empty!"
+            if not plugin.config.value(Plugin.Option.SplitChars):
+                raise ValidationError("Split by should not be empty!")
 
-            if config.get(Plugin.Option.IsRegex).value and not _validate_regex():
-                return "Invalid regular expression!"
+            if plugin.config.value(Plugin.Option.IsRegex) and not _validate_regex():
+                raise ValidationError("Invalid regular expression!")
 
-        def _validate_format(config, codec, input):
+        def _validate_format(plugin: 'AbstractPlugin', input_text: str):
             try:
-                codec(config, input)
+                plugin.run(input_text)
             except:
-                return "Invalid format string!"
+                raise ValidationError("Invalid format string!")
 
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.Format,
             value="",
             description="the format string to be used",
             is_required=True
         ), validator=_validate_format)
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.SplitChars,
             value=" ",
             description="the characters used to split the text in individual parts (default=' ')",
             is_required=False
         ), validator=_validate_split_chars)
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.IsRegex,
             value=False,
             description="defines whether the split chars is a regular expression (default=False)",
             is_required=False
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.HandleNewlines,
             value=True,
             description="defines whether the operation should be applied for each individual line (default=True)",
             is_required=False
         ))
-        self._dialog = None
         self._codec = ReformatCodec()
 
-    def select(self, text: str):
-        if not self._dialog:
-            self._dialog = PluginConfigPreviewDialog(self._context, self.config.clone(),
-                                              "Reformat Text", self._codec.reformat, qtawesome.icon("fa.edit"))
-
-        self._dialog.setInput(text)
-        self._dialog_return_code = self._dialog.exec_()
-
-        if self._dialog_return_code != QDialog.Accepted:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
-
-        self.config.update(self._dialog.config)
-        return self.run(text)
-
-
-    def title(self):
-        return "Reformat text with '{}' using '{}' as {}delimiter{}".format(
-            self.config.get(Plugin.Option.Format).value,
-            self.config.get(Plugin.Option.SplitChars).value,
-            "regex-" if self.config.get(Plugin.Option.IsRegex).value else "",
-            " (newline sensitive)" if self.config.get(Plugin.Option.HandleNewlines).value else ""
+    def layout(self, input_text: str) -> Layout:
+        return FormLayout(
+            widgets=[
+                Frame(
+                    label=Plugin.Option.Format.name,
+                    layout=HBoxLayout(
+                        widgets=[
+                            Option(self._config.option(Plugin.Option.Format), show_label=False),
+                            ToolButton(
+                                label='?',
+                                on_click=lambda evt: QDesktopServices.openUrl(QUrl("https://pyformat.info/"))
+                            )
+                        ]
+                    )
+                ),
+                Option(Plugin.Option.SplitChars),
+                Option(Plugin.Option.IsRegex),
+                Option(Plugin.Option.HandleNewlines)
+            ]
         )
 
-    def run(self, text):
-        if text:
-            return self._codec.reformat(self.config, text)
+    @property
+    def title(self) -> str:
+        return "Reformat text with '{}' using '{}' as {}delimiter{}".format(
+            self.config.value(Plugin.Option.Format),
+            self.config.value(Plugin.Option.SplitChars),
+            "regex-" if self.config.value(Plugin.Option.IsRegex) else "",
+            " (newline sensitive)" if self.config.value(Plugin.Option.HandleNewlines) else ""
+        )
+
+    def run(self, input_text: str) -> str:
+        if input_text:
+            return self._codec.reformat(self._config, input_text)
         return ''
 
 
 class ReformatCodec:
 
-    class SafeDict(dict):
-        def __missing__(self, key):
-            return '{' + key + '}'
+    def reformat(self, config, input_text):
 
-    def reformat(self, config, input):
-
-        format = config.get(Plugin.Option.Format).value
-        split_by_chars = config.get(Plugin.Option.SplitChars).value
-        is_regex = config.get(Plugin.Option.IsRegex).value
-        handle_newlines = config.get(Plugin.Option.HandleNewlines).value
+        format = config.value(Plugin.Option.Format)
+        split_by_chars = config.value(Plugin.Option.SplitChars)
+        is_regex = config.value(Plugin.Option.IsRegex)
+        handle_newlines = config.value(Plugin.Option.HandleNewlines)
 
         def _fill_blanks(format, values):
             """ Ensure that there are always at least as many values as there are placeholders. """
@@ -150,153 +169,15 @@ class ReformatCodec:
                 split_input = text.split(split_by_chars)
             return format.format(*_fill_blanks(format, split_input))
 
-        if input:
+        if input_text:
             if format:
                 try:
                     if handle_newlines:
-                        return os.linesep.join([_reformat(line) for line in input.split(os.linesep)])
+                        return os.linesep.join([_reformat(line) for line in input_text.split(os.linesep)])
                     else:
-                        return _reformat(input)
+                        return _reformat(input_text)
                 except BaseException:
                     raise Exception("Error during reformat operation! Check your format string!")
             else:
-                return input
+                return input_text
         return ''
-
-
-class ReformatDialog(QDialog):
-
-    def __init__(self, context, input, config, codec):
-        super(ReformatDialog, self).__init__()
-        self._context = context
-        self._input = input
-        self.config = config
-        self._codec = codec
-        self.setLayout(self._init_main_layout())
-        self._update_view()
-        self.setWindowIcon(qtawesome.icon("fa.edit"))
-        self.setWindowTitle("Reformat Text")
-
-    def _init_main_layout(self):
-        frm_main_layout = QVBoxLayout()
-        frm_main_layout.addWidget(self._init_form_frame())
-        self._txt_preview = QPlainTextEdit(self)
-        self._txt_preview.setReadOnly(True)
-        self._txt_preview.setFixedHeight(126)
-        frm_main_layout.addWidget(self._txt_preview)
-        frm_main_layout.addWidget(self._init_error_frame())
-        self._btn_box = self._init_button_box()
-        frm_main_layout.addWidget(self._btn_box)
-        return frm_main_layout
-
-    def _init_error_frame(self):
-        self._error_frame = QFrame()
-        layout = QVBoxLayout()
-        self._error_text = QLabel("")
-        self._error_text.setStyleSheet('QLabel { color: red }')
-        layout.addWidget(self._error_text)
-        self._error_frame.setLayout(layout)
-        self._error_frame.setHidden(True)
-        return self._error_frame
-
-    def _init_form_frame(self):
-        # Define input fields and register change events
-        self._txt_format = QLineEdit()
-        self._txt_format.setText(self.config.get(Plugin.Option.Format).value)
-        self._txt_format.textChanged.connect(self._on_change_event)
-
-        self._btn_format_help = QToolButton()
-        self._btn_format_help.setText("?")
-        self._btn_format_help.clicked.connect(lambda evt: QDesktopServices.openUrl(QUrl("https://pyformat.info/")))
-
-        self._txt_split_char = QLineEdit()
-        self._txt_split_char.setText(self.config.get(Plugin.Option.SplitChars).value)
-        self._txt_split_char.textChanged.connect(self._on_change_event)
-
-        self._chk_regex = QCheckBox("Regex")
-        self._chk_regex.setChecked(self.config.get(Plugin.Option.IsRegex).value)
-        self._chk_regex.clicked.connect(self._on_change_event)
-
-        self._chk_new_lines = QCheckBox("Handle Newline")
-        self._chk_new_lines.setChecked(self.config.get(Plugin.Option.HandleNewlines).value)
-        self._chk_new_lines.clicked.connect(self._on_change_event)
-
-        # Build layout
-        frm_frame = QFrame()
-        frm_layout = QHBoxLayout()
-        frm_layout.addWidget(QLabel("Format: "))
-        frm_layout.addWidget(self._txt_format)
-        frm_layout.addWidget(self._btn_format_help)
-        frm_layout.addWidget(QLabel("Split by: "))
-        frm_layout.addWidget(self._txt_split_char)
-        frm_layout.addWidget(self._chk_regex)
-        frm_layout.addWidget(self._chk_new_lines)
-        frm_frame.setLayout(frm_layout)
-        return frm_frame
-
-    def _init_button_box(self):
-        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        btn_box.accepted.connect(self.accept)
-        btn_box.rejected.connect(self.reject)
-        return btn_box
-
-    def _validate_regex(self):
-        try:
-            if self._is_regex():
-                re.compile(self._get_format_text())
-            return True
-        except:
-            return False
-
-    def _update_view(self):
-        self._txt_format.setText(self.config.get(Plugin.Option.Format).value)
-        self._txt_split_char.setText(self.config.get(Plugin.Option.SplitChars).value)
-        self._chk_regex.setChecked(self.config.get(Plugin.Option.IsRegex).value)
-        self._chk_new_lines.setChecked(self.config.get(Plugin.Option.HandleNewlines).value)
-        self._on_change_event(None)
-
-    def _on_change_event(self, event):
-        if not self._txt_split_char.text():
-            self._show_error_message(self._txt_split_char, "Split by text should not be empty!")
-            self._btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
-            return
-
-        if self._chk_regex.isChecked() and self._validate_regex():
-            self._show_error_message(self._txt_split_char, "Invalid regular expression!")
-            self._btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
-            return
-
-        if not self._do_preview():
-            self._show_error_message(self._txt_format, "Invalid format string!")
-            self._btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
-            return
-
-        self._hide_error_message([self._txt_format, self._txt_split_char])
-        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(True)
-
-        self.config.get(Plugin.Option.Format).value = self._txt_format.text()
-        self.config.get(Plugin.Option.IsRegex).value = self._chk_regex.isChecked()
-        self.config.get(Plugin.Option.SplitChars).value = self._txt_split_char.text()
-
-    def _do_preview(self):
-        try:
-            result = self._codec.reformat(self._input, self._txt_format.text(), self._txt_split_char.text(),
-                                          self._chk_regex.isChecked(), self._chk_new_lines.isChecked())
-            self._txt_preview.setPlainText(result)
-            return True
-        except BaseException as e:
-            return False
-
-    def _show_error_message(self, widget, text: str):
-        widget.setStyleSheet('QLineEdit { background-color: red }')
-        self._error_frame.setHidden(False)
-        self._error_text.setText(text)
-
-    def _hide_error_message(self, widgets):
-        self._error_frame.setHidden(False)
-        self._error_text.setText("")
-        for widget in widgets:
-            widget.setStyleSheet('QLineEdit {  }')
-
-    def setInput(self, input):
-        self._input = input

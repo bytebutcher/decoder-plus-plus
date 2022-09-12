@@ -55,9 +55,9 @@ class InstanceHandler(QObject):
             # When no model was transmitted just emit empty string.
             self.received.emit("")
 
-    def newTab(self, input):
+    def newTab(self, input_text):
         """ Opens a new tab in an already running instance. """
-        self._send_data(input)
+        self._send_data(input_text)
 
     def isAlreadyRunning(self) -> bool:
         """ Returns True when an instance of the application is already running, otherwise False. """

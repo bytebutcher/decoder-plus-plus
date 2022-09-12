@@ -14,55 +14,65 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from qtpy import QtCore
-from qtpy.QtCore import Qt, QPoint, QEvent
-from qtpy.QtGui import QKeySequence, QCursor
-from qtpy.QtWidgets import QLabel, QRadioButton, QCheckBox, QLineEdit, QDialog, QDialogButtonBox, QFormLayout, \
-    QGroupBox, QVBoxLayout, QFrame, QHBoxLayout, QPlainTextEdit, QShortcut, QAction
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QFrame, QLabel, QDialog, QDialogButtonBox, QVBoxLayout, QShortcut
 
-from dpp.core.plugin import PluginConfig
-from dpp.core.shortcut import KeySequence
+from dpp.core.icons import icon
+from dpp.core.plugin import AbstractPlugin
+from dpp.core.plugin.config.ui.layouts import VBoxLayout
+from dpp.core.plugin.config.ui.widgets import TextPreview, GroupBox
+from dpp.core.shortcuts import KeySequence
+from dpp.ui.builder.plugin_config_widget_builder import PluginConfigWidgetBuilder
 
 
 class PluginConfigDialog(QDialog):
-    class WidgetWrapper:
-        """ Wraps a widget (e.g. QLineEdit, QCheckbox, etc.) and enhances it with a validate and onChange method. """
 
-        def __init__(self, option: PluginConfig.Option.Base, widget, get_value_callback, config, on_change_signal):
-            self.name = option.name
-            self.widget = widget
-            self.config = config
-            self._get_value_callback = get_value_callback
-            self.validate = lambda codec, input: self.config.validate(option, codec, input)
-            self.onChange = on_change_signal
-
-        def _get_value(self):
-            return self._get_value_callback()
-
-        value = property(_get_value)
-
-    def __init__(self, context, config, title, codec, icon=None):
+    def __init__(self, context, plugin: AbstractPlugin, input_text: str):
         super(PluginConfigDialog, self).__init__()
         self._context = context
-        self.config = config
-        self._codec = codec
-        self._input = None
-        self._widgets = {}
-        self.setLayout(self._init_main_layout())
-        self._build()
-        self._init_shortcuts()
-        self._validate()
-        self.setWindowTitle(title)
-        if icon:
-            self.setWindowIcon(icon)
+        self._input_text = input_text
 
-    def _init_main_layout(self):
+        # Dialog operates on a copy of the plugin and its configuration. This allows that configuration changes made
+        # in the dialog do not have an immediate effect to the real configuration. Synchronization with original
+        # configuration occurs when the accept button is pressed.
+        self._plugin_clone = plugin.clone()
+        self._plugin_clone.config.onChange.connect(lambda keys: self._on_config_change())
+
+        self._widget = PluginConfigWidgetBuilder(self, self._plugin_clone, input_text).layout(
+            lambda layout_spec: VBoxLayout(
+                widgets=[
+                    GroupBox(layout=layout_spec),
+                    GroupBox(layout=VBoxLayout(
+                        widgets=[TextPreview(self._plugin_clone, self._input_text)]
+                    ))
+                ]
+            )
+        ).build()
+
+        self._main_layout = self._init_main_layout(self._widget)
+        self._init_shortcuts()
+        self.setLayout(self._main_layout)
+        self.setWindowTitle(plugin.name)
+        if plugin.icon:
+            self.setWindowIcon(icon(plugin.icon))
+
+        # Synchronize cloned configuration with the original one.
+        self.accepted.connect(lambda: plugin.config.update(self._plugin_clone.config))
+
+    def _init_main_layout(self, widget):
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self._init_input_frame())
+        main_layout.addWidget(self._init_input_frame(widget))
         main_layout.addWidget(self._init_error_frame())
-        self._btn_box = self._init_button_box()
-        main_layout.addWidget(self._btn_box)
+        main_layout.addWidget(self._init_button_box())
         return main_layout
+
+    def _init_input_frame(self, widget) -> QFrame:
+        input_frame = QFrame()
+        input_frame_layout = QVBoxLayout()
+        input_frame_layout.addWidget(widget)
+        input_frame_layout.setContentsMargins(0, 0, 0, 10)
+        input_frame.setLayout(input_frame_layout)
+        return input_frame
 
     def _init_error_frame(self):
         self._error_frame = QFrame()
@@ -75,10 +85,10 @@ class PluginConfigDialog(QDialog):
         return self._error_frame
 
     def _init_button_box(self):
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
-        return button_box
+        self._btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self._btn_box.accepted.connect(self.accept)
+        self._btn_box.rejected.connect(self.reject)
+        return self._btn_box
 
     def _init_shortcuts(self):
         def _accept(self):
@@ -92,185 +102,23 @@ class PluginConfigDialog(QDialog):
         alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(_accept)
 
-    def _init_input_frame(self):
-        input_frame = QGroupBox()
-        self._input_frame_layout = QFormLayout()
-        input_frame.setLayout(self._input_frame_layout)
-        return input_frame
-
-    def _on_change(self):
-        """ Update and validate options. """
-        self.config.update({key: self._widgets[key].value for key in self.config.keys()})
-        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(self._validate())
-
-    def _validate(self):
-        """ Validate the current settings. """
-        self._reset_errors()
-        for key, widget_wrapper in self._widgets.items():
-            message = widget_wrapper.validate(self._codec, self._input)
-            if message is not True:
-                self._show_error_indicator(widget_wrapper)
-                self._show_error_message(message)
-                return False
-
-        message = self._try_codec()
-        if message:
-            self._show_error_message(message)
-            return False
-
-        return True
-
-    def _try_codec(self):
-        """ Tries to run the codec with the specified input. Either returns None or an error message."""
+    def _on_config_change(self):
+        """ Update and validate options when change occurred. """
         try:
-            self._codec(self.config, self._input)
-        except BaseException as e:
-            return str(e)
+            self._plugin_clone.run(self._input_text)
+            self._reset_errors()
+        except BaseException as err:
+            self._show_error_message(str(err))
 
     def _reset_errors(self):
         """ Hides error message box and resets any error indicators. """
+        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(True)
         self._error_frame.setHidden(True)
         self._error_text.setText("")
-        for name in self.config.keys():
-            self._reset_error(self._widgets[name])
-
-    def _reset_error(self, widget_wrapper):
-        """
-        Resets any error indication on a specific widget.
-        This method can be overwritten to allow customizing visualization of errors for specific widgets.
-        """
-        widget = widget_wrapper.widget
-        if isinstance(widget, QLineEdit):
-            widget.setStyleSheet('QLineEdit { }')
-
-    def _show_error_indicator(self, widget_wrapper):
-        """
-        Indicates an error on a specific widget.
-        This method can be overwritten to allow customizing visualization of errors for specific widgets.
-        """
-        widget = widget_wrapper.widget
-        if isinstance(widget, QLineEdit):
-            widget.setStyleSheet('QLineEdit { color: red }')
 
     def _show_error_message(self, message):
         """ Shows an error message within a error-box. """
+        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
+        self._context.logger.debug(message)
         self._error_frame.setHidden(False)
         self._error_text.setText(message)
-
-    def _build_option(self, option: PluginConfig.Option.Base) -> WidgetWrapper:
-        """
-        Automatically build the widget for this option.
-        This method can be overwritten to allow building custom widgets.
-        :return the widget for this option.
-        """
-        if isinstance(option, PluginConfig.Option.String):
-            x = QLineEdit(option.value)
-            w = PluginConfigDialog.WidgetWrapper(option, x, x.text, self.config, x.textChanged)
-            w.onChange.connect(lambda evt: self._on_change())
-        elif isinstance(option, PluginConfig.Option.Integer):
-            x = QLineEdit(option.value)
-            w = PluginConfigDialog.WidgetWrapper(option, x, x.text, self.config, x.textChanged)
-            w.onChange.connect(lambda evt: self._on_change())
-        elif isinstance(option, PluginConfig.Option.Group):
-            x = QRadioButton(option.name)
-            x.setChecked(option.value)
-            w = PluginConfigDialog.WidgetWrapper(option, x, x.isChecked, self.config, x.clicked)
-            w.onChange.connect(lambda evt: self._on_change())
-        elif isinstance(option, PluginConfig.Option.Boolean):
-            x = QCheckBox(option.name)
-            x.setChecked(option.value)
-            w = PluginConfigDialog.WidgetWrapper(option, x, x.isChecked, self.config, x.clicked)
-            w.onChange.connect(lambda evt: self._on_change())
-        else:
-            raise Exception("Invalid option of type {} detected!".format(type(option)))
-        return w
-
-    def _add_option_widget(self, label: QLabel, widget):
-        self._input_frame_layout.addRow(label, widget)
-
-    def _build(self):
-        """
-        Automatically build the widgets for all options.
-        This method can be overwritten to allow building custom widgets.
-        """
-        for key, option in self.config.items():
-            label = QLabel()
-            if not isinstance(option, PluginConfig.Option.Boolean):
-                label.setText(option.name)
-            self._widgets[key] = self._build_option(option)
-            self._add_option_widget(label, self._widgets[key].widget)
-
-    def setInput(self, text):
-        self._input = text
-        self._on_change()
-
-
-class PluginConfigPreviewDialog(PluginConfigDialog):
-
-    def __init__(self, context, config, title, codec, icon=None):
-        super(PluginConfigPreviewDialog, self).__init__(context, config, title, codec, icon)
-
-    def _init_main_layout(self):
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self._init_input_frame())
-        main_layout.addWidget(self._init_preview_frame())
-        main_layout.addWidget(self._init_error_frame())
-        self._btn_box = self._init_button_box()
-        main_layout.addWidget(self._btn_box)
-        return main_layout
-
-    def _init_preview_frame(self):
-        view_frame = QFrame(self)
-        view_frame_layout = QHBoxLayout()
-        self._txt_preview = QPlainTextEdit(self)
-        self._txt_preview.setReadOnly(True)
-        self._txt_preview.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self._txt_preview.customContextMenuRequested.connect(self._show_preview_frame_context_menu)
-        self._txt_preview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        view_frame_layout.addWidget(self._txt_preview)
-        view_frame.setLayout(view_frame_layout)
-        return view_frame
-
-    def _init_input_frame(self):
-        input_frame = QGroupBox()
-        self._input_frame_layout = QHBoxLayout()
-        input_frame.setLayout(self._input_frame_layout)
-        return input_frame
-
-    def _add_option_widget(self, label: QLabel, widget):
-        self._input_frame_layout.addWidget(label)
-        self._input_frame_layout.addWidget(widget)
-
-    def _on_change(self):
-        super(PluginConfigPreviewDialog, self)._on_change()
-        if self._validate():
-            self._do_preview()
-
-    def _do_preview(self):
-        try:
-            result = self._codec(self.config, self._input)
-            self._txt_preview.setPlainText(result)
-            return True
-        except BaseException as e:
-            return False
-
-    def _show_preview_frame_context_menu(self, point: QPoint=None):
-        """ Displays a customized context menu for the plain view. """
-        def _on_plain_text_context_menu_wrap_lines(e: QEvent):
-            """ Un-/wraps lines when user clicks the wrap-lines action within the plain views context-menu. """
-            if self._txt_preview.lineWrapMode() == QPlainTextEdit.NoWrap:
-                self._txt_preview.setLineWrapMode(QPlainTextEdit.WidgetWidth)
-            else:
-                self._txt_preview.setLineWrapMode(QPlainTextEdit.NoWrap)
-
-        if not point:
-            point = QCursor.pos()
-        context_menu = self._txt_preview.createStandardContextMenu()
-        context_menu.addSeparator()
-        wrap_lines_action = QAction(self)
-        wrap_lines_action.setText("Wrap Lines")
-        wrap_lines_action.setCheckable(True)
-        wrap_lines_action.setChecked(self._txt_preview.lineWrapMode() == QPlainTextEdit.WidgetWidth)
-        wrap_lines_action.triggered.connect(_on_plain_text_context_menu_wrap_lines)
-        context_menu.addAction(wrap_lines_action)
-        context_menu.exec(self._txt_preview.mapToGlobal(point))

@@ -14,11 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
 from qtpy import QtCore
 
+from dpp.core.icons import Icon, icon
 from dpp.ui import IconLabel
 from dpp.ui.widget.collapsible_frame import CollapsibleFrame
 from dpp.ui.widget.elided_label import ElidedLabel
@@ -145,7 +145,7 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            self._lbl_icon_up = IconLabel(self, qtawesome.icon("fa.chevron-up"))
+            self._lbl_icon_up = IconLabel(self, icon(Icon.FRAME_UP))
             self._lbl_icon_up.setHoverEffect(True)
             self._lbl_icon_up.setToolTip("Move up")
             self._lbl_icon_up.setEnabled(self.codec_frame.getFrameIndex() >= 2)
@@ -162,7 +162,7 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            self._lbl_icon_down = IconLabel(self, qtawesome.icon("fa.chevron-down"))
+            self._lbl_icon_down = IconLabel(self, icon(Icon.FRAME_DOWN))
             self._lbl_icon_down.setHoverEffect(True)
             self._lbl_icon_down.setToolTip("Move down")
             self._lbl_icon_down.setEnabled(self.codec_frame.hasNextFrame())
@@ -181,7 +181,7 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            self._lbl_icon_config = IconLabel(self, qtawesome.icon("fa.cog"))
+            self._lbl_icon_config = IconLabel(self, icon(Icon.FRAME_CONFIG))
             self._lbl_icon_config.setHoverEffect(True)
             self._lbl_icon_config.setEnabled(self.codec_frame.isConfigurable())
             self._lbl_icon_config.setToolTip("Configure")
@@ -198,7 +198,7 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            self._lbl_icon_close = IconLabel(self, qtawesome.icon("fa.times"))
+            self._lbl_icon_close = IconLabel(self, icon(Icon.CLOSE))
             self._lbl_icon_close.setHoverEffect(True)
             self._lbl_icon_close.setToolTip("Close")
             self._lbl_icon_close.clicked.connect(self.clicked)

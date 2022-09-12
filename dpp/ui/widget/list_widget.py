@@ -26,7 +26,6 @@ class ListWidget(QListView):
     keyPressed = Signal("PyQt_PyObject")
 
     def __init__(self):
-        # TODO: Shouldnt we use super here?
         QListView.__init__(self)
         proxy = QSortFilterProxyModel(self)
         proxy.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)

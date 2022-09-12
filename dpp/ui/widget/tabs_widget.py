@@ -15,23 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-import qtawesome
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QLabel, QTabWidget, QToolButton, QMenu, QWidget
 
 from dpp.core import Context
+from dpp.core.icons import Icon, icon
 from dpp.ui.view.classic import CodecTab
 from dpp.ui.widget.tab_bar import TabBar
 from dpp.ui.builder.action_builder import ActionBuilder
 
 
 class TabsWidget(QTabWidget):
-    # onTabAddButtonClick(title, input)
+    # onTabAddButtonClick(title, input_text)
     onTabAddButtonClick = Signal('PyQt_PyObject', 'PyQt_PyObject')
     # onTabDuplicateButtonClick(title, src_tab)
     onTabDuplicateButtonClick = Signal('PyQt_PyObject', 'PyQt_PyObject')
-    # tabAdded(index, title, tab, input)
+    # tabAdded(index, title, tab, input_text)
     tabAdded = Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     # tabDuplicated(src_tab, dst_tab)
     tabDuplicated = Signal('PyQt_PyObject', 'PyQt_PyObject')
@@ -62,7 +61,7 @@ class TabsWidget(QTabWidget):
         tab_new_button = QToolButton()
         tab_new_button.setToolTip("New Tab")
         tab_new_button.clicked.connect(lambda event: self.onTabAddButtonClick.emit(None, None))
-        tab_new_button.setIcon(qtawesome.icon("fa.plus"))
+        tab_new_button.setIcon(icon(Icon.TAB_NEW))
         self.addTab(QLabel("Add new Tab"), "")
         self.setTabEnabled(0, False)
         self.tabBar().setTabButton(0, TabBar.RightSide, tab_new_button)
@@ -97,18 +96,18 @@ class TabsWidget(QTabWidget):
                        .callback(lambda checked: self.closeOtherTabs()).build())
         menu.exec(self.tabBar().mapToGlobal(point))
 
-    def newTab(self, widget: QWidget, title: str = None, input: str = None) -> (int, QWidget):
+    def newTab(self, widget: QWidget, title: str = None, input_text: str = None) -> (int, QWidget):
         """
         Opens a new tab with the specified widget as content.
         :param title: The title of the tab.
-        :param input: The input for the tab.
+        :param input_text: The input for the tab.
         """
         title = "Tab {}".format(self._current_tab_number) if not title else title
         self._current_tab_number += 1
         self.insertTab(self.count() - 1, widget, title)
         index = self.count() - 2
         self.setCurrentIndex(index)
-        self.tabAdded.emit(index, title, widget, input)
+        self.tabAdded.emit(index, title, widget, input_text)
         return index, widget
 
     def renameTab(self, index, title):

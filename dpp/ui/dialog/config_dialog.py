@@ -17,12 +17,12 @@
 import os
 from datetime import datetime
 
-import qtawesome
 from qtpy import QtCore
 from qtpy.QtCore import QSize
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QDialog, QWidget, QHBoxLayout, QTabWidget, QLabel, QFormLayout, QFrame, QVBoxLayout
 
+from dpp.core.icons import icon, Icon
 from dpp.ui import IconLabel, KeyboardShortcutTable, SearchField, HSpacer
 from dpp.ui.widget.plugin_tab import PluginTab
 
@@ -32,7 +32,7 @@ class ConfigDialog(QDialog):
     TAB_PLUGINS = "Plugins"
     TAB_KEYBOARD_SHORTCUTS = "Keyboard Shortcuts"
 
-    def __init__(self, parent, context: 'core.context.Context', select_tab_name: str=None):
+    def __init__(self, parent, context: 'core.context.Context', select_tab_name: str = None):
         """
         Initializes the hidden dialog.
         :param parent: the widget which is calling the dialog.
@@ -86,30 +86,24 @@ class ConfigDialog(QDialog):
         icon_layout.addWidget(icon_label)
         icon_frame.setLayout(icon_layout)
         base_layout.addWidget(icon_frame)
-        form_frame = QFrame(self)
-        form_layout = QFormLayout()
-        form_layout.setAlignment(QtCore.Qt.AlignLeft)
-        form_layout.addRow(QLabel("<font size='18'>Decoder++</font>"), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel(""))
-        form_layout.addRow(QLabel("Core-Development: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("Thomas Engel"))
-        form_layout.addRow(QLabel("Plugin-Development: "), QLabel(""))
-        plugin_authors = self._context.plugins().authors()
-        for plugin_author in plugin_authors:
-            plugin_author_label = QLabel(plugin_author)
-            # Show tooltip with all plugin names.
-            # Enable automatic text wrapping of tooltip by using rich-text.
-            plugin_author_label.setToolTip("<font>{}</font>".format(", ".join(sorted(set(self._context.plugins().names(author=plugin_author))))))
-            form_layout.addRow(QLabel(""), plugin_author_label)
-        form_layout.addRow(QLabel("Inspired By: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("PortSwigger's Burp Decoder"))
-        form_layout.addRow(QLabel("Powered By: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("QtPy / PyQt5 / PyQt6"))
-        form_layout.addRow(QLabel(""), QLabel("QtAwesome"))
-        form_layout.addRow(QLabel("Website: "), QLabel(""))
-        form_layout.addRow(QLabel(""), QLabel("<a href='https://github.com/bytebutcher/decoder-plus-plus/'>https://github.com/bytebutcher/decoder-plus-plus</a>"))
-        form_frame.setLayout(form_layout)
-        base_layout.addWidget(form_frame)
+        content_frame = QFrame(self)
+        frame_layout = QFormLayout()
+        frame_layout.setAlignment(QtCore.Qt.AlignTop)
+        frame_layout.addRow(QLabel("<font size='18'>Decoder++</font>"))
+        frame_layout.addRow(QLabel(f'Version: <i>{self._context.getAppVersion()}</i>'))
+        frame_layout.addRow(QLabel("Author: <i>Thomas Engel</i>"))
+        frame_layout.addRow(QLabel("Inspired by: <i>PortSwigger's Burp Decoder</i>"))
+        frame_layout.addRow(QLabel("Powered by: <i>Qt</i>"))
+        authors_label = QLabel('<i>' + ', '.join(
+            author for author in self._context.plugins().authors() if author != "Thomas Engel") + '</i>')
+        authors_label.setWordWrap(True)
+        label = QLabel('Thanks to:')
+        label.setAlignment(QtCore.Qt.AlignTop)
+        frame_layout.addRow(label, authors_label)
+        frame_layout.addRow(QLabel(
+            "Website: <a href='https://github.com/bytebutcher/decoder-plus-plus/'>https://github.com/bytebutcher/decoder-plus-plus</a>"))
+        content_frame.setLayout(frame_layout)
+        base_layout.addWidget(content_frame)
         base_layout.addWidget(HSpacer())
         tab.setLayout(base_layout)
         return tab
@@ -128,7 +122,7 @@ class ConfigDialog(QDialog):
         frame_layout = QVBoxLayout(self)
         shortcut_filter = SearchField(self)
         shortcut_filter.setPlaceholderText("Search keyboard shortcut...")
-        shortcut_filter.setIcon(qtawesome.icon("fa.search"))
+        shortcut_filter.setIcon(icon(Icon.SEARCH))
         frame_layout.addWidget(shortcut_filter)
         shortcut_table = KeyboardShortcutTable(self, self._context)
         shortcut_table.changed.connect(lambda id, shortcut_key: self._context.updateShortcutKey(id, shortcut_key))

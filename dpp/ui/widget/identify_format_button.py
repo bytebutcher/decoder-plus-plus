@@ -14,23 +14,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
 from typing import List
 
 from qtpy.QtWidgets import QAction, QFrame, QHBoxLayout, QPushButton, QMenu
 
+from dpp.core.icons import Icon, icon
 from dpp.core.plugin import DecoderPlugin, IdentifyPlugin, AbstractPlugin
 
 
 class IdentifyFormatButton(QFrame):
     """ A button which provides a identify-format functionality. """
 
-    def __init__(self, parent, plugins: List[AbstractPlugin], get_input_callback, select_plugin_callback, logger):
+    def __init__(self, parent, plugins: List[AbstractPlugin], get_input_callback, select_plugin_callback):
         super(__class__, self).__init__(parent)
         self._plugins = plugins
         self._get_input = get_input_callback
         self._select_plugin = select_plugin_callback
-        self._logger = logger
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 6, 0, 0)
         self._button = self._init_button()
@@ -44,30 +43,30 @@ class IdentifyFormatButton(QFrame):
         button.setMenu(menu)
         return button
 
-    def _can_plugin_identify_input(self, plugin: AbstractPlugin, input: str) -> bool:
+    def _can_plugin_identify_input(self, plugin: AbstractPlugin, input_text: str) -> bool:
         """ Returns whether the plugin can identify the specified input. """
         try:
             # Check whether it is a decoder plugin and it thinks it can decode the input
-            if isinstance(plugin, DecoderPlugin) and not plugin.can_decode_input(input):
+            if isinstance(plugin, DecoderPlugin) and not plugin.can_decode_input(input_text):
                 return False
             # Check whether decoder/identifier actually can process the input without any error
-            plugin.select(input)
+            plugin.run(input_text)
             return True
         except:
             return False
 
-    def _get_matching_plugins(self, input) -> List[AbstractPlugin]:
+    def _get_matching_plugins(self, input_text) -> List[AbstractPlugin]:
         """ Returns a list of matching plugins for the specified input. """
-        if not input:
+        if not input_text:
             return []
 
-        return [plugin for plugin in self._plugins if self._can_plugin_identify_input(plugin, input)]
+        return [plugin for plugin in self._plugins if self._can_plugin_identify_input(plugin, input_text)]
 
-    def _populate_button_menu(self, input):
+    def _populate_button_menu(self, input_text):
         """ Populates the button menu with a list of matching plugins for the specified input. """
         menu = self._button.menu()
         menu.clear()
-        plugins = self._get_matching_plugins(input)
+        plugins = self._get_matching_plugins(input_text)
         if not plugins:
             action = menu.addAction("No matching format found ...")
             action.setEnabled(False)
@@ -76,12 +75,12 @@ class IdentifyFormatButton(QFrame):
         actions = []
         for plugin in plugins:
             if isinstance(plugin, DecoderPlugin):
-                action = QAction(qtawesome.icon("ei.indent-left"), plugin.name(), self)
+                action = QAction(icon(Icon.IDENTIFY_CODEC), plugin.name, self)
                 action.triggered.connect(lambda chk, item=plugin: self._select_plugin(item))
                 actions.append(action)
             elif isinstance(plugin, IdentifyPlugin):
-                for identifier in plugin.run(input).splitlines():
-                    action = QAction(qtawesome.icon("ei.align-justify"), identifier, self)
+                for identifier in plugin.run(input_text).splitlines():
+                    action = QAction(icon(Icon.IDENTIFY_HASH), identifier, self)
                     actions.append(action)
 
         menu.addActions(sorted(actions, key=lambda action: action.text()))

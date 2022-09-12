@@ -25,15 +25,18 @@ from typing import List
 from qtpy.QtCore import Signal, QObject
 from qtpy.QtWidgets import QAction
 
+import dpp
+from dpp.core import logger
 from dpp.core.listener import Listener
-from dpp.core.plugin import AbstractPlugin, Plugins
-from dpp.core.shortcut import Shortcut, NullShortcut
+from dpp.core.plugin import AbstractPlugin
+from dpp.core.plugin.manager import PluginManager
+from dpp.core.shortcuts import Shortcut, NullShortcut
 
 
 class Context(QObject):
     """
     The context of the application.
-    This includes often used functionality like logging, configuration and plugins.
+    Contains access to often used functionalities like logging, configuration and plugins.
     Interaction with this class should be limited to minimize dependencies.
     """
 
@@ -94,12 +97,10 @@ class Context(QObject):
         self._app_id = app_id
         self._app_path = app_path
         self._namespace = namespace
-        self._logger = {}
         self._debug_mode = self.config.isDebugModeEnabled()
+        self._logger = logger.init_logger(self.getLogLevel())
         self._listener = Listener(self)
-        self._plugins = Plugins([
-            os.path.join(self._app_path, "plugins"),
-            os.path.join(str(Path.home()), ".config", "dpp", "plugins")], self)
+        self._plugins = None
         self._shortcuts = {}
         self._installed_packages = []
         self._mode = None
@@ -112,26 +113,10 @@ class Context(QObject):
             self._config = Config()
         return self._config
 
-    def _init_logger(self, log_format):
-        """ Returns the logger. """
-        logger = logging.getLogger(self._app_id)
-        log_level = logging.DEBUG if self.config.isDebugModeEnabled() else logging.INFO
-
-        logging.root.setLevel(log_level)
-        console_logger = logging.StreamHandler(sys.stderr)
-        console_logger.setFormatter(logging.Formatter(log_format))
-        logger.addHandler(console_logger)
-
-        if log_level == logging.DEBUG:
-            file_logger = logging.FileHandler(os.path.join(self.getAppPath(), "dpp.log"))
-            file_logger.setLevel(log_level)
-            file_logger_formatter = logging.Formatter(
-                '%(asctime)s - %(module)s: %(lineno)d: %(msg)s',
-                datefmt='%m/%d/%Y %I:%M:%S %p')
-            file_logger.setFormatter(file_logger_formatter)
-            logger.addHandler(file_logger)
-
-        return logger
+    @property
+    def logger(self) -> logging.Logger:
+        """ Returns the standard logger for this application. """
+        return logging.getLogger()
 
     def getAppName(self) -> str:
         """ Returns the name of the application. """
@@ -139,7 +124,7 @@ class Context(QObject):
 
     def getAppVersion(self) -> str:
         """ Returns the version of the application. """
-        return "1.0.0"
+        return dpp.__version__
 
     def getAppPath(self):
         """ Returns the path where the main application is located. """
@@ -157,14 +142,18 @@ class Context(QObject):
         """ :returns the mode (see ``Context.Mode``) the application is currently running in or None if unspecified. """
         return self._mode
 
+    def getLogLevel(self):
+        """ :returns the current log level. """
+        return logging.DEBUG if self.isDebugModeEnabled() else logging.INFO
+
     def setDebugMode(self, status: bool, temporary=False):
         """ Enables/Disables debug mode. """
         if not temporary:
             self.config.setDebugMode(status)
         self._debug_mode = status
-        logging.root.setLevel(logging.DEBUG if status else logging.INFO)
+        logger.set_level(logging.DEBUG if status else logging.INFO)
         status_string = "enabled" if status else "disabled"
-        self.logger().info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
+        self._logger.info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
 
     def toggleDebugMode(self):
         """ Toggles the debug-mode on/off. """
@@ -184,16 +173,12 @@ class Context(QObject):
         """ Returns the listener instance which allows to subscribe to certain events. """
         return self._listener
 
-    def logger(self, log_format="%(module)s: %(lineno)d: %(msg)s", log_fields=None):
-        """ Returns the logger of the application. """
-        if log_format not in self._logger:
-            self._logger[log_format] = self._init_logger(log_format)
-        if log_fields:
-            return logging.LoggerAdapter(self._logger[log_format], log_fields)
-        return self._logger[log_format]
-
-    def plugins(self) -> Plugins:
+    def plugins(self) -> PluginManager:
         """ Returns all plugins. """
+        if not self._plugins:
+            self._plugins = PluginManager([
+                os.path.join(self._app_path, "plugins"),
+                os.path.join(str(Path.home()), ".config", "dpp", "plugins")], self)
         return self._plugins
 
     def checkDependency(self, package):
@@ -221,9 +206,9 @@ class Context(QObject):
         if not shortcut_key:
             shortcut_key = default_shortcut_key
 
-        self.logger().debug("Registering shortcut {} to {}".format(id, shortcut_key))
+        self._logger.trace("Registering shortcut {} to {}".format(id, shortcut_key))
         if id in self._shortcuts:
-            self.logger().debug("Retrieving previously registered shortcut {}".format(id, shortcut_key))
+            self._logger.debug("Retrieving previously registered shortcut {}".format(id, shortcut_key))
             return self._shortcuts[id].clone(name)
 
         shortcut = Shortcut(id, name, shortcut_key, callback, widget)
@@ -239,10 +224,10 @@ class Context(QObject):
         :param shortcut_key: the shortcut key which should be used onwards.
         """
         if id not in self._shortcuts:
-            self.logger().error("Shortcut {} is not defined".format(id))
+            self._logger.error("Shortcut {} is not defined".format(id))
             return
 
-        self.logger().debug("Updating shortcut {} to {}".format(id, shortcut_key))
+        self._logger.debug("Updating shortcut {} to {}".format(id, shortcut_key))
         shortcut = self._shortcuts[id]
         shortcut.setKey(shortcut_key)
         self.config.setShortcutKey(id, shortcut_key)
@@ -255,7 +240,7 @@ class Context(QObject):
     def getShortcutById(self, id: str):
         """ Returns the shortcut with the specified id. """
         if id not in self._shortcuts:
-            self.logger().error("Shortcut {} is not defined".format(id))
+            self._logger.error("Shortcut {} is not defined".format(id))
             return NullShortcut()
         return self._shortcuts[id]
 

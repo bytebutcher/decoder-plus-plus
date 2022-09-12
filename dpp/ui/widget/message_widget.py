@@ -14,11 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
 from qtpy.QtCore import QRect, Signal, QTimer, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel
 
+from dpp.core.icons import icon, Icon
 from dpp.ui import IconLabel
 from dpp.ui.widget.clickable_label import ClickableLabel
 
@@ -30,10 +30,6 @@ class MessageWidget(QFrame):
     messageClicked = Signal()
     infoClicked = Signal()
     errorClicked = Signal()
-
-    ICON_READY = "ICON_READY"
-    ICON_INFO = "ICON_INFO"
-    ICON_ERROR = "ICON_ERROR"
 
     class CountWidget(QFrame):
         """ A widget with an icon and a counter. """
@@ -77,15 +73,10 @@ class MessageWidget(QFrame):
         super(__class__, self).__init__(parent)
         layout = QHBoxLayout()
 
-        self._icons = dict()
-        self._icons[self.ICON_READY] = qtawesome.icon("fa.check")
-        self._icons[self.ICON_INFO] = qtawesome.icon("fa.info")
-        self._icons[self.ICON_ERROR] = qtawesome.icon("fa.exclamation")
-
-        self._log_info_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.info-circle"), 0, self)
+        self._log_info_count_widget = MessageWidget.CountWidget(icon(Icon.MSG_INFO), 0, self)
         self._log_info_count_widget.icon_clicked.connect(lambda: self.infoClicked.emit())
         self._log_info_count_widget.mouseDoubleClickEvent = lambda e: self.infoClicked.emit()
-        self._log_error_count_widget = MessageWidget.CountWidget(qtawesome.icon("fa.exclamation-triangle"), 0, self)
+        self._log_error_count_widget = MessageWidget.CountWidget(icon(Icon.MSG_ERROR), 0, self)
         self._log_error_count_widget.icon_clicked.connect(lambda: self.errorClicked.emit())
         self._log_error_count_widget.mouseDoubleClickEvent = lambda e: self.errorClicked.emit()
 
@@ -98,7 +89,7 @@ class MessageWidget(QFrame):
         line.setFrameShadow(QFrame.Sunken)
         layout.addWidget(line, 0, Qt.AlignLeft)
 
-        self._log_message_icon_label = IconLabel(self, self._get_icon(self.ICON_READY))
+        self._log_message_icon_label = IconLabel(self, icon(Icon.STATUS_READY))
         self._log_message_icon_label.setHoverEffect(True)
         self._log_message_icon_label.clicked.connect(lambda evt: self.messageClicked.emit())
         self._log_message_icon_label.setHoverEffect(True)
@@ -109,13 +100,6 @@ class MessageWidget(QFrame):
 
         self.setLayout(layout)
 
-    def _get_icon(self, type: str):
-        """
-        Returns an icon of the specified type.
-        :param type: the type of the icon (e.g. READY, INFO, ERROR).
-        """
-        return self._icons[type]
-
     def _log_message(self, type: str, message: str):
         """
         Emits a message event.
@@ -123,7 +107,6 @@ class MessageWidget(QFrame):
         :param message: the message.
         """
         self.messageReceived.emit(type, message)
-
 
     def showDebug(self, message: str, log_only: bool=False):
         """ Adds debug message to the log. """
@@ -134,16 +117,16 @@ class MessageWidget(QFrame):
         self._log_message("INFO", message)
         self._log_info_count_widget.incrementCount()
         if not log_only:
-            self.showMessage(message, self.ICON_INFO)
+            self.showMessage(message, icon(Icon.STATUS_INFO))
 
     def showError(self, message: str, log_only: bool=False):
         """ Shows error message in the statusbar. Adds error message to the log. Increments error count. """
         self._log_message("ERROR", message)
         self._log_error_count_widget.incrementCount()
         if not log_only:
-            self.showMessage(message, self.ICON_ERROR)
+            self.showMessage(message, icon(Icon.STATUS_ERROR))
 
-    def showMessage(self, message: str, icon_type: str):
+    def showMessage(self, message: str, _icon: QIcon):
         """
         Displays a message (shortened to 100 characters) for 5 seconds in the statusbar.
         :param message: the message to display.
@@ -151,11 +134,11 @@ class MessageWidget(QFrame):
         """
         if message:
             def _show_ready():
-                self._log_message_icon_label.setIcon(self._get_icon(self.ICON_READY))
+                self._log_message_icon_label.setIcon(icon(Icon.STATUS_READY))
                 self._log_message_text_label.setText("Ready.")
 
             message = self._shorten_message(message, 100)
-            self._log_message_icon_label.setIcon(self._get_icon(icon_type))
+            self._log_message_icon_label.setIcon(_icon)
             self._log_message_text_label.setText(message)
             QTimer.singleShot(5000, _show_ready)
 

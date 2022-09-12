@@ -59,10 +59,11 @@ e52d74c6d046c390345ae4343406b99587f2af0d
         Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
         Sun Md5
     * **Scripts:** CSS-Minify, Caesar, Extract URLs, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, JSONPath, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
+* Format-Identification
 * Smart-Decode
 * Plugin System
 * Load & Save Current Session
-* Platforms:
+* Supported Platforms:
     * Windows
     * Linux
     * MAC
@@ -119,36 +120,12 @@ $ dpp "Hello, world!" -s search_and_replace search_term="Hello" replace_term="He
 Hey, world!
 ```
 
-### Plugin Development
-
-To add custom codecs just copy them into the ```$HOME/.config/dpp/plugins/``` folder. 
-
-```python
-from dpp.core.plugin.abstract_plugin import DecoderPlugin
-
-class Plugin(DecoderPlugin):
-    """
-    Possible plugins are DecoderPlugin, EncoderPlugin, HasherPlugin, ScriptPlugin or IdentifyPlugin.
-    See AbstractPlugin or it's implementations for more information.
-    """ 
-
-    def __init__(self, context):
-        plugin_name = "URL"
-        plugin_author = "Your Name"
-        # Python Libraries which are required to be able to execute the run method of this plugin.
-        plugin_requirements = ["urllib"]
-        super().__init__(plugin_name, plugin_author, plugin_requirements, context)
-
-    def run(self, text):
-        # Load the required libraries here ...
-        import urllib.parse
-        # Run your action ...
-        return urllib.parse.unquote(text)
-```
-
 ## Contribute
 
-Feel free to open a new ticket for feature requests or bugs. Also don't hesitate to issue a pull-request for new features/plugins.
+Feel free to open a new ticket for feature requests or bugs. 
+Also don't hesitate to issue a pull-request for new features/plugins. Check out the 
+[Development Guide](docs/DEVELOPMENT.md)
+in order to see how Decoder++ is structured and how easy new features can be added.
 
 Thanks to 
 * Tim Menapace (RIPEMD160, KECCAK256)

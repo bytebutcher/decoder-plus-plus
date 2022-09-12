@@ -14,8 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
-
+from dpp.core.icons import Icon, icon
 from dpp.ui import IconLabel
 
 
@@ -23,7 +22,7 @@ class VSep(IconLabel):
     """ Widget which draws a vertical separator. """
 
     def __init__(self, parent=None):
-        super(VSep, self).__init__(parent, qtawesome.icon("fa.ellipsis-v"))
+        super(VSep, self).__init__(parent, icon(Icon.SEPARATOR_V))
         self.setDisabled(True) # just for the effect
 
 
@@ -31,5 +30,5 @@ class HSep(IconLabel):
     """ Widget which draws a horizontal separator. """
 
     def __init__(self, parent=None):
-        super(VSep, self).__init__(parent, qtawesome.icon("fa.ellipsis-h"))
+        super(VSep, self).__init__(parent, icon(Icon.SEPARATOR_H))
         self.setDisabled(True) # just for the effect

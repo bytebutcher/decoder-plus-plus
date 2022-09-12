@@ -24,6 +24,7 @@ from qtpy.QtGui import QStandardItemModel, QStandardItem, QColor, QRegularExpres
 from qtpy.QtWidgets import QTableView, QLineEdit, QStyledItemDelegate, QWidget
 
 from dpp.core import Context
+from dpp.core.icons import Icon, icon
 from dpp.ui.widget.dock_widget import DockWidget
 
 
@@ -31,7 +32,7 @@ class HexDock(DockWidget):
     """ A widget to show a hex view of a string representation. """
 
     def __init__(self, context: Context, parent: QWidget):
-        super(HexDock, self).__init__("Hex", qtawesome.icon("fa.code"), parent)
+        super(HexDock, self).__init__("Hex", icon(Icon.DOCK_HEX), parent)
         self.addWidget(HexView(context, self))
 
 

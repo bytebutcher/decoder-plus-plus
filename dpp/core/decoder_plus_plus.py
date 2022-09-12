@@ -15,39 +15,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class DecoderPlusPlus(object):
+
+class DecoderPlusPlus:
     """ The interface of DecoderPlusPlus which is used within the python interactive console. """
 
-    def __init__(self, input: str):
+    def __init__(self, input_text: str):
         """
         Initializes DecoderPlusPlus with the specified input.
-        :param input: the input which should be transformed.
+        :param input_text: the input which should be transformed.
         """
-        self._input = input
+        self._input_text = input_text
 
     def decode(self) -> 'DecoderPlusPlus':
         """ Returns the decoder interface which encapsulates all possible decoding methods. """
-        return Decoder(self._input)
+        return Decoder(self._input_text)
 
     def encode(self) -> 'DecoderPlusPlus':
         """ Returns the encoder interface which encapsulates all possible encoding methods. """
-        return Encoder(self._input)
+        return Encoder(self._input_text)
 
     def hash(self) -> 'DecoderPlusPlus':
         """ Returns the hash interface which encapsulates all possible hashing methods. """
-        return Hasher(self._input)
+        return Hasher(self._input_text)
 
     def script(self) -> 'DecoderPlusPlus':
         """ Returns the script interface which encapsulates all possible scripting methods. """
-        return Script(self._input)
+        return Script(self._input_text)
 
     def identify(self) -> 'DecoderPlusPlus':
         """ Returns the identify interface which encapsulates all possible identify methods. """
-        return Identify(self._input)
+        return Identify(self._input_text)
 
     def run(self):
         """ Starts the transformation process and returns the transformed input. """
-        return self._input
+        return self._input_text
 
 
 Encoder = type('obj', (DecoderPlusPlus,), {})

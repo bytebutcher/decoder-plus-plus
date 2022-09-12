@@ -15,3 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+class CodecException(Exception):
+    """ Thrown when processing input within a codec failed. """
+    ...
+
+class ValidationError(Exception):
+    """ Thrown when a validation error occurs. """
+    ...

@@ -14,14 +14,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import logging
-import qtawesome
 from qtpy import QtCore
 from qtpy.QtCore import QRegularExpression, QPoint, QEvent
 from qtpy.QtGui import QColor, QBrush, QTextCharFormat, QTextCursor, QCursor
 from qtpy.QtWidgets import QAction, QFrame, QVBoxLayout, QPlainTextEdit
 
 from dpp.core import Context
+from dpp.core.icons import icon, Icon
 from dpp.ui import SearchField
 
 
@@ -51,7 +50,6 @@ class PlainView(QFrame):
         self._listener = context.listener()
         self._tab_id = tab_id
         self._frame_id = frame_id
-        self._logger = logging.getLogger('decoder_plusplus')
 
         self._plain_text = QPlainTextEdit()
         self.setPlainText(text)
@@ -72,7 +70,7 @@ class PlainView(QFrame):
 
         self._search_field = SearchField(self)
         self._search_field.setClosable(True)
-        self._search_field.setIcon(qtawesome.icon("fa.search"))
+        self._search_field.setIcon(icon(Icon.SEARCH))
         self._search_field.setPlaceholderText("Search text")
         self._search_field.escapePressed.connect(self._on_search_field_escape_pressed_event)
         self._search_field.textChanged.connect(self._do_highlight_text)
@@ -156,7 +154,7 @@ class PlainView(QFrame):
                     # Drops text within (binary) file into plain text area.
                     self._plain_text.setPlainText(f.read().decode('utf-8', errors='surrogateescape'))
             except Exception as e:
-                self._logger.error("Error reading file: " + str(e))
+                self._context.logger.error("Error reading file: " + str(e))
         elif data.hasText():
             # Drops text into text field.
             self._plain_text.setPlainText(data.text())

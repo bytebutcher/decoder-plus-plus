@@ -14,8 +14,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from dpp.core.plugin.config.ui import Layout
 
 
-class AbortedException(Exception):
-    """ Should be raised when a process is aborted by the user. """
-    pass
+class HBoxLayout(Layout):
+    ...
+
+
+class VBoxLayout(Layout):
+    ...
+
+
+class FormLayout(Layout):
+    ...

@@ -14,10 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
 from qtpy.QtCore import Signal, Qt, QEvent, QTimer
 from qtpy.QtGui import QPainter
 from qtpy.QtWidgets import QLineEdit
+
+from dpp.core.icons import Icon, icon
 
 
 class SearchField(QLineEdit):
@@ -78,7 +79,7 @@ class SearchField(QLineEdit):
     def setClosable(self, closable):
         """ When True, this adds a close button to the search field. """
         self._closable = closable
-        self._close_icon = qtawesome.icon("fa.times").pixmap(self.height() - 12, self.height() - 12)
+        self._close_icon = icon(Icon.CLOSE).pixmap(self.height() - 12, self.height() - 12)
         self._do_repaint = True
 
     def isClosable(self):

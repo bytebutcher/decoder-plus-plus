@@ -31,11 +31,11 @@ class PluginFrame(QFrame):
         self._plugin = plugin
 
         layout = QVBoxLayout()
-        layout.addWidget(self._make_group_text_field("Name", plugin.name()))
+        layout.addWidget(self._make_group_text_field("Name", plugin.name))
         layout.addWidget(self._make_group_text_field("Description", self._clean_description(plugin.__doc__)))
         if plugin.dependencies():
             layout.addWidget(self._make_group_text_field("Dependencies", self._clean_dependencies(plugin.dependencies())))
-        layout.addWidget(self._make_group_text_field("Author", plugin.author()))
+        layout.addWidget(self._make_group_text_field("Author", plugin.author))
         layout.addStretch(1)
         self.setLayout(layout)
 

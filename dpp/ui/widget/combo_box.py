@@ -14,7 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from qtpy.QtCore import QSortFilterProxyModel, Qt
 from qtpy.QtWidgets import QCompleter, QComboBox
 
@@ -53,6 +52,6 @@ class ComboBox(QComboBox):
         return self.currentIndex()
 
     def setTextIfCompleterIsClicked(self, text):
-      if text:
-        index = self.findText(text)
-        self.setCurrentIndex(index)
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)

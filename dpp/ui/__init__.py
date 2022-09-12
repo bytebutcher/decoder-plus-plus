@@ -17,8 +17,6 @@
 
 from dpp.ui.widget.search_field import SearchField
 from dpp.ui.widget.shortcut_table import KeyboardShortcutTable
-from dpp.ui.widget.spacer import Spacer
-from dpp.ui.widget.spacer import VSpacer
-from dpp.ui.widget.spacer import HSpacer
+from dpp.ui.widget.spacers import Spacer, VSpacer, HSpacer
 from dpp.ui.widget.tab_bar import TabBar
 from dpp.ui.widget.icon_label import IconLabel

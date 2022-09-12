@@ -1,14 +1,28 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import json
 from json import JSONDecodeError
 import os
 
-import qtawesome
 
-from qtpy.QtWidgets import QDialog
-
-from dpp.core.exception import AbortedException
+from dpp.core.icons import Icon
 from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.ui.dialog.plugin_config_dialog import PluginConfigPreviewDialog
+from dpp.core.plugin.config import Label
+from dpp.core.plugin.config.options import String
 
 
 class Plugin(ScriptPlugin):
@@ -30,14 +44,14 @@ class Plugin(ScriptPlugin):
 	"""
 
 	class Option(object):
-		Expression = PluginConfig.Option.Label("expression", "Expression:")
+		Expression = Label("expression", "Expression:")
 
 	class Codec:
 
 		def run(self, config: PluginConfig, text: str):
 			try:
 				import pyjq as pyjq
-				expression = config.get(Plugin.Option.Expression).value
+				expression = config.value(Plugin.Option.Expression)
 				return os.linesep.join([
 					json.dumps(item) for item in pyjq.all(expression, json.loads(text))
 				])
@@ -47,38 +61,21 @@ class Plugin(ScriptPlugin):
 				# Ignore exceptions - most likely an error in the jq expression
 				pass
 
-	def __init__(self, context):
-		# Name, Author, Dependencies
-		super().__init__('JQ', "Thomas Engel", ["pyjq"], context)
+	def __init__(self, context: 'dpp.core.context.Context'):
+		# Name, Author, Dependencies, Icon
+		super().__init__('JQ', "Thomas Engel", ["pyjq"], context, Icon.FILTER)
 		self._context = context
-		self._logger = context.logger
 		self._codec = Plugin.Codec()
-		self.config.add(PluginConfig.Option.String(
+		self.config.add(String(
 			label=Plugin.Option.Expression,
 			value="",
 			description="jq expression to filter by",
 			is_required=True
 		))
-		self._dialog = None
-		self._dialog_return_code = QDialog.Accepted
 
-	def select(self, text: str):
-		if not self._dialog:
-			self._dialog = PluginConfigPreviewDialog(self._context, self.config.clone(), "jq",
-													 self._codec.run, qtawesome.icon("fa.filter"))
+	@property
+	def title(self) -> str:
+		return "Filter by jq expression '{}'".format(self.config.value(Plugin.Option.Expression))
 
-		self._dialog.setInput(text)
-		self._dialog_return_code = self._dialog.exec_()
-
-		if self._dialog_return_code != QDialog.Accepted:
-			# User clicked the Cancel-Button.
-			raise AbortedException("Aborted")
-
-		self.config.update(self._dialog.config)
-		return self.run(text)
-
-	def title(self):
-		return "Filter by jq expression '{}'".format(self.config.get(Plugin.Option.Expression).value)
-
-	def run(self, text: str):
-		return self._codec.run(self.config, text)
+	def run(self, input_text: str) -> str:
+		return self._codec.run(self.config, input_text)

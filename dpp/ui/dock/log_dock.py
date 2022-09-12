@@ -15,20 +15,80 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import logging
 from typing import List
 
-import qtawesome
 from qtpy import QtWidgets, QtCore
-from qtpy.QtCore import QSortFilterProxyModel, Signal
-from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtCore import QSortFilterProxyModel, QObject, Signal
+from qtpy.QtGui import QIcon, QStandardItemModel, QStandardItem
 from qtpy.QtWidgets import QTableView, QHBoxLayout, QToolButton, QVBoxLayout, QFrame, QWidget
 
 from dpp.core import Context
-from dpp.core.logging import LogEntry, LogFilter
+from dpp.core.icons import icon, Icon
 from dpp.ui.widget.dock_widget import DockWidget
 from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
 from dpp.ui.widget.message_widget import MessageWidget
-from dpp.ui.widget.spacer import VSpacer
+from dpp.ui.widget.spacers import VSpacer
+
+
+class LogFilter(logging.Filter, QObject):
+    """ Extends logging.Filter to emit signals for each logged message. """
+
+    logInfoEvent = Signal('PyQt_PyObject')
+    logWarnEvent = Signal('PyQt_PyObject')
+    logErrorEvent = Signal('PyQt_PyObject')
+    logDebugEvent = Signal('PyQt_PyObject')
+
+    def __init__(self, parent):
+        super(logging.Filter, self).__init__()
+        super(QObject, self).__init__(parent)
+
+    def filter(self, record):
+        if not record.args:
+            if isinstance(record.msg, Exception):
+                msg = str(record.msg)
+            else:
+                msg = record.msg
+            if record.levelno == logging.INFO:
+                self.logInfoEvent.emit(msg)
+            elif record.levelno == logging.ERROR:
+                self.logErrorEvent.emit(msg)
+            elif record.levelno == logging.WARN:
+                self.logWarnEvent.emit(msg)
+            elif record.levelno == logging.DEBUG:
+                self.logDebugEvent.emit(msg)
+        return True
+
+
+class LogEntry(object):
+    """ Defines a log entry including time, type and message. """
+
+    def __init__(self, time: str, type: str, message: str):
+        """
+        Initializes a log entry including time, type and message.
+        :param time: The time (hour:minute:second) of the log entry (e.g. 00:00:00).
+        :param type: The type of the log entry (e.g. INFO, ERROR, ...).
+        :param message: The message of the log entry (e.g. 'Hello, world!').
+        """
+        self._time = time
+        self._type = type
+        self._message = message
+
+    def time(self) -> str:
+        """ Returns the time (hour:minute:second) of the log entry (e.g. 00:00:00). """
+        return self._time
+
+    def type(self) -> str:
+        """ Returns the type of the log entry (e.g. INFO, ERROR, ...). """
+        return self._type
+
+    def message(self) -> str:
+        """ Returns the message of the log entry (e.g. 'Hello, world!'). """
+        return self._message
+
+    def is_valid(self) -> bool:
+        """ Returns whether all log entries are valid (not empty). """
+        return bool(self._time) and bool(self._type) and bool(self._message)
 
 
 class LogDock(DockWidget):
@@ -76,7 +136,7 @@ class LogDock(DockWidget):
             self.setEditable(False)
 
     def __init__(self, parent: DockTabsWidget, logger):
-        super(LogDock, self).__init__("Logs", qtawesome.icon("fa.align-left"), parent)
+        super(LogDock, self).__init__("Logs", icon(Icon.DOCK_LOG), parent)
         self._parent = parent
         self._logger = logger
         self._log_entries = []
@@ -102,7 +162,7 @@ class LogDock(DockWidget):
     def _toggle_log_dock_widget(self, *filters: List[str], **kwargs):
         """ Shows/Hides the log dock. """
         self._parent.toggleDockWidget(Context.DockWidget.LOG_DOCK_WIDGET)
-        is_log_dock_widget_visible = not self._parent.isVisible(Context.DockWidget.LOG_DOCK_WIDGET)
+        is_log_dock_widget_visible = not self._parent.isDockWidgetVisible(Context.DockWidget.LOG_DOCK_WIDGET)
         if not is_log_dock_widget_visible:
             for filter in self.getFilters():
                 self.setFilterChecked(filter, filter in filters)
@@ -140,16 +200,16 @@ class LogDock(DockWidget):
         button_layout = QVBoxLayout()
 
         self._button_filter_info = self._init_tool_button(
-            "fa.info-circle", "Filter info messages", True, True, self._filter_info_event)
+            icon(Icon.LOG_FILTER_INFO), "Filter info messages", True, True, self._filter_info_event)
 
         self._button_filter_error = self._init_tool_button(
-            "fa.exclamation-triangle", "Filter error messages", True, True, self._filter_error_event)
+            icon(Icon.LOG_FILTER_ERROR), "Filter error messages", True, True, self._filter_error_event)
 
         self._button_filter_debug = self._init_tool_button(
-            "fa.bug", "Filter debug messages", True, False, self._filter_debug_event)
+            icon(Icon.LOG_FILTER_DEBUG), "Filter debug messages", True, False, self._filter_debug_event)
 
         self._button_entries_clear = self._init_tool_button(
-            "fa.trash", "Clear log entries", False, False, self._clear_event)
+            icon(Icon.LOG_CLEAR), "Clear log entries", False, False, self._clear_event)
 
         self._button_filters = {
             LogDock.Filter.INFO: self._button_filter_info,
@@ -164,9 +224,9 @@ class LogDock(DockWidget):
         button_layout.addWidget(VSpacer(self))
         self._button_frame.setLayout(button_layout)
 
-    def _init_tool_button(self, icon_name: str, tool_tip: str, checkable: bool, checked: bool, callback):
+    def _init_tool_button(self, icon: QIcon, tool_tip: str, checkable: bool, checked: bool, callback):
         button_filter = QToolButton()
-        button_filter.setIcon(qtawesome.icon(icon_name))
+        button_filter.setIcon(icon)
         button_filter.setToolTip(tool_tip)
         button_filter.setCheckable(checkable)
         button_filter.setChecked(checked)

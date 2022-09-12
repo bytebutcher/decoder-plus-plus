@@ -1,6 +1,23 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pathlib
 import setuptools
 from setuptools import setup
+from dpp import __version__
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -8,10 +25,11 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 README = (HERE / 'README.md').read_text()
 
+
 # This call to setup() does all the work
 setup(
     name='decoder-plus-plus',
-    version='1.5.0',
+    version=__version__,
     description='An extensible application for penetration testers and software developers to decode/encode data into various formats.',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -26,6 +44,7 @@ setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'qtpy>=2.0.0',
+        'qtpynodeeditor>=0.2.0',
         'QtAwesome>=1.0.2',
         'passlib>=1.7.4',
         'fuzzywuzzy>=0.18.0',

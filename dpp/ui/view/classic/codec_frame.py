@@ -21,7 +21,9 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QFrame, QVBoxLayout
 
 from dpp.core import Context
-from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin, Plugins, PluginBuilder
+from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin
+from dpp.core.plugin.manager import PluginManager
+from dpp.core.plugin.builder import PluginBuilder
 from dpp.ui import VSpacer
 from dpp.ui.view.classic.codec_frame_header import CodecFrameHeader
 from dpp.ui.view.classic.combo_box_frame import ComboBoxFrame
@@ -33,15 +35,21 @@ from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecFrame(CollapsibleFrame):
-    upButtonClicked = Signal(str)  # frame_id
-    downButtonClicked = Signal(str)  # frame_id
-    configButtonClicked = Signal(str)  # frame_id
-    closeButtonClicked = Signal(str)  # frame_id
-    pluginSelected = Signal(str, str, 'PyQt_PyObject')  # frame_id, input_text, plugin
-    pluginDeselected = Signal(str)  # frame_id
+    # frame_id
+    upButtonClicked = Signal(str)
+    # frame_id
+    downButtonClicked = Signal(str)
+    # frame_id
+    configButtonClicked = Signal(str)
+    # frame_id
+    closeButtonClicked = Signal(str)
+    # frame_id, input_text, combo_box_type, combo_box_index, plugin
+    pluginSelected = Signal(str, str, str, int, 'PyQt_PyObject')
+    # frame_id, combo_box_type
+    pluginDeselected = Signal(str, str)
 
-    def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: Plugins, text):
-        super(__class__, self).__init__(parent, context, uuid.uuid4().hex)
+    def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: PluginManager, text):
+        super().__init__(parent, context, uuid.uuid4().hex)
 
         self._tab_id = tab_id
         self._codec_frames = codec_frames
@@ -103,49 +111,48 @@ class CodecFrame(CollapsibleFrame):
         button_frame = QFrame(self)
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
-        self._combo_box_frame.titleSelected.connect(lambda: self.pluginDeselected.emit(self.id()))
-        self._combo_box_frame.pluginSelected.connect(lambda plugin: self.pluginSelected.emit(self.id(), self.getInputText(), plugin))
+        self._combo_box_frame.pluginSelected.connect(lambda combo_box_type, combo_box_index, plugin:
+                                                     self.pluginSelected.emit(
+                                                         self.id(),
+                                                         self.getInputText(),
+                                                         combo_box_type,
+                                                         combo_box_index,
+                                                         plugin
+                                                     ))
+        self._combo_box_frame.pluginDeselected.connect(lambda combo_box_type:
+                                                       self.pluginDeselected.emit(
+                                                           self.id(),
+                                                           combo_box_type
+                                                       ))
         button_frame_layout.addWidget(self._combo_box_frame)
         self._smart_decode_button = SmartDecodeButton(self,
                                                       self._plugins.filter(type=PluginType.DECODER),
                                                       self._plain_view_widget.toPlainText,
-                                                      self.selectComboBoxEntryByPlugin,
-                                                      self._logger
-        )
+                                                      self.selectComboBoxEntryByPlugin)
         button_frame_layout.addWidget(self._smart_decode_button)
         self._identify_format_button = IdentifyFormatButton(self,
                                                             self._plugins.filter(type=PluginType.DECODER) +
                                                             self._plugins.filter(type=PluginType.IDENTIFY),
                                                             self._plain_view_widget.toPlainText,
-                                                            self.selectComboBoxEntryByPlugin,
-                                                            self._logger)
+                                                            self.selectComboBoxEntryByPlugin)
         button_frame_layout.addWidget(self._identify_format_button)
         button_frame_layout.addWidget(VSpacer(self))
         button_frame.setLayout(button_frame_layout)
         return button_frame
 
     def _shortcut_updated_event(self, shortcut):
-        id = shortcut.id()
         tooltip = self._get_tooltip_by_shortcut(shortcut)
+        combo_box_type = self._get_combo_box_type_by_shortcut(shortcut)
+        self._combo_box_frame.setToolTip(tooltip, combo_box_type)
+
+    def _get_combo_box_type_by_shortcut(self, shortcut) -> str:
         combo_box_shortcut_map = {
             Context.Shortcut.FOCUS_DECODER: PluginType.DECODER,
             Context.Shortcut.FOCUS_ENCODER: PluginType.ENCODER,
             Context.Shortcut.FOCUS_HASHER: PluginType.HASHER,
             Context.Shortcut.FOCUS_SCRIPT: PluginType.SCRIPT
         }
-        if id in combo_box_shortcut_map:
-            self._combo_box_frame.setToolTipByPluginType(combo_box_shortcut_map[id], tooltip)
-        else:
-            return
-        self._logger.debug("Updated tooltip within codec-frame for {id} to {tooltip}".format(id=id, tooltip=tooltip))
-
-    def _update_tooltip(self, widget, shortcut_id):
-        tooltip = self._get_tooltip_by_shortcut_id(shortcut_id)
-        widget.setToolTip(tooltip)
-
-    def _get_tooltip_by_shortcut_id(self, shortcut_id):
-        shortcut = self._context.getShortcutById(shortcut_id)
-        return self._get_tooltip_by_shortcut(shortcut)
+        return combo_box_shortcut_map[shortcut.id()]
 
     def _get_tooltip_by_shortcut(self, shortcut):
         return "{description} ({shortcut_key})".format(description=shortcut.name(), shortcut_key=shortcut.key())
@@ -155,7 +162,8 @@ class CodecFrame(CollapsibleFrame):
 
     def getPlugin(self) -> AbstractPlugin:
         """ Returns the currently selected plugin. Might return a NullPlugin when nothing is selected. """
-        if hasattr(self, '_combo_box_frame'): # A bit dirty, but might be called before initialization (see Frame::isConfigurable)
+        if hasattr(self,
+                   '_combo_box_frame'):  # A bit dirty, but might be called before initialization (see Frame::isConfigurable)
             return self._combo_box_frame.selectedPlugin()
         else:
             return NullPlugin(self._context)
@@ -170,9 +178,9 @@ class CodecFrame(CollapsibleFrame):
         self._header_frame.indicateError(status == "ERROR")
         self._status_widget.setStatus(status, message)
 
-    def selectComboBoxEntryByPlugin(self, plugin, blockSignals=False):
-        self._combo_box_frame.selectItem(plugin.type(), plugin.name(), block_signals=True)
-        if not blockSignals:
+    def selectComboBoxEntryByPlugin(self, plugin, block_signals=False):
+        self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=True)
+        if not block_signals:
             self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
 
     def toggleSearchField(self):
@@ -208,26 +216,26 @@ class CodecFrame(CollapsibleFrame):
     def focusComboBox(self, type):
         self._combo_box_frame.focusType(type)
 
-    def setPlugin(self, plugin: AbstractPlugin, blockSignals=True):
+    def setPlugin(self, plugin: AbstractPlugin, block_signals=True):
         if plugin:
-            self.selectComboBoxEntryByPlugin(plugin, blockSignals=blockSignals)
+            self.selectComboBoxEntryByPlugin(plugin, block_signals=block_signals)
             self.getPlugin().setup(plugin.config.toDict())
             self.frameChanged.emit(self.id())
 
     def title(self) -> str:
         """ Returns the title of the current frame which is either the title of the previous plugin or None. """
         if self.hasPreviousFrame():
-            return self.getPreviousFrame().getPlugin().title()
+            return self.getPreviousFrame().getPlugin().title
 
     def name(self) -> str:
         """ Returns the name of the current frame which is either the title of the previous plugin or None. """
         if self.hasPreviousFrame():
-            return self.getPreviousFrame().getPlugin().name()
+            return self.getPreviousFrame().getPlugin().name
 
     def type(self) -> str:
         """ Returns the type of the current frame which is either the type of the previous plugin or "None". """
         if self.hasPreviousFrame():
-            return self.getPreviousFrame().getPlugin().type() or "None"
+            return self.getPreviousFrame().getPlugin().type or "None"
         return "None"
 
     def description(self) -> str:
@@ -274,14 +282,15 @@ class CodecFrame(CollapsibleFrame):
         self.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
         if frame_config["plugin"]["name"] and frame_config["plugin"]["type"]:
             # Configure plugin if any. Last frame does not have a plugin configured, yet.
-            self.selectComboBoxEntryByPlugin(PluginBuilder(self._context).build(frame_config["plugin"]), blockSignals=True)
+            self.selectComboBoxEntryByPlugin(PluginBuilder(self._context).build(frame_config["plugin"]),
+                                             block_signals=True)
         self.header().refresh()
         self.setCollapsed(frame_config["is_collapsed"])
 
     def toDict(self):
         status_type, status_message = self._status_widget.status()
         return {
-            "title": self.title(),
+            "title": self.title,
             "text": self.getInputText(),
             "is_collapsed": self.isCollapsed(),
             "status": {

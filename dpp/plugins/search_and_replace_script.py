@@ -1,11 +1,26 @@
+# vim: ts=8:sts=8:sw=8:noexpandtab
+#
+# This file is part of Decoder++
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import re
 
-import qtawesome
-from qtpy.QtWidgets import QDialog
-
-from dpp.core.exception import AbortedException
+from dpp.core.exceptions import ValidationError
+from dpp.core.icons import Icon
 from dpp.core.plugin import ScriptPlugin, PluginConfig
-from dpp.ui.dialog.plugin_config_dialog import PluginConfigDialog
+from dpp.core.plugin.config import Label
+from dpp.core.plugin.config.options import String, Boolean
 
 
 class Plugin(ScriptPlugin):
@@ -14,86 +29,70 @@ class Plugin(ScriptPlugin):
     """
 
     class Option(object):
-        SearchTerm = PluginConfig.Option.Label("search_term", "Search:")
-        ReplaceTerm = PluginConfig.Option.Label("replace_term", "Replace:")
-        ShouldMatchCase = PluginConfig.Option.Label("should_match_case", "Match Case")
-        IsRegex = PluginConfig.Option.Label("is_regex", "Regex")
+        SearchTerm = Label("search_term", "Search:")
+        ReplaceTerm = Label("replace_term", "Replace:")
+        ShouldMatchCase = Label("should_match_case", "Match Case")
+        IsRegex = Label("is_regex", "Regex")
 
     class SearchAndReplaceCodec:
 
-        def run(self, config, input):
-            is_regex = config.get(Plugin.Option.IsRegex).value
-            should_match_case = config.get(Plugin.Option.ShouldMatchCase).value
-            search_term = config.get(Plugin.Option.SearchTerm).value
-            replace_term = config.get(Plugin.Option.ReplaceTerm).value
+        def run(self, config, input_text):
+            is_regex = config.value(Plugin.Option.IsRegex)
+            should_match_case = config.value(Plugin.Option.ShouldMatchCase)
+            search_term = config.value(Plugin.Option.SearchTerm)
+            replace_term = config.value(Plugin.Option.ReplaceTerm)
             if is_regex and should_match_case:
-                return re.sub(search_term, replace_term, input, flags=re.IGNORECASE)
+                return re.sub(search_term, replace_term, input_text, flags=re.IGNORECASE)
             elif is_regex:
-                return re.sub(search_term, replace_term, input)
+                return re.sub(search_term, replace_term, input_text)
             elif should_match_case:
-                return input.replace(search_term, replace_term)
+                return input_text.replace(search_term, replace_term)
             else:
                 regexp = re.compile(re.escape(search_term), re.IGNORECASE)
-                return regexp.sub(search_term, input)
+                return regexp.sub(search_term, input_text)
 
-    def __init__(self, context):
-        # Name, Author, Dependencies
-        super().__init__('Search & Replace', "Thomas Engel", [], context)
+    def __init__(self, context: 'dpp.core.context.Context'):
+        # Name, Author, Dependencies, Icon
+        super().__init__('Search & Replace', "Thomas Engel", [], context, Icon.SEARCH)
         self._codec = Plugin.SearchAndReplaceCodec()
         self._init_config()
 
     def _init_config(self):
-        def _validate_search_term(config: PluginConfig, codec, input):
-            if not config.get(Plugin.Option.SearchTerm).value:
-                return "Search term should not be empty."
+        def _validate_search_term(plugin: 'AbstractPlugin', input_text: str):
+            if not plugin.config.value(Plugin.Option.SearchTerm):
+                raise ValidationError("Search term should not be empty.")
 
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.SearchTerm,
             value="",
             description="the word or phrase to replace",
             is_required=True
         ), validator=_validate_search_term)
-        self.config.add(PluginConfig.Option.String(
+        self.config.add(String(
             label=Plugin.Option.ReplaceTerm,
             value="",
             description="the word or phrase used as replacement",
             is_required=True
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.ShouldMatchCase,
             value=True,
             description="defines whether the search term should match case",
             is_required=False
         ))
-        self.config.add(PluginConfig.Option.Boolean(
+        self.config.add(Boolean(
             label=Plugin.Option.IsRegex,
             value=False,
             description="defines whether the search term is a regular expression",
             is_required=False
         ))
-        self._dialog = None
-        self._dialog_return_code = QDialog.Accepted
 
-    def select(self, text: str):
-        if not self._dialog:
-            self._dialog = PluginConfigDialog(self._context, self.config.clone(), "Search & Replace", self._codec.run,
-                                              qtawesome.icon("fa.search"))
-
-        self._dialog.setInput(text)
-        self._dialog_return_code = self._dialog.exec_()
-
-        if self._dialog_return_code != QDialog.Accepted:
-            # User clicked the Cancel-Button.
-            raise AbortedException("Aborted")
-
-        self.config.update(self._dialog.config)
-        return self.run(text)
-
-    def title(self):
+    @property
+    def title(self) -> str:
         return "Search and Replace '{}' with '{}' using {}".format(
             self._get_search_term(), self._get_replace_term(), self._get_option_as_human_readable_string())
 
-    def _get_option_as_human_readable_string(self):
+    def _get_option_as_human_readable_string(self) -> str:
         if self._should_match_case():
             return 'Match Case'
         elif self._is_regex():
@@ -101,17 +100,17 @@ class Plugin(ScriptPlugin):
         else:
             return 'Ignore Case'
 
-    def _get_search_term(self):
-        return self.config.get(Plugin.Option.SearchTerm).value
+    def _get_search_term(self) -> str:
+        return self.config.value(Plugin.Option.SearchTerm)
 
-    def _get_replace_term(self):
-        return self.config.get(Plugin.Option.ReplaceTerm).value
+    def _get_replace_term(self) -> str:
+        return self.config.value(Plugin.Option.ReplaceTerm)
 
-    def _should_match_case(self):
-        return self.config.get(Plugin.Option.ShouldMatchCase).value
+    def _should_match_case(self) -> bool:
+        return self.config.value(Plugin.Option.ShouldMatchCase)
 
-    def _is_regex(self):
-        return self.config.get(Plugin.Option.IsRegex).value
+    def _is_regex(self) -> bool:
+        return self.config.value(Plugin.Option.IsRegex)
 
-    def run(self, text: str):
-        return self._codec.run(self.config, text)
+    def run(self, input_text: str) -> str:
+        return self._codec.run(self.config, input_text)

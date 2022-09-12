@@ -17,7 +17,7 @@
 #
 import json
 
-from qtpy.QtWidgets import QMenu
+from qtpy.QtWidgets import QWidget
 
 from dpp.core.plugin import PluginType
 from dpp.ui.view.classic import CodecTab
@@ -27,14 +27,11 @@ from dpp.ui.view.main_window_widget import MainWindowWidget, menu, MenuItem
 
 class ClassicMainWindowWidget(MainWindowWidget):
 
-    def __init__(self, parent, context: 'dpp.core.context.Context', input: str):
-        super().__init__(parent, context)
-        self.tabsWidget().onTabAddButtonClick.connect(self._new_codec_tab)
-        self.tabsWidget().onTabDuplicateButtonClick.connect(self._tab_duplicate)
-        self._new_codec_tab(input=input)
+    def __init__(self, parent, context: 'dpp.core.context.Context', input_text: str):
+        super().__init__(parent, context, input_text)
 
     #############################################
-    # Menu
+    # Menu items
     #############################################
 
     def _init_menu_items(self):
@@ -53,48 +50,48 @@ class ClassicMainWindowWidget(MainWindowWidget):
         super()._init_menu_items()
 
     @menu.register_menu_item(id=MenuItem.EDIT_CUT, text="C&ut", shortcut_key="Ctrl+X")
-    def _cut_text(self):
+    def _cut_text_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.cutSelectedInputText())
 
     @menu.register_menu_item(id=MenuItem.EDIT_COPY, text="&Copy", shortcut_key="Ctrl+C")
-    def _copy_text(self):
+    def _copy_text_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.copySelectedInputText())
 
     @menu.register_menu_item(id=MenuItem.EDIT_PASTE, text="&Paste", shortcut_key="Ctrl+V")
-    def _paste_text(self):
+    def _paste_text_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.pasteSelectedInputText())
 
     @menu.register_menu_item(id=MenuItem.TOGGLE_SEARCH_FIELD, text="Toggle &Search Field", shortcut_key="Ctrl+F")
-    def _toggle_search_field(self):
+    def _toggle_search_field_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.toggleSearchField())
 
     @menu.register_menu_item(id=MenuItem.FOCUS_DECODER, text="Select &Decoder", shortcut_key="Alt+Shift+D")
-    def _focus_decoder(self):
+    def _focus_decoder_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.DECODER))
 
     @menu.register_menu_item(id=MenuItem.FOCUS_ENCODER, text="Select &Encoder", shortcut_key="Alt+Shift+E")
-    def _focus_encoder(self):
+    def _focus_encoder_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.ENCODER))
 
     @menu.register_menu_item(id=MenuItem.FOCUS_HASHER, text="Select &Hasher", shortcut_key="Alt+Shift+H")
-    def _focus_hasher(self):
+    def _focus_hasher_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.HASHER))
 
     @menu.register_menu_item(id=MenuItem.FOCUS_SCRIPT, text="Select &Script", shortcut_key="Alt+Shift+S")
-    def _focus_script(self):
+    def _focus_script_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.focusComboBox(PluginType.SCRIPT))
 
     @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT, text="Select &Text Field", shortcut_key="Alt+Shift+I")
-    def _select_text_field(self):
+    def _select_text_field_action(self):
         self._call_focused_frame(lambda focused_frame: focused_frame.focusInputText())
 
     @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_NEXT, text="Select &Next Text Field", shortcut_key="Alt+Down")
-    def _focus_next_input_text(self):
+    def _focus_next_input_text_action(self):
         self._focus_input_text(lambda frame: frame.getNextFrame())
 
     @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_PREVIOUS, text="Select &Previous Text Field",
                              shortcut_key="Alt+Up")
-    def _focus_previous_input_text(self):
+    def _focus_previous_input_text_action(self):
         self._focus_input_text(lambda frame: frame.getPreviousFrame())
 
     #############################################
@@ -128,22 +125,18 @@ class ClassicMainWindowWidget(MainWindowWidget):
 
             self.tabsWidget().currentWidget().ensureWidgetVisible(future_frame)
 
-    def _new_codec_tab(self, title: str = None, input: str = None) -> (int, CodecTab):
-        tab = CodecTab(self, self._context, self._plugins)
-        tab.frames().getFocusedFrame().setInputText(input)
-        # BUG: Input-text of newly added codec-tab is not focused correctly.
-        # FIX: Refocus input-text.
-        tab.frames().getFocusedFrame().focusInputText()
-        return self.newTab(tab, title, input)
+    #############################################
+    # Connector functions
+    #############################################
 
-    def _open_file(self) -> str:
-        filename = super()._open_file()
+    def _open_file_action(self) -> str:
+        filename = super()._open_file_action()
         if filename:
             try:
                 with open(filename) as f:
                     save_file = json.loads(f.read())
                     for tab_config in save_file:
-                        index, tab = self._new_codec_tab(title=tab_config["name"])
+                        index, tab = self.newTab(title=tab_config["name"])
                         frame_index = 0
                         for frame_config in tab_config["frames"]:
                             if frame_index == 0:
@@ -159,21 +152,33 @@ class ClassicMainWindowWidget(MainWindowWidget):
                                                               frame_config["status"]["message"])
                             frame.fromDict(frame_config)
                             frame_index = frame_index + 1
-                self._context.logger().info("Successfully loaded {}!".format(filename))
+                self._context.logger.info("Successfully loaded {}!".format(filename))
             except Exception as e:
-                self._context.logger().error("Unexpected error loading file. {}".format(e))
+                self._context.logger.error("Unexpected error loading file. {}".format(e))
 
-    def _save_as_file(self) -> str:
+    def _save_as_file_action(self) -> str:
         filename = super()._save_as_file()
         if filename:
             try:
                 self._context.saveAsFile(filename, str(json.dumps(self.toDict(), default=lambda x: x.__dict__)))
-                self._context.logger().info("Successfully saved session in {}!".format(filename))
+                self._context.logger.info("Successfully saved session in {}!".format(filename))
             except Exception as e:
-                self._context.logger().error("Unexpected error saving file. {}".format(e))
+                self._context.logger.error("Unexpected error saving file. {}".format(e))
 
-    def _tab_duplicate(self, title, src_tab):
-        tab_index, dst_tab = self._new_codec_tab(title=title)
+    #############################################
+    # Public functions
+    #############################################
+
+    def newTab(self, title: str = None, input_text: str = None, widget: QWidget = None) -> (int, QWidget):
+        tab = CodecTab(self, self._context, self._plugins)
+        tab.frames().getFocusedFrame().setInputText(input_text)
+        # BUG: Input-text of newly added codec-tab is not focused correctly.
+        # FIX: Refocus input-text.
+        tab.frames().getFocusedFrame().focusInputText()
+        return super().newTab(title, input_text, tab)
+
+    def duplicateTab(self, title, src_tab):
+        tab_index, dst_tab = self.newTab(title=title)
         frame_index = 0
         for src_frame in src_tab.frames().getFrames():
             status_type, status_message = src_frame.status()
@@ -190,10 +195,6 @@ class ClassicMainWindowWidget(MainWindowWidget):
                                           status_message)
             dst_tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
             frame_index = frame_index + 1
-
-    #############################################
-    # Public functions
-    #############################################
 
     def toDict(self):
         return [{

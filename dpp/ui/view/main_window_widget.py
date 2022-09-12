@@ -21,14 +21,13 @@ from qtpy.QtCore import QEvent
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QAction, QVBoxLayout, QFileDialog, QMenu, QWidget
 
-from dpp.core.shortcut import MenuRegistry
+from dpp.core.shortcuts import MenuRegistry
 from dpp.ui import IconLabel
 from dpp.ui.dock.hex_dock import HexDock
 from dpp.ui.dock.log_dock import LogDock
 from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
 
 from dpp.core import Context
-from dpp.ui.view.classic import CodecTab
 from dpp.ui.dialog.config_dialog import ConfigDialog
 from dpp.ui.widget.menu_bar import MenuBar
 from dpp.ui.widget.tabs_widget import TabsWidget
@@ -39,19 +38,16 @@ MenuItem = Context.Shortcut
 
 class MainWindowWidget(QWidget):
 
-    def __init__(self, parent: QMainWindow, context: 'core.context.Context'):
+    def __init__(self, parent: QMainWindow, context: 'core.context.Context', input_text: str):
         super().__init__(parent)
         self._context = context
-        self._logger = context.logger()
         self._plugins = context.plugins()
         self._parent = parent
 
         #############################################
         #   Initialize docks
         #############################################
-
-        # Initialize log dock widget
-        self._log_dock_widget = LogDock(self.docksWidget(), self._logger)
+        self._log_dock_widget = LogDock(self.docksWidget(), context.logger)
         self.docksWidget().registerDockWidget(Context.DockWidget.LOG_DOCK_WIDGET, self._log_dock_widget)
         self.docksWidget().registerDockWidget(Context.DockWidget.HEX_DOCK_WIDGET, HexDock(context, parent))
 
@@ -66,6 +62,13 @@ class MainWindowWidget(QWidget):
         #############################################
         self._menu_bar = MenuBar(self._parent.menuBar())
         self._init_menu_items()
+
+        #############################################
+        #   Initialize tabs
+        #############################################
+        self.tabsWidget().onTabAddButtonClick.connect(self.newTab)
+        self.tabsWidget().onTabDuplicateButtonClick.connect(self.duplicateTab)
+        self.newTab(input_text=input_text)
 
     #############################################
     # Menu
@@ -111,67 +114,67 @@ class MainWindowWidget(QWidget):
             self._tabs_select_action.append(action)
 
     @menu.register_menu_item(id=MenuItem.SHOW_KEYBOARD_SHORTCUTS, text="&Keyboard Shortcuts...")
-    def _show_keyboard_shortcuts(self):
+    def _show_keyboard_shortcuts_action(self):
         self._show_hidden_dialog(ConfigDialog.TAB_KEYBOARD_SHORTCUTS)
 
     @menu.register_menu_item(id=MenuItem.SHOW_ABOUT, text="&About")
-    def _show_about(self):
+    def _show_about_action(self):
         self._show_hidden_dialog()
 
     @menu.register_menu_item(id=MenuItem.SELECT_LOG_DOCK, text="&Log", shortcut_key="Alt+Shift+L")
-    def _toggle_log_dock_widget(self):
+    def _toggle_log_dock_widget_action(self):
         self.docksWidget().toggleDockWidget(Context.DockWidget.LOG_DOCK_WIDGET)
 
     @menu.register_menu_item(id=MenuItem.SELECT_HEX_DOCK, text="He&x", shortcut_key="Alt+Shift+X")
-    def _toggle_hex_dock_widget(self):
+    def _toggle_hex_dock_widget_action(self):
         self.docksWidget().toggleDockWidget(Context.DockWidget.HEX_DOCK_WIDGET)
 
     @menu.register_menu_item(id=MenuItem.TAB_NEW, text="&New Tab", shortcut_key="Ctrl+T")
-    def _new_tab(self):
-        self.tabsWidget().onTabAddButtonClick.emit(None, None)
+    def _new_tab_action(self):
+        self.newTab()
 
     @menu.register_menu_item(id=MenuItem.TAB_RENAME, text="&Rename Tab", shortcut_key="Alt+Shift+R")
-    def _rename_tab(self):
+    def _rename_tab_action(self):
         self.tabsWidget().tabBar().renameTab()
 
     @menu.register_menu_item(id=MenuItem.TAB_DUPLICATE, text="&Duplicate Tab", shortcut_key="Ctrl+Shift+D")
-    def _duplicate_tab(self):
+    def _duplicate_tab_action(self):
         self.tabsWidget().duplicateTab()
 
     @menu.register_menu_item(id=MenuItem.TAB_NEXT, text="&Next Tab", shortcut_key="Ctrl+Tab")
-    def _next_tab(self):
+    def _next_tab_action(self):
         self.tabsWidget().nextTab()
 
     @menu.register_menu_item(id=MenuItem.TAB_PREVIOUS, text="&Previous Tab", shortcut_key="Ctrl+Shift+Tab")
-    def _previous_tab(self):
+    def _previous_tab_action(self):
         self.tabsWidget().previousTab()
 
     @menu.register_menu_item(id=MenuItem.TAB_CLOSE, text="&Close Tab", shortcut_key="Ctrl+W")
-    def _close_tab(self):
+    def _close_tab_action(self):
         self.tabsWidget().closeTab()
 
     @menu.register_menu_item(id=MenuItem.OPEN_FILE, text="&Open File...", shortcut_key="Ctrl+O")
-    def _open_file(self):
+    def _open_file_action(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
         return filename
 
     @menu.register_menu_item(id=MenuItem.SAVE_AS_FILE, text="&Save As...", shortcut_key="Ctrl+S")
-    def _save_as_file(self):
+    def _save_as_file_action(self):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
         return filename
 
     @menu.register_menu_item(id=MenuItem.SHOW_PLUGINS, text="&Plugins...", shortcut_key="Ctrl+Shift+P")
-    def _show_plugins_dialog(self):
+    def _show_plugins_dialog_action(self):
         self._show_hidden_dialog("Plugins")
 
     @menu.register_menu_item(id=MenuItem.FILE_EXIT, text="E&xit", shortcut_key="Ctrl+Q")
-    def _close_application(self):
+    def _close_application_action(self):
         self._parent.close()
 
-    def _select_classic_gui(self):
+    def _select_classic_gui_action(self):
         pass
 
-    def _select_modern_gui(self):
+    def _select_modern_gui_action(self):
         pass
 
     #############################################
@@ -211,10 +214,9 @@ class MainWindowWidget(QWidget):
 
     def _show_hidden_dialog(self, tab_select: str = None):
         """ Shows the hidden dialog. """
-        hidden_dialog = ConfigDialog(self, self._context, tab_select)
-        hidden_dialog.exec_()
+        ConfigDialog(self, self._context, tab_select).exec_()
 
-    def _tab_added_event(self, index, title, tab, input):
+    def _tab_added_event(self, index, title, tab, input_text):
         if 0 <= index < len(self._tabs_select_action):
             self._tabs_select_action[index].setVisible(True)
 
@@ -242,7 +244,6 @@ class MainWindowWidget(QWidget):
             self._tabs_widget.tabAdded.connect(self._tab_added_event)
             self._tabs_widget.tabClosed.connect(self._tab_closed_event)
             layout.addWidget(self._tabs_widget)
-            self._parent.setLayout(layout)
         return self._tabs_widget
 
     def statusBar(self):
@@ -259,12 +260,15 @@ class MainWindowWidget(QWidget):
         self._context.config.setPosition(self.pos())
         e.accept()
 
-    def newTab(self, widget, title: str = None, input: str = None) -> (int, CodecTab):
+    def newTab(self, title: str = None, input_text: str = None, widget: QWidget = None) -> (int, QWidget):
         """
         Opens a new tab and writes input.
         :param title: The title of the tab.
-        :param input: The input which should be written into the tab.
+        :param input_text: The input which should be written into the tab.
         """
-        index, tab = self.tabsWidget().newTab(widget, title=title, input=input)
+        index, tab = self.tabsWidget().newTab(widget, title=title, input_text=input_text)
         self.tabsWidget().setCurrentIndex(index)
         return index, tab
+
+    def duplicateTab(self, title, src_tab):
+        raise NotImplementedError()

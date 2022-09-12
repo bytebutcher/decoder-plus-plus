@@ -14,7 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import qtawesome
 from qtpy import QtCore
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QPainter, QColor
@@ -22,14 +21,15 @@ from qtpy.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePo
 
 from dpp.core import Context
 from dpp.ui import HSpacer
-from dpp.ui.widget.frame import Frame
 from dpp.ui.widget.separater_widget import VSep
 
 
-class CollapsibleFrame(Frame):
+class CollapsibleFrame(QFrame):
     """
     Frame with ability to un-/collapse content via clickable arrow-handles.
     """
+
+    frameChanged = Signal(str)
 
     arrowClicked = Signal()
     upButtonClicked = Signal()
@@ -42,7 +42,10 @@ class CollapsibleFrame(Frame):
         Initializes the collapsible frame.
         :param parent: the parent widget of this frame
         """
-        super(__class__, self).__init__(parent, context, frame_id)
+        super().__init__(parent)
+        self._frame_id = frame_id
+        self._context = context
+        self._listener = self._context.listener()
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._is_collasped = False
         self._was_collapse_state_changed_by_user = False
@@ -58,6 +61,17 @@ class CollapsibleFrame(Frame):
         self._layout.addWidget(self._content)
 
         self.setLayout(self._layout)
+
+    def id(self) -> str:
+        """ Returns the individual identifier of the frame. """
+        return self._frame_id
+
+    def isConfigurable(self) -> bool:
+        """
+        Returns whether the frame is configurable (always False).
+        This method needs to be overridden if other behaviour is required.
+        """
+        return False
 
     def _init_frame_style(self):
         background_color = self.palette().color(self.backgroundRole())
