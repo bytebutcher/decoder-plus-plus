@@ -22,6 +22,7 @@ from qtpy.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QBoxLayout, QSizePo
 from dpp.core import Context
 from dpp.ui import HSpacer
 from dpp.ui.widget.separater_widget import VSep
+from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CollapsibleFrame(QFrame):
@@ -45,6 +46,7 @@ class CollapsibleFrame(QFrame):
         super().__init__(parent)
         self._frame_id = frame_id
         self._context = context
+        self._logger = context.logger
         self._listener = self._context.listener()
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._is_collasped = False
@@ -163,8 +165,16 @@ class CollapsibleFrame(QFrame):
                 self.clearLayout()
                 self.layout().addWidget(widget)
 
+            def setStatus(self, status: str, message: str):
+                """ Sets a status.
+                :param status: The status to set. Either "DEFAULT", "SUCCESS", or "ERROR".
+                :param message: The message to set.
+                """
+                ...
+
             def refresh(self):
-                pass
+                """ Refreshes the header item. """
+                ...
 
         class VSepItem(AbstractHeaderFrameItem):
 
@@ -190,7 +200,6 @@ class CollapsibleFrame(QFrame):
             self._parent = parent
             self.setMinimumHeight(26)
             self.setMaximumHeight(26)
-            self.indicateError(False)
 
             self._hlayout = QHBoxLayout()
             self._hlayout.setContentsMargins(0, 0, 0, 0)
@@ -200,6 +209,8 @@ class CollapsibleFrame(QFrame):
 
             self._hlayout.addWidget(self._init_header_frame(parent.isCollapsed()))
             self.setLayout(self._hlayout)
+            self.setStyleSheet("QFrame { border:1px solid rgb(41, 41, 41); }")
+            self.setStatus(StatusWidget.DEFAULT, '')
 
         def _init_header_frame(self, collapsed: bool):
             self._frm_header = QFrame(self)
@@ -230,12 +241,12 @@ class CollapsibleFrame(QFrame):
                 if isinstance(widget, CollapsibleFrame.HeaderFrame.AbstractHeaderFrameItem):
                     widget.refresh()
 
-        def indicateError(self, status: bool):
-            """ Indicates an error by painting the title-border red. Otherweise black. """
-            if status:
-                self.setStyleSheet("QFrame { border:1px solid red; }")
-            else:
-                self.setStyleSheet("QFrame { border:1px solid rgb(41, 41, 41); }")
+        def setStatus(self, status: str, message: str):
+            """ Sets a status in the individual header frames. """
+            for i in range(self._frm_header.layout().count()):
+                widget = self._frm_header.layout().itemAt(i).widget()
+                if isinstance(widget, CollapsibleFrame.HeaderFrame.AbstractHeaderFrameItem):
+                    widget.setStatus(status, message)
 
         def mouseReleaseEvent(self, event):
             if self.underMouse() and event.button() == QtCore.Qt.LeftButton:

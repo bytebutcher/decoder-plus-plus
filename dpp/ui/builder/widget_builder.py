@@ -20,7 +20,7 @@ from typing import Union
 from qtpy.QtWidgets import QPushButton, QToolButton, QGroupBox, QLabel, QFrame, QWidget, QFormLayout, QLayout, \
     QHBoxLayout, QVBoxLayout
 
-from dpp.core.assertions import assert_type
+from dpp.core.assertions import assert_type, assert_instance
 from dpp.core.plugin import AbstractPlugin
 from dpp.core.plugin.config.options import Boolean, Slider, String, Integer, Group
 from dpp.core.plugin.config.ui import Widget, Layout
@@ -52,6 +52,8 @@ class LayoutBuilder(BuilderBase):
             layout = QFormLayout()
         else:
             raise Exception(f'Illegal PluginConfig layout of type {type(layout_spec)}!')
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(15)
         return layout
 
     def _add_widgets_to_layout(self, plugin, input_text, widget_spec, layout):
@@ -66,7 +68,7 @@ class LayoutBuilder(BuilderBase):
             layout.addWidget(widget)
 
     def build(self, plugin, input_text, layout_spec: Layout) -> QLayout:
-        assert_type(layout_spec, Layout)
+        assert_instance(layout_spec, Layout)
         layout = self._get_layout_from_spec(layout_spec)
         self._logger.debug(f'Building {layout.__class__.__name__} for {plugin.name} plugin ...')
         for widget_spec in layout_spec.widgets:
@@ -146,7 +148,21 @@ class LabelWidgetBuilder(BuilderBase):
 class GroupBoxWidgetBuilder(BuilderBase):
 
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: GroupBox) -> QWidget:
-        return QGroupBox(widget_spec.label)
+        group_box = QGroupBox(widget_spec.label)
+        group_box.setStyleSheet("""
+        QGroupBox {
+            border: 1px solid silver;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+        
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 7px;
+            padding: 0px 5px 0px 5px;
+        }
+        """)
+        return group_box
 
 
 class FrameWidgetBuilder(BuilderBase):
@@ -201,7 +217,7 @@ class WidgetBuilder(BuilderBase):
         label = self._label_builder.build(plugin, input_text, widget_spec)
 
         if hasattr(widget_spec, 'layout') and widget_spec.layout:
-            assert_type(widget_spec.layout, Layout)
+            assert_instance(widget_spec.layout, Layout)
             layout = self._layout_builder.build(plugin, input_text, widget_spec.layout)
             widget.setLayout(layout)
 

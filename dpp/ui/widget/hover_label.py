@@ -24,7 +24,16 @@ class HoverLabel(ClickableLabel):
 
     def __init__(self, parent):
         super(HoverLabel, self).__init__(parent)
+        self._is_toggled = False
         self.setHoverEffect(True)
+
+    def isToggled(self) -> bool:
+        return self._is_toggled
+
+    def toggle(self):
+        self._is_toggled = not self._is_toggled
+        self.setProperty("toggled", self._is_toggled)
+        self.style().polish(self)
 
     def setHoverEffect(self, status: bool):
         """ Enables/Disables the hover effect for the IconLabel (default = True). """
@@ -35,6 +44,10 @@ class HoverLabel(ClickableLabel):
             }
 
             QLabel[pressed="true"] {
+                background-color: rgb(189, 189, 189);     
+            }
+            
+            QLabel[toggled="true"] {
                 background-color: rgb(189, 189, 189);     
             }
             """)

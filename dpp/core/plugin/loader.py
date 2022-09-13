@@ -51,7 +51,7 @@ class PluginLoader:
                         plugins[plugin.safe_name] = plugin
             except Exception as err:
                 self._context.logger.warning(f'Loading plugin folder {path} failed!')
-                self._context.logger.exception(err)
+                self._context.logger.debug(err, exc_info=True)
 
         return [plugins[key] for key in sorted(plugins.keys())]
 
@@ -65,7 +65,7 @@ class PluginLoader:
             plugin = mod.Plugin(self._context)
             plugin.check_properties()
         except Exception as err:
-            self._context.logger.exception(err)
+            self._context.logger.debug(err, exc_info=True)
             self._context.logger.error(f'{f}: {str(err)}')
             self._errors[f] = str(err)
         sys.path.pop(0)

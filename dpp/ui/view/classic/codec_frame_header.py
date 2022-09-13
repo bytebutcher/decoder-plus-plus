@@ -22,12 +22,13 @@ from dpp.core.icons import Icon, icon
 from dpp.ui import IconLabel
 from dpp.ui.widget.collapsible_frame import CollapsibleFrame
 from dpp.ui.widget.elided_label import ElidedLabel
+from dpp.ui.widget.status_widget import StatusWidget
 
 
 class CodecFrameHeader(QFrame):
     class AbstractCodecFrameHeaderItem(CollapsibleFrame.HeaderFrame.AbstractHeaderFrameItem):
 
-        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+        def __init__(self, codec_frame: 'dpp.ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
             self.codec_frame = codec_frame
 
@@ -47,6 +48,35 @@ class CodecFrameHeader(QFrame):
             # suppress mouse clicks - click signals are used instead
             pass
 
+    class IndicatorHeaderItem(AbstractCodecFrameHeaderItem):
+
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
+            self._indicators = {
+                StatusWidget.ERROR: icon(Icon.INDICATOR_ERROR),
+                StatusWidget.SUCCESS: icon(Icon.INDICATOR_SUCCESS),
+                StatusWidget.DEFAULT: icon(Icon.INDICATOR_DEFAULT)
+            }
+            self.setCentralWidget(self._init_central_widget())
+
+        def _init_central_widget(self):
+            frame = QFrame(self)
+            frame_layout = QHBoxLayout()
+            frame_layout.setContentsMargins(0, 0, 0, 0)
+            frame_layout.addWidget(self._init_indicator())
+            frame_layout.addWidget(QLabel(' '))
+            frame.setLayout(frame_layout)
+            return frame
+
+        def _init_indicator(self):
+            self._lbl_indicator = IconLabel(self.codec_frame, self._indicators[StatusWidget.DEFAULT])
+            self._lbl_indicator.setMaximumWidth(10)
+            self._lbl_indicator.setMaximumHeight(10)
+            return self._lbl_indicator
+
+        def setStatus(self, status: str, message: str):
+            self._lbl_indicator.setIcon(self._indicators[status])
+
     class TitleHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
@@ -54,39 +84,62 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            frm_title_frame = QFrame(self)
-            frm_title_frame_layout = QHBoxLayout()
-            frm_title_frame_layout.setContentsMargins(0, 0, 0, 0)
-            self._title = QLabel(self.codec_frame.title())
-            self._title.setTextFormat(Qt.PlainText)
-            self._title.setToolTip(self.codec_frame.description())
-            frm_title_frame_layout.addWidget(self._title)
-            frm_title_frame.setLayout(frm_title_frame_layout)
-            return frm_title_frame
+            frm = QFrame(self)
+            frm_layout = QHBoxLayout()
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+            lbl_label = QLabel('Codec: ')
+            frm_layout.addWidget(lbl_label)
+            self._lbl_title = QLabel(self.codec_frame.title())
+            self._lbl_title.setTextFormat(Qt.PlainText)
+            self._lbl_title.setToolTip(self.codec_frame.description())
+            frm_layout.addWidget(self._lbl_title)
+            frm.setLayout(frm_layout)
+            return frm
 
         def refresh(self):
-            self._title.setText(self.codec_frame.title())
+            title = self.codec_frame.title()
+            if title:
+                self._lbl_title.setText(title)
+                self._lbl_title.setStyleSheet('')
+            else:
+                # No codec selected.
+                self._lbl_title.setText('None')
+                self._lbl_title.setStyleSheet('QLabel { color: gray }')
 
     class ContentPreviewHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
             self.setCentralWidget(self._init_central_widget())
-            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         def _init_central_widget(self):
-            frm_content_preview = QFrame(self)
-            frm_content_preview_layout = QHBoxLayout()
-            frm_content_preview_layout.setContentsMargins(0, 0, 0, 0)
+            frm = QFrame(self)
+            frm_layout = QHBoxLayout()
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+
             self._content_preview_text = ElidedLabel("")
             self._content_preview_text.setTextFormat(Qt.PlainText)
             self._content_preview_text.setStyleSheet("QLabel { color: gray }")
-            frm_content_preview_layout.addWidget(self._content_preview_text)
-            frm_content_preview.setLayout(frm_content_preview_layout)
-            return frm_content_preview
+            self._content_preview_text.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+            frm_layout.addWidget(self._content_preview_text)
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+            frm.setLayout(frm_layout)
+
+            return frm
+
+        def isascii(self, input_text: str) -> bool:
+            try:
+                return len(input_text) == len(input_text.encode())
+            except UnicodeEncodeError:
+                return False
 
         def refresh(self):
-            self._content_preview_text.setText(self.codec_frame.getInputText())
+            input_text = self.codec_frame.getInputText()
+            if self.isascii(input_text):
+                self._content_preview_text.setText(input_text)
+            else:
+                self._content_preview_text.setText('No Preview Available')
 
     class LineCountInfoHeaderItem(ClickableCodecFrameHeaderItem):
 
@@ -137,6 +190,24 @@ class CodecFrameHeader(QFrame):
             content = self.codec_frame.getInputText()
             length = str((content and len(content)) or 0)
             self._content_length_text.setText(length)
+
+    class RefreshButtonHeaderItem(ClickableCodecFrameHeaderItem):
+
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
+            self.setCentralWidget(self._init_central_widget())
+
+        def _init_central_widget(self):
+            self._lbl_icon_up = IconLabel(self, icon(Icon.FRAME_REFRESH))
+            self._lbl_icon_up.setHoverEffect(True)
+            self._lbl_icon_up.setToolTip("Refresh")
+            self._lbl_icon_up.setEnabled(self.codec_frame.hasPreviousFrame())
+            self._lbl_icon_up.clicked.connect(self.clicked)
+            return self._lbl_icon_up
+
+        def refresh(self):
+            status = self.codec_frame.hasStatus(StatusWidget.DEFAULT) and self.codec_frame.hasPreviousFrame()
+            self._lbl_icon_up.setEnabled(status)
 
     class UpButtonHeaderItem(ClickableCodecFrameHeaderItem):
 

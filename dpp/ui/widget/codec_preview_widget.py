@@ -28,6 +28,7 @@ class CodecPreviewWidget(QFrame):
         super().__init__()
         self._logger = logging.getLogger()
         view_frame_layout = QHBoxLayout()
+        view_frame_layout.setContentsMargins(0, 5, 0, 5)
         self._txt_preview = QPlainTextEdit(self)
         self._txt_preview.setPlainText(input_text)
         self._txt_preview.setReadOnly(True)
@@ -48,7 +49,7 @@ class CodecPreviewWidget(QFrame):
             self._txt_preview.setPlainText(result)
         except BaseException as err:
             self._txt_preview.setStyleSheet('border: 1px solid red;')
-            self._logger.exception(err, exc_info=False)
+            self._logger.debug(err, exc_info=False)
 
     def _show_preview_frame_context_menu(self, point: QPoint = None):
         """ Displays a customized context menu for the plain view. """

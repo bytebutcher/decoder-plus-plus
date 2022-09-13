@@ -49,8 +49,8 @@ class CodecFrames(QFrame):
                 self._focused_frame = self.getFrameById(frame_id)
 
         self._listener.selectedFrameChanged.connect(selected_frame_changed)
-        self._listener.textChanged.connect(
-            lambda tab_id, frame_id, text: self._tab_id == tab_id and self._text_changed_event(frame_id, text))
+        self._listener.textChanged.connect(lambda tab_id, frame_id, text, interactive:
+            self._tab_id == tab_id and self._text_changed_event(frame_id, text, interactive))
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -58,10 +58,10 @@ class CodecFrames(QFrame):
         frame_index = self.getFrameIndex(frame_id)
         frame = self.getFrameById(frame_id)
         if is_user_action:
-            frame._status_widget.setStatus("DEFAULT")
+            frame.setStatus(StatusWidget.DEFAULT, '')
         while frame:
             if do_preserve_state and self.hasNextFrame(frame_index) and \
-                    self.getFrameByIndex(frame_index + 1)._status_widget.hasStatus("DEFAULT"):
+                    self.getFrameByIndex(frame_index + 1).status() == StatusWidget.DEFAULT:
                 # Do not overwrite content of frames which are in default-state.
                 # Usually done when moving frames to a new position whereby custom user-input should not be
                 # overwritten.
@@ -119,7 +119,7 @@ class CodecFrames(QFrame):
         except BaseException as err:
             status = StatusWidget.ERROR
             self._context.logger.error(f'{plugin.name} {plugin.type}: {str(err)}')
-            self._context.logger.exception(err, exc_info=self._context.isDebugModeEnabled())
+            self._context.logger.debug(str(err), exc_info=True)
 
         self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error).focusInputText()
         return QDialog.Accepted
@@ -128,12 +128,12 @@ class CodecFrames(QFrame):
         self._context.logger.trace(f'Refill frame at index {frame_index}')
         if status == StatusWidget.ERROR:
             # ERROR usually indicates that codec execution failed and there is no text to display.
-            # However, we indicate to the user that there is an error (flashStatus) for this frame and any
+            # However, we indicate to the user that there is an error (setStatus) for this frame and any
             # following frame.
             frame = self.getFrameByIndex(frame_index)
             while frame_index < self.getFramesCount():
                 _frame = self.getFrameByIndex(frame_index)
-                _frame.flashStatus(status, msg)
+                _frame.setStatus(status, msg)
                 _frame.header().refresh()
                 # Display error only for the first frame.
                 msg = None
@@ -144,7 +144,7 @@ class CodecFrames(QFrame):
             frame = self.getFrameByIndex(frame_index)
             frame.setInputText(text)
             frame.header().refresh()
-            frame.flashStatus(status, msg)
+            frame.setStatus(status, msg)
 
         return frame
 
@@ -193,11 +193,21 @@ class CodecFrames(QFrame):
             frames.append(self.layout().itemAt(frameIndex).widget())
         return frames
 
-    def hasNextFrame(self, frame_index: int) -> bool:
-        return frame_index < (self.getFramesCount() - 1)
+    def hasNextFrame(self, frame_index: int, frame_id: str = None) -> bool:
+        assert frame_index is not None or frame_id is not None, \
+            'Illegal operation! Expected either frame_index or frame_id!'
+        if frame_index is not None:
+            return frame_index < (self.getFramesCount() - 1)
+        if frame_id is not None:
+            return self.hasNextFrame(frame_index=self.getFrameIndex(frame_id))
 
-    def hasPreviousFrame(self, frame_index: int) -> bool:
-        return frame_index > 0
+    def hasPreviousFrame(self, frame_index: int = None, frame_id: str = None) -> bool:
+        assert frame_index is not None or frame_id is not None, \
+            'Illegal operation! Expected either frame_index or frame_id!'
+        if frame_index is not None:
+            return frame_index > 0
+        if frame_id is not None:
+            return self.hasPreviousFrame(frame_index=self.getFrameIndex(frame_id))
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -213,13 +223,14 @@ class CodecFrames(QFrame):
         new_frame.pluginSelected.connect(self._on_plugin_selected)
         new_frame.pluginDeselected.connect(self._on_plugin_deselected)
         new_frame.configButtonClicked.connect(self._on_frame_config_button_clicked)
+        new_frame.refreshButtonClicked.connect(self._on_frame_refresh_button_clicked)
         new_frame.upButtonClicked.connect(self._on_frame_up_button_clicked)
         new_frame.downButtonClicked.connect(self._on_frame_down_button_clicked)
         new_frame.closeButtonClicked.connect(self._on_frame_close_button_clicked)
 
         if frame_index > 0:
             # Every new frame (except the first frame) should signal success/error.
-            new_frame.flashStatus(status, msg)
+            new_frame.setStatus(status, msg)
 
         if previous_frame and frame_index > 1:
             # Auto-collapse frame where plugin was selected (except first frame and when this frame had focus).
@@ -232,17 +243,13 @@ class CodecFrames(QFrame):
         return new_frame
 
     def _on_frame_close_button_clicked(self, frame_id):
-        """
-        Closes/Removes the frame with the specified frame-id.
-        """
+        """ Closes/Removes the frame with the specified frame-id. """
         _frame_index = self.getFrameIndex(frame_id)
         self._context.logger.debug(f'Close frame {_frame_index}:{frame_id}')
-        if _frame_index <= 0:
-            self._context.logger.error('Illegal operation! Can not close first or invalid frame.')
-            return
-
+        assert _frame_index <= 0, 'Illegal operation! Can not close first or invalid frame!'
         frame = self.getFrameByIndex(_frame_index)
-        previous_frame = self.getFrameByIndex(_frame_index - 1) # There is always a previous frame.
+        previous_frame = self.getFrameByIndex(_frame_index - 1)
+
         if not self.hasNextFrame(_frame_index):
             # If this is the last frame the combo-boxes of the previous frame needs to reset.
             self.layout().removeWidget(frame) # remove frame from layout to avoid side-effects with header refresh
@@ -261,6 +268,14 @@ class CodecFrames(QFrame):
             # Update headings since some buttons may need to be en-/disabled.
             next_frame.header().refresh()
             previous_frame.header().refresh()
+
+    def _on_frame_refresh_button_clicked(self, frame_id: str):
+        _frame_index = self.getFrameIndex(frame_id)
+        self._context.logger.debug(f'Refreshing frame {_frame_index}:{frame_id}')
+        assert self.hasPreviousFrame(_frame_index), 'Illegal operation! No previous frame!'
+        previous_frame = self.getFrameByIndex(_frame_index - 1)
+        self._context.listener().textChanged.emit(
+            self._tab_id, previous_frame.getFrameId(), previous_frame.getInputText(), False)
 
     def _on_frame_up_button_clicked(self, frame_id: str):
         # Example:
@@ -290,11 +305,7 @@ class CodecFrames(QFrame):
         #
         frame_index = self.getFrameIndex(frame_id)
         codec_frame = self.getFrameByIndex(frame_index)
-        if not codec_frame or frame_index < 2:
-            # First and second frame can not be moved up.
-            self._context.logger.debug(f'Illegal operation! moveFrameUp({frame_index}:{frame_id})')
-            return
-
+        assert not codec_frame or frame_index < 2, f'Illegal operation! moveFrameUp({frame_index}:{frame_id})'
         self._switch_frames(frame_index - 2, frame_index - 1)
         codec_frame = self.getFrameByIndex(frame_index - 2)
         self._text_changed_event(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)
@@ -327,11 +338,8 @@ class CodecFrames(QFrame):
         #
         frame_index = self.getFrameIndex(frame_id)
         codec_frame = self.getFrameByIndex(frame_index)
-        if not codec_frame or frame_index == 0 or frame_index == self.getFramesCount() - 1:
-            # First and last frame can not be moved down.
-            self._context.logger.debug('moveFrameDown({}:{}): invalid move'.format(frame_index, frame_id))
-            return
-
+        assert not codec_frame or frame_index == 0 or frame_index == self.getFramesCount() - 1, \
+            f'Illegal operation! moveFrameDown({frame_index}:{frame_id})'
         self._switch_frames(frame_index - 1, frame_index)
         codec_frame = self.getFrameByIndex(frame_index - 1)
         self._text_changed_event(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)

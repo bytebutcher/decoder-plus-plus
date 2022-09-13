@@ -17,7 +17,7 @@
 import uuid
 from typing import List
 
-from dpp.core.assertions import assert_type
+from dpp.core.assertions import assert_type, assert_instance
 
 
 class Layout:
@@ -37,8 +37,8 @@ class Widget:
         assert_type(key, str, allow_none=True)
         assert_type(label, str, allow_none=True)
         assert_type(show_label, bool, allow_none=True)
-        assert_type(layout, Layout, allow_none=True)
-        assert_type(widgets, Widget, allow_none=True, is_list=True)
+        assert_instance(layout, Layout, allow_none=True)
+        assert_instance(widgets, Widget, allow_none=True, is_list=True)
         self.label = label
         self.show_label = show_label
         self.layout = layout

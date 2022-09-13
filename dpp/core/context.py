@@ -97,6 +97,7 @@ class Context(QObject):
         self._app_id = app_id
         self._app_path = app_path
         self._namespace = namespace
+        self._trace_mode = False
         self._debug_mode = self.config.isDebugModeEnabled()
         self._logger = logger.init_logger(self.getLogLevel())
         self._listener = Listener(self)
@@ -144,16 +145,29 @@ class Context(QObject):
 
     def getLogLevel(self):
         """ :returns the current log level. """
-        return logging.DEBUG if self.isDebugModeEnabled() else logging.INFO
+        if self._trace_mode:
+            return logging.TRACE
+        if self._debug_mode or self.isDebugModeEnabled():
+            return logging.DEBUG
+        return logging.INFO
 
     def setDebugMode(self, status: bool, temporary=False):
         """ Enables/Disables debug mode. """
         if not temporary:
             self.config.setDebugMode(status)
         self._debug_mode = status
+        self._trace_mode = False
         logger.set_level(logging.DEBUG if status else logging.INFO)
         status_string = "enabled" if status else "disabled"
         self._logger.info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
+
+    def setTraceMode(self, status: bool):
+        """ Enables/Disables debug mode. """
+        self._trace_mode = status
+        self._debug_mode = False
+        logger.set_level(logging.TRACE if status else logging.INFO)
+        status_string = 'enabled' if status else 'disabled'
+        self._logger.info(f'Trace Mode: {status_string}')
 
     def toggleDebugMode(self):
         """ Toggles the debug-mode on/off. """

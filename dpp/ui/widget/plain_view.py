@@ -165,7 +165,7 @@ class PlainView(QFrame):
             self._last_plain_text = self.toPlainText()
             if self._search_field.isVisible():
                 self._do_highlight_text()
-            self._context.listener().textChanged.emit(self._tab_id, self._frame_id, self.toPlainText())
+        self._context.listener().textChanged.emit(self._tab_id, self._frame_id, self.toPlainText(), True)
 
     def _on_plain_text_selection_changed_event(self):
         cursor = self._plain_text.textCursor()

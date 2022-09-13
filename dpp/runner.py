@@ -39,6 +39,7 @@ if DPP_PACKAGE_PATH not in sys.path:
     sys.path.append(DPP_PACKAGE_PATH)
 
 
+from dpp import app_path
 from dpp.core.argparse import OrderedMultiArgs
 from dpp.core.argparse import SingleArgs
 from dpp.core.context import Context
@@ -118,28 +119,28 @@ def init_builder(context: 'dpp.core.context.Context'):
                 if not list:
                     return ""
                 elif len(list) == 1:
-                    return list[0]
+                    return f"'{list[0]}'"
                 else:
-                    return " and ".join([", ".join(list[:-1]), list[-1]])
+                    joined_list = "' and '".join(["', '".join(list[:-1]), list[-1]])
+                    return f"'{joined_list}'"
+
+            def update_plugin_config(config):
+                invalid_keys = [key for key in config.keys() if key not in plugin.config.keys()]
+                if invalid_keys:
+                    invalid_plugin_option = invalid_keys[0]
+                    suggestions = [result for result in
+                                   process.extract(invalid_plugin_option, plugin.config.keys())]
+                    suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
+                    raise Exception("Invalid configuration option {}. {}".format(invalid_plugin_option, suggestion))
+                plugin.config.update(config)
 
             def _runner(self, **kwargs):
+                do_show_help = kwargs.pop('help', False)
 
-                plugin.config.update(kwargs, ignore_invalid=True)
-
-                if "help" in kwargs.keys():
+                update_plugin_config(kwargs)
+                if do_show_help:
                     show_help()
                     return sys_exit(0)
-
-                if plugin.is_configurable() and plugin.is_unconfigured():
-                    invalid_plugin_options = [key for key in kwargs if key not in plugin.config.keys()]
-                    if invalid_plugin_options:
-                        invalid_plugin_option = invalid_plugin_options[0]
-                        suggestions = [result for result in
-                                       process.extract(invalid_plugin_option, plugin.config.keys())]
-                        suggestion = 'Did you mean "{}"?'.format(suggestions[0][0]) if suggestions else ""
-                        context.logger.error("Can not run '{}'! Invalid option {}. {}".format(
-                            plugin.safe_name, invalid_plugin_option, suggestion))
-                        return sys_exit(1)
 
                 unconfigured_plugin_options = plugin.is_unconfigured()
                 if unconfigured_plugin_options:
@@ -257,12 +258,14 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Loads logger, config and plugins.
-    app_path = os.path.dirname(os.path.abspath(__file__))
     context = Context('net.bytebutcher.decoder_plus_plus', app_path, namespace=locals())
 
     # Enable debug mode for current session.
     if '--debug' in sys.argv:
         context.setDebugMode(True, temporary=True)
+
+    if '--trace' in sys.argv:
+        context.setTraceMode(True)
 
     try:
 
@@ -291,8 +294,9 @@ def main():
         parser.add_argument('-s', '--script', nargs='+', action=OrderedMultiArgs, metavar="OPTION=VALUE",
                             help="transforms the input using the specified script (optional arguments)")
         parser.add_argument('--debug', action='store_true',
-                            help="activates debug mode with extensive logging. Output will be written into dpp.log "
-                                 "inside the application directory.")
+                            help="activates debug mode with additional logging.")
+        parser.add_argument('--trace', action='store_true',
+                            help="activates trace mode with extensive logging.")
 
         args = parser.parse_args()
         if args.help:
@@ -334,7 +338,7 @@ def main():
                     instance_handler.received.connect(ex.newTab)
                     sys.exit(app.exec_())
             except Exception as err:
-                context.logger.exception(f'Unexpected Exception: {err}', exc_info=context.isDebugModeEnabled())
+                context.logger.debug(f'Unexpected Exception: {err}', exc_info=True)
                 sys.exit(1)
 
         if type(args.list_codecs) == list:
@@ -390,7 +394,8 @@ def main():
 
         print(builder.run())
     except Exception as err:
-        context.logger.exception(err)
+        context.logger.error(err)
+        context.logger.debug(err, exc_info=True)
 
 
 if __name__ == '__main__':

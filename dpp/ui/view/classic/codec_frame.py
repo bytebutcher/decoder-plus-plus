@@ -36,6 +36,8 @@ from dpp.ui.widget.status_widget import StatusWidget
 
 class CodecFrame(CollapsibleFrame):
     # frame_id
+    refreshButtonClicked = Signal(str)
+    # frame_id
     upButtonClicked = Signal(str)
     # frame_id
     downButtonClicked = Signal(str)
@@ -68,9 +70,11 @@ class CodecFrame(CollapsibleFrame):
 
     def _init_header(self):
 
-        self._header_frame.addWidget(CodecFrameHeader.TitleHeaderItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.IndicatorHeaderItem(self))
         self._header_frame.addWidget(CodecFrameHeader.ContentPreviewHeaderItem(self))
 
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.TitleHeaderItem(self))
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
         self._header_frame.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self))
 
@@ -89,6 +93,10 @@ class CodecFrame(CollapsibleFrame):
         down_button_header_item = CodecFrameHeader.DownButtonHeaderItem(self)
         down_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.downButtonClicked))
         self._header_frame.addWidget(down_button_header_item)
+
+        refresh_button_header_item = CodecFrameHeader.RefreshButtonHeaderItem(self)
+        refresh_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.refreshButtonClicked))
+        self._header_frame.addWidget(refresh_button_header_item)
 
         config_button_header_item = CodecFrameHeader.ConfigButtonHeaderItem(self)
         config_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.configButtonClicked))
@@ -162,31 +170,35 @@ class CodecFrame(CollapsibleFrame):
 
     def getPlugin(self) -> AbstractPlugin:
         """ Returns the currently selected plugin. Might return a NullPlugin when nothing is selected. """
-        if hasattr(self,
-                   '_combo_box_frame'):  # A bit dirty, but might be called before initialization (see Frame::isConfigurable)
+        # A bit dirty, but might be called before initialization (see Frame::isConfigurable)
+        if hasattr(self,'_combo_box_frame'):
             return self._combo_box_frame.selectedPlugin()
         else:
             return NullPlugin(self._context)
+
+    def hasStatus(self, status_name: str) -> bool:
+        return self._status_widget.hasStatus(status_name)
 
     def status(self):
         return self._status_widget.status()
 
     def setStatus(self, type, message):
+        self._logger.trace(f'{self.getFrameId()}::statusChanged({type}, {message})')
+        self._header_frame.setStatus(type, message)
         self._status_widget.setStatus(type, message)
 
-    def flashStatus(self, status, message):
-        self._header_frame.indicateError(status == "ERROR")
-        self._status_widget.setStatus(status, message)
-
     def selectComboBoxEntryByPlugin(self, plugin, block_signals=False):
+        self._logger.trace(f'{self.getFrameId()}::selectComboBoxEntryByPlugin({plugin.name}, {str(block_signals)})')
         self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=True)
         if not block_signals:
             self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
 
     def toggleSearchField(self):
+        self._logger.trace(f'{self.getFrameId()}::toggleSearchField()')
         self._plain_view_widget.toggleSearchField()
 
     def setInputText(self, text):
+        self._logger.trace(f'{self.getFrameId()}::setInputText({text})')
         self._plain_view_widget.blockSignals(True)
         self._plain_view_widget.setPlainText(text)
         self._plain_view_widget.blockSignals(False)
@@ -199,15 +211,19 @@ class CodecFrame(CollapsibleFrame):
         return self._combo_box_frame
 
     def cutSelectedInputText(self):
+        self._logger.trace(f'{self.getFrameId()}::cutSelectedInputText()')
         self._plain_view_widget.cutSelectedInputText()
 
     def copySelectedInputText(self):
+        self._logger.trace(f'{self.getFrameId()}::copySelectedInputText()')
         self._plain_view_widget.copySelectedInputText()
 
     def pasteSelectedInputText(self):
+        self._logger.trace(f'{self.getFrameId()}::pasteSelectedInputText()')
         self._plain_view_widget.pasteSelectedInputText()
 
     def focusInputText(self):
+        self._logger.trace(f'{self.getFrameId()}::focusInputText()')
         self._plain_view_widget.setFocus()
 
     def hasFocus(self):
@@ -257,6 +273,10 @@ class CodecFrame(CollapsibleFrame):
         """ Returns the index of the codec frame. """
         return self._codec_frames.getFrameIndex(self._frame_id)
 
+    def getFrameId(self) -> str:
+        """ Returns the id of the codec frame. """
+        return self._frame_id
+
     def getFrame(self) -> 'dpp.ui.codec_frame.CodecFrame':
         """ Returns the current frame if exists, otherwise an exception is thrown. """
         return self._codec_frames.getFrameByIndex(self.getFrameIndex())
@@ -279,7 +299,7 @@ class CodecFrame(CollapsibleFrame):
 
     def fromDict(self, frame_config):
         self.setInputText(frame_config["text"])
-        self.flashStatus(frame_config["status"]["type"], frame_config["status"]["message"])
+        self.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
         if frame_config["plugin"]["name"] and frame_config["plugin"]["type"]:
             # Configure plugin if any. Last frame does not have a plugin configured, yet.
             self.selectComboBoxEntryByPlugin(PluginBuilder(self._context).build(frame_config["plugin"]),

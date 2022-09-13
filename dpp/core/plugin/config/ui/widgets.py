@@ -45,8 +45,8 @@ class Option(Widget):
 
 class GroupBox(Widget):
 
-    def __init__(self, layout):
-        super().__init__(layout=layout)
+    def __init__(self, label=None, layout=None, show_label=False):
+        super().__init__(label=label, layout=layout, show_label=show_label)
 
 
 class Button(Widget):

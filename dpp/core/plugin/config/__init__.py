@@ -155,8 +155,9 @@ class PluginConfig:
                 self.onChange.emit(updated_keys)
         else:
             # Supplied options provide a subset of the plugin config. It should not define new entries.
-            assert all(key in self._config.keys() for key in options.keys()), \
-                'Invalid plugin config! Expected no new keys!'
+            invalid_keys = '", "'.join([key for key in options.keys() if key not in self._config.keys()])
+            if invalid_keys:
+                raise Exception(f'Invalid plugin config option(s) "{invalid_keys}"!')
 
             def uncheck_group(group_name):
                 """ Unchecks every option within the specified group. """

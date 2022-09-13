@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from qtpy.QtGui import QIcon
 
 from dpp.ui.widget.hover_label import HoverLabel
 
@@ -23,15 +24,18 @@ class IconLabel(HoverLabel):
 
     def __init__(self, parent, icon):
         super(IconLabel, self).__init__(parent)
-        self._do_repaint = True
-        self._icon = icon
+        self._icon = None
+        self._do_repaint = None
         self._last_height = None
+        self.setIcon(icon)
         self.setHoverEffect(False)
 
     def setIcon(self, icon):
         """ Sets the icon. """
+        assert isinstance(icon, QIcon), f'Illegal type! Expected QIcon, got {type(icon)}!'
         self._do_repaint = True
         self._icon = icon
+        self.repaint()
 
     def paintEvent(self, event=None):
         """ Paints the specified icon (if any). """

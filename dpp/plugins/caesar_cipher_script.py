@@ -18,14 +18,13 @@ import logging
 import math
 import string
 
-
 from dpp.core.exceptions import CodecException
 from dpp.core import plugin
 from dpp.core.icons import Icon
 from dpp.core.plugin.config import options
 from dpp.core.plugin.config.ui import Layout
 from dpp.core.plugin.config.ui.layouts import HBoxLayout
-from dpp.core.plugin.config.ui.widgets import Button
+from dpp.core.plugin.config.ui.widgets import Button, Option
 
 
 class Plugin(plugin.ScriptPlugin):
@@ -48,7 +47,7 @@ class Plugin(plugin.ScriptPlugin):
 
     def layout(self, input_text: str) -> Layout:
         return HBoxLayout(widgets=[
-            self._config.option(Plugin.Option.Shift.key),
+            Option(Plugin.Option.Shift),
             Button(
                 label="Calculate",
                 on_click=lambda event: self._calculate_shift(self._config, input_text)
@@ -129,7 +128,7 @@ class CaesarCipher:
                 self._translate(input_text, offset, string.ascii_lowercase), offset, string.ascii_uppercase
             )
         except Exception as err:
-            self._logger.exception(err)
+            self._logger.debug(err, exc_info=True)
             raise CodecException('Calculating caesar cipher failed!')
 
     def run(self, config, input_text):

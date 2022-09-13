@@ -59,5 +59,5 @@ class PluginBuilder:
         except Exception as err:
             self._context.logger.debug("Error building plugin:")
             self._context.logger.debug("> {}".format(config))
-            self._context.logger.exception(err)
+            self._context.logger.debug(err, exc_info=True)
             return NullPlugin(self._context)

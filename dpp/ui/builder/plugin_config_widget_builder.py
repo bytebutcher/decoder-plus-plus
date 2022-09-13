@@ -40,5 +40,6 @@ class PluginConfigWidgetBuilder:
         assert layout_spec, 'Illegal layout specification! Expected object, got None!'
         layout = LayoutBuilder().build(self._plugin, self._input_text, layout_spec)
         assert layout, 'Illegal layout! Expected object, got None!'
+        layout.setContentsMargins(0, 0, 0, 0)
         frame.setLayout(layout)
         return frame

@@ -43,14 +43,14 @@ class AbstractPlugin:
     """ Base-class to all plugins. Should not be used directly. Instead, use one of its abstract implementations. """
 
     def __init__(self, name: str, type: str, author: str, dependencies: List[str],
-                 context: 'dpp.core.context.Context', icon=None):
+                 context: 'dpp.core.context.Context', icon: tuple = None):
         """ Initializes a plugin.
         :param name: the name of the plugin.
         :param type: the type of the plugin (either DECODER, ENCODER, HASHER, SCRIPT, IDENTIFY).
         :param author: the author of the plugin.
         :param dependencies: the dependencies of the plugin (either None or a list of strings).
         :param context: the application context.
-        :param icon: an optional icon representing the plugin.
+        :param icon: an optional tuple e.g. ('file', 'images/dpp.png') representing an icon.
         """
         self._name = name
         self._safe_name = None
@@ -83,9 +83,10 @@ class AbstractPlugin:
         for key in self.config.keys():
             option = self.config.option(key)
             if option.is_required and not option.is_initialized:
-                if isinstance(option, config.options.Group) and option.group_name not in configured_groups:
-                    unconfigured_options.append(key)
-
+                if isinstance(option, config.options.Group):
+                    if option.group_name in configured_groups:
+                        continue
+                unconfigured_options.append(key)
         return unconfigured_options
 
     @property
@@ -130,12 +131,12 @@ class AbstractPlugin:
         return self._config
 
     @property
-    def icon(self) -> str:
+    def icon(self) -> tuple:
         return self._icon
 
     def check_properties(self):
         """ Makes sure that the defined properties still return the expected types.
-        If this check fails the property was likely overwritten by a subclass.
+        If this check fails the property has probably been overwritten by a subclass.
         """
         assert_type(self.name, str)
         assert_type(self.safe_name, str)
@@ -145,7 +146,7 @@ class AbstractPlugin:
         assert_type(self.title, str)
         assert_type(self.author, str)
         assert_type(self.config, PluginConfig)
-        assert_type(self.icon, str, allow_none=True)
+        assert_type(self.icon, tuple, allow_none=True)
 
     def check_dependencies(self) -> List[str]:
         """ Checks whether all specified dependencies can be loaded.

@@ -44,7 +44,6 @@ def init_logger(level: int) -> logging.Logger:
     logger = logging.getLogger()
     logger.setLevel(level)
     logger.trace = _init_log_trace(logger)
-    partial(logging.exception, exc_info=level == logging.DEBUG)
 
     global console_logger
     console_logger = logging.StreamHandler(sys.stderr)
@@ -57,6 +56,5 @@ def set_level(level: int):
     """ Sets the specified level for the standard logger. """
     logger = logging.getLogger()
     logger.setLevel(level)
-    partial(logging.exception, exc_info=level == logging.DEBUG)
     global console_logger
     console_logger.setFormatter(logging.Formatter(_get_log_format(level)))

@@ -14,5 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+
 name = "decoder-plus-plus"
 __version__ = "1.5.0"
+app_path = os.path.dirname(os.path.abspath(__file__))
