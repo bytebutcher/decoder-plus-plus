@@ -75,11 +75,13 @@ class CodecFrame(CollapsibleFrame):
 
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
         self._header_frame.addWidget(CodecFrameHeader.TitleHeaderItem(self))
-        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
-        self._header_frame.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self))
 
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.LineCountInfoHeaderItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
         self._header_frame.addWidget(CodecFrameHeader.ContentLengthInfoHeaderItem(self))
+        self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
+        self._header_frame.addWidget(CodecFrameHeader.EntropyInfoHeaderItem(self))
         self._header_frame.addWidget(CollapsibleFrame.HeaderFrame.VSepItem(self))
 
         def button_clicked_event(event, signal):
@@ -191,7 +193,9 @@ class CodecFrame(CollapsibleFrame):
         self._logger.trace(f'{self.getFrameId()}::selectComboBoxEntryByPlugin({plugin.name}, {str(block_signals)})')
         self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=True)
         if not block_signals:
-            self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
+            combo_box_type = plugin.type
+            combo_box_index = self._combo_box_frame.index(combo_box_type)
+            self.pluginSelected.emit(self.id(), self.getInputText(), combo_box_type, combo_box_index, plugin)
 
     def toggleSearchField(self):
         self._logger.trace(f'{self.getFrameId()}::toggleSearchField()')

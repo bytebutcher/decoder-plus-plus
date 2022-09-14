@@ -246,7 +246,7 @@ class CodecFrames(QFrame):
         """ Closes/Removes the frame with the specified frame-id. """
         _frame_index = self.getFrameIndex(frame_id)
         self._context.logger.debug(f'Close frame {_frame_index}:{frame_id}')
-        assert _frame_index <= 0, 'Illegal operation! Can not close first or invalid frame!'
+        assert _frame_index > 0, 'Illegal operation! Can not close first or invalid frame!'
         frame = self.getFrameByIndex(_frame_index)
         previous_frame = self.getFrameByIndex(_frame_index - 1)
 

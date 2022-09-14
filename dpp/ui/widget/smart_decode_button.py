@@ -14,10 +14,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import List
+import logging
+from typing import List, Dict
 
 from qtpy.QtWidgets import QAction, QFrame, QHBoxLayout, QPushButton, QMenu
 
+from dpp.core.exceptions import CodecException
+from dpp.core.math import eta
 from dpp.core.plugin import DecoderPlugin
 
 
@@ -26,6 +29,7 @@ class SmartDecodeButton(QFrame):
 
     def __init__(self, parent, plugins: List[DecoderPlugin], get_input_callback, select_decoder_callback):
         super(__class__, self).__init__(parent)
+        self._logger = logging.getLogger()
         self._plugins = plugins
         self._get_input = get_input_callback
         self._select_decoder = select_decoder_callback
@@ -42,24 +46,33 @@ class SmartDecodeButton(QFrame):
         button.setMenu(menu)
         return button
 
-    def _can_plugin_decode_input(self, decoder: DecoderPlugin, input_text: str) -> bool:
-        """ Returns whether the decoder can decode the specified input. """
+    def _decode_input(self, decoder: DecoderPlugin, input_text: str) -> bool:
+        """ Returns the decoded input. Raises an CodecException when decoding fails. """
         try:
             # Check whether decoder thinks it can decode the input
             if not decoder.can_decode_input(input_text):
-                return False
+                raise CodecException(f'Invalid input for {decoder.name}!')
             # Check whether decoder actually can decode the input without any error
-            decoder.run(input_text)
-            return True
-        except:
-            return False
+            return decoder.run(input_text)
+        except Exception as err:
+            self._logger.debug(err)
+            raise CodecException(f'Decoding input with {decoder.name} failed!')
 
-    def _get_matching_decoders(self, input_text) -> List[DecoderPlugin]:
-        """ Returns a list of matching decoders for the specified input. """
+    def _get_matching_decoders(self, input_text) -> Dict[float, DecoderPlugin]:
+        """ Returns a dict of matching decoders with the associated entropy of the decoded output. """
+        self._logger.debug(f'Looking for matching decoders for "{input_text}" ...')
+        result = {}
         if not input_text:
-            return []
-
-        return [plugin for plugin in self._plugins if self._can_plugin_decode_input(plugin, input_text)]
+            return result
+        for plugin in self._plugins:
+            try:
+                output_text = self._decode_input(plugin, input_text)
+                output_text_entropy = eta(output_text)
+                result[output_text_entropy] = plugin
+            except CodecException as err:
+                # Expected exception when decoding input fails.
+                self._logger.debug(err)
+        return result
 
     def _populate_button_menu(self, input_text):
         """ Populates the button menu with a list of matching decoders for the specified input. """
@@ -71,7 +84,9 @@ class SmartDecodeButton(QFrame):
             action.setEnabled(False)
             return
 
-        for decoder in decoders:
-            action = QAction(decoder.title, self)
+        entropy_orders = sorted(decoders, key=lambda x: float(x))
+        for entropy in entropy_orders:
+            decoder = decoders[entropy]
+            action = QAction(f'{decoder.title} [{entropy:.2f}]', self)
             action.triggered.connect(lambda chk, item=decoder: self._select_decoder(item))
             menu.addAction(action)

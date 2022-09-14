@@ -19,6 +19,7 @@ from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy
 from qtpy import QtCore
 
 from dpp.core.icons import Icon, icon
+from dpp.core.math import eta
 from dpp.ui import IconLabel
 from dpp.ui.widget.collapsible_frame import CollapsibleFrame
 from dpp.ui.widget.elided_label import ElidedLabel
@@ -148,23 +149,23 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            frm_line_count = QFrame(self)
-            frm_line_count_layout = QHBoxLayout()
-            frm_line_count_layout.setContentsMargins(0, 0, 0, 0)
-            lbl_line_count = QLabel("Lines:")
-            frm_line_count_layout.addWidget(lbl_line_count)
-            self._txt_line_count = QLabel("0")
-            self._txt_line_count.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            minimum_width = self._txt_line_count.fontMetrics().boundingRect("000").width()
-            self._txt_line_count.setMinimumWidth(minimum_width)
-            frm_line_count_layout.addWidget(self._txt_line_count)
-            frm_line_count.setLayout(frm_line_count_layout)
-            return frm_line_count
+            frm = QFrame(self)
+            frm_layout = QHBoxLayout()
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+            lbl_value = QLabel("Lines:")
+            frm_layout.addWidget(lbl_value)
+            self._txt_value = QLabel("0")
+            self._txt_value.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            minimum_width = self._txt_value.fontMetrics().boundingRect("000").width()
+            self._txt_value.setMinimumWidth(minimum_width)
+            frm_layout.addWidget(self._txt_value)
+            frm.setLayout(frm_layout)
+            return frm
 
         def refresh(self):
             content = self.codec_frame.getInputText()
             line_count = str((content and len(content.split('\n'))) or 0)
-            self._txt_line_count.setText(line_count)
+            self._txt_value.setText(line_count)
 
     class ContentLengthInfoHeaderItem(ClickableCodecFrameHeaderItem):
 
@@ -173,23 +174,48 @@ class CodecFrameHeader(QFrame):
             self.setCentralWidget(self._init_central_widget())
 
         def _init_central_widget(self):
-            frm_content_length = QFrame(self)
-            frm_content_length_layout = QHBoxLayout()
-            frm_content_length_layout.setContentsMargins(0, 0, 0, 0)
-            lbl_content_length = QLabel("Length:")
-            frm_content_length_layout.addWidget(lbl_content_length)
-            self._content_length_text = QLabel("0")
-            self._content_length_text.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            minimum_width = self._content_length_text.fontMetrics().boundingRect("000").width()
-            self._content_length_text.setMinimumWidth(minimum_width)
-            frm_content_length_layout.addWidget(self._content_length_text)
-            frm_content_length.setLayout(frm_content_length_layout)
-            return frm_content_length
+            frm = QFrame(self)
+            frm_layout = QHBoxLayout()
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+            lbl_value = QLabel("Length:")
+            frm_layout.addWidget(lbl_value)
+            self._txt_value = QLabel("0")
+            self._txt_value.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            minimum_width = self._txt_value.fontMetrics().boundingRect("000").width()
+            self._txt_value.setMinimumWidth(minimum_width)
+            frm_layout.addWidget(self._txt_value)
+            frm.setLayout(frm_layout)
+            return frm
 
         def refresh(self):
             content = self.codec_frame.getInputText()
             length = str((content and len(content)) or 0)
-            self._content_length_text.setText(length)
+            self._txt_value.setText(length)
+
+    class EntropyInfoHeaderItem(ClickableCodecFrameHeaderItem):
+
+        def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
+            super(__class__, self).__init__(codec_frame)
+            self.setCentralWidget(self._init_central_widget())
+
+        def _init_central_widget(self):
+            frm = QFrame(self)
+            frm_layout = QHBoxLayout()
+            frm_layout.setContentsMargins(0, 0, 0, 0)
+            lbl_text = QLabel('Entropy:')
+            frm_layout.addWidget(lbl_text)
+            self.txt_value = QLabel('0.00')
+            self.txt_value.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            minimum_width = self.txt_value.fontMetrics().boundingRect('0.00').width()
+            self.txt_value.setMinimumWidth(minimum_width)
+            frm_layout.addWidget(self.txt_value)
+            frm.setLayout(frm_layout)
+            return frm
+
+        def refresh(self):
+            content = self.codec_frame.getInputText()
+            entropy = eta(content)
+            self.txt_value.setText(f'{entropy:.2f}')
 
     class RefreshButtonHeaderItem(ClickableCodecFrameHeaderItem):
 

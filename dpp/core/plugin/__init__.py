@@ -281,9 +281,9 @@ class DecoderPlugin(AbstractPlugin):
         Override this method to implement custom "Smart decode" behaviour. See DecoderPlugin implementations for more
         information regarding this matter.
 
-        returns: False by default.
+        returns: True by default.
         """
-        return False
+        return True
 
 
 class EncoderPlugin(AbstractPlugin):
