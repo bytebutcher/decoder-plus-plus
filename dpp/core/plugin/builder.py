@@ -19,7 +19,6 @@ import copy
 import dpp
 from dpp.core import plugin
 from dpp.core.plugin import AbstractPlugin, NullPlugin
-from dpp.core.plugin.config.options import Integer, String, Boolean, Group
 
 
 class PluginBuilder:
@@ -38,12 +37,8 @@ class PluginBuilder:
                 clazz = value.pop("clazz")
                 value["label"] = plugin.config.Label(value["label"]["key"], value["label"]["name"])
                 value.pop("is_initialized")
-                result[name] = {
-                    "String": String,
-                    "Integer": Integer,
-                    "Boolean": Boolean,
-                    "Group": Group
-                }.get(clazz)(**value)
+                mod = __import__('dpp.core.plugins.config.options', fromlist=[clazz])
+                result[name] = getattr(mod, clazz)(**value)
             except:
                 raise Exception("Error while loading plugin configuration!")
 
@@ -51,7 +46,6 @@ class PluginBuilder:
 
     def build(self, config) -> AbstractPlugin:
         """ Returns a plugin as specified within configuration item. Returns a NullPlugin on error. """
-        config = config["config"]
         try:
             plugin = self._context.getPluginByName(config["name"], config["type"])
             plugin.setup(self._build_config(config['config']))

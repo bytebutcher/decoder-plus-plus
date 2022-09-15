@@ -44,28 +44,20 @@ class MainWindowWidget(QWidget):
         self._plugins = context.plugins()
         self._parent = parent
 
-        #############################################
-        #   Initialize docks
-        #############################################
+        # Initialize docks
         self._log_dock_widget = LogDock(self.docksWidget(), context.logger)
         self.docksWidget().registerDockWidget(Context.DockWidget.LOG_DOCK_WIDGET, self._log_dock_widget)
         self.docksWidget().registerDockWidget(Context.DockWidget.HEX_DOCK_WIDGET, HexDock(context, parent))
 
-        #############################################
-        #   Initialize status bar
-        #############################################
+        # Initialize status bar
         parent.statusBar().addWidget(self._log_dock_widget.logMessageWidget())
         parent.statusBar().addPermanentWidget(self._init_hidden_dialog())
 
-        #############################################
-        #   Initialize shortcuts
-        #############################################
+        # Initialize shortcuts
         self._menu_bar = MenuBar(self._parent.menuBar())
         self._init_menu_items()
 
-        #############################################
-        #   Initialize tabs
-        #############################################
+        # Initialize tabs
         self.tabsWidget().onTabAddButtonClick.connect(self.newTab)
         self.tabsWidget().onTabDuplicateButtonClick.connect(self.duplicateTab)
         self.newTab(input_text=input_text)
@@ -152,16 +144,6 @@ class MainWindowWidget(QWidget):
     @menu.register_menu_item(id=MenuItem.TAB_CLOSE, text="&Close Tab", shortcut_key="Ctrl+W")
     def _close_tab_action(self):
         self.tabsWidget().closeTab()
-
-    @menu.register_menu_item(id=MenuItem.OPEN_FILE, text="&Open File...", shortcut_key="Ctrl+O")
-    def _open_file_action(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
-        return filename
-
-    @menu.register_menu_item(id=MenuItem.SAVE_AS_FILE, text="&Save As...", shortcut_key="Ctrl+S")
-    def _save_as_file_action(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
-        return filename
 
     @menu.register_menu_item(id=MenuItem.SHOW_PLUGINS, text="&Plugins...", shortcut_key="Ctrl+Shift+P")
     def _show_plugins_dialog_action(self):

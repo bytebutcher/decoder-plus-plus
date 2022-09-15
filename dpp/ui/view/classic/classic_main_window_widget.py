@@ -17,7 +17,7 @@
 #
 import json
 
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QFileDialog, QWidget
 
 from dpp.core.plugin import PluginType
 from dpp.ui.view.classic import CodecTab
@@ -129,41 +129,47 @@ class ClassicMainWindowWidget(MainWindowWidget):
     # Connector functions
     #############################################
 
-    def _open_file_action(self) -> str:
-        filename = super()._open_file_action()
-        if filename:
-            try:
-                with open(filename) as f:
-                    save_file = json.loads(f.read())
-                    for tab_config in save_file:
-                        index, tab = self.newTab(title=tab_config["name"])
-                        frame_index = 0
-                        for frame_config in tab_config["frames"]:
-                            if frame_index == 0:
-                                # New tabs already contain one empty frame
-                                frame = tab.frames().getFrames()[0]
-                                frame.setInputText(frame_config["text"])
-                                frame.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
-                            else:
-                                frame = tab.frames().newFrame(frame_config["text"],
-                                                              frame_config["title"],
-                                                              frame_index,
-                                                              frame_config["status"]["type"],
-                                                              frame_config["status"]["message"])
-                            frame.fromDict(frame_config)
-                            frame_index = frame_index + 1
-                self._context.logger.info("Successfully loaded {}!".format(filename))
-            except Exception as e:
-                self._context.logger.error("Unexpected error loading file. {}".format(e))
+    @menu.register_menu_item(id=MenuItem.OPEN_FILE, text="&Open File...", shortcut_key="Ctrl+O")
+    def _open_file_action(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open File')
+        if not filename:
+            return
 
-    def _save_as_file_action(self) -> str:
-        filename = super()._save_as_file()
-        if filename:
-            try:
-                self._context.saveAsFile(filename, str(json.dumps(self.toDict(), default=lambda x: x.__dict__)))
-                self._context.logger.info("Successfully saved session in {}!".format(filename))
-            except Exception as e:
-                self._context.logger.error("Unexpected error saving file. {}".format(e))
+        try:
+            with open(filename) as f:
+                save_file = json.loads(f.read())
+                for tab_config in save_file:
+                    index, tab = self.newTab(title=tab_config["name"])
+                    frame_index = 0
+                    for frame_config in tab_config["frames"]:
+                        if frame_index == 0:
+                            # New tabs already contain one empty frame
+                            frame = tab.frames().getFrames()[0]
+                            frame.setInputText(frame_config["text"])
+                            frame.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
+                        else:
+                            frame = tab.frames().newFrame(frame_config["text"],
+                                                          frame_config["title"],
+                                                          frame_index,
+                                                          frame_config["status"]["type"],
+                                                          frame_config["status"]["message"])
+                        frame.fromDict(frame_config)
+                        frame_index = frame_index + 1
+            self._context.logger.info("Successfully loaded {}!".format(filename))
+        except Exception as e:
+            self._context.logger.error("Unexpected error loading file. {}".format(e))
+
+    @menu.register_menu_item(id=MenuItem.SAVE_AS_FILE, text="&Save As...", shortcut_key="Ctrl+S")
+    def _save_as_file_action(self):
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save As File')
+        if not filename:
+            return
+
+        try:
+            self._context.saveAsFile(filename, str(json.dumps(self.toDict(), default=lambda x: x.__dict__)))
+            self._context.logger.info("Successfully saved session in {}!".format(filename))
+        except Exception as e:
+            self._context.logger.error("Unexpected error saving file. {}".format(e))
 
     #############################################
     # Public functions
