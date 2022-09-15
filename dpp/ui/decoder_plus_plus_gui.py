@@ -20,9 +20,13 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QFrame, QDialogButtonBox, QShortcut, QVBoxLayout
 
+from dpp.core import Context
 from dpp.core.shortcuts import KeySequence
+from dpp.ui.dock.hex_dock import HexDock
+from dpp.ui.dock.log_dock import LogDock
 from dpp.ui.view.classic.classic_main_window_widget import ClassicMainWindowWidget
 from dpp.ui.view.classic import CodecTab
+from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
 
 
 class DecoderPlusPlusGui(QMainWindow):
@@ -95,6 +99,11 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
         self.centralWidget().layout().addWidget(self._codec_tab_widget)
         self.centralWidget().layout().addWidget(self._init_button_box())
 
+        # Initialize docks
+        self._log_dock_widget = LogDock(self.docksWidget(), context.logger)
+        self.docksWidget().registerDockWidget(Context.DockWidget.LOG_DOCK_WIDGET, self._log_dock_widget)
+        self.docksWidget().registerDockWidget(Context.DockWidget.HEX_DOCK_WIDGET, HexDock(context, self))
+
         # Setup additional shortcuts to allow user to quickly hit the accept button.
         self._setup_shortcuts()
 
@@ -120,6 +129,11 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
         button_box.rejected.connect(self.onReject)
         button_box.setContentsMargins(0, 35, 0, 0)
         return button_box
+
+    def docksWidget(self) -> DockTabsWidget:
+        if not hasattr(self, '_docks_widget'):
+            self._docks_widget = DockTabsWidget(self, self._context)
+        return self._docks_widget
 
     def onAccept(self):
         # Return the transformed input when user triggered the OK-button.

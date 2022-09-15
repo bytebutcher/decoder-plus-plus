@@ -88,24 +88,24 @@ class CodecFrameHeader(QFrame):
             frm = QFrame(self)
             frm_layout = QHBoxLayout()
             frm_layout.setContentsMargins(0, 0, 0, 0)
-            lbl_label = QLabel('Codec: ')
+            lbl_label = QLabel('Codec:')
             frm_layout.addWidget(lbl_label)
-            self._lbl_title = QLabel(self.codec_frame.title())
-            self._lbl_title.setTextFormat(Qt.PlainText)
-            self._lbl_title.setToolTip(self.codec_frame.description())
-            frm_layout.addWidget(self._lbl_title)
+            self._lbl_value = QLabel(self.codec_frame.title())
+            self._lbl_value.setTextFormat(Qt.PlainText)
+            self._lbl_value.setToolTip(self.codec_frame.description())
+            frm_layout.addWidget(self._lbl_value)
             frm.setLayout(frm_layout)
             return frm
 
         def refresh(self):
             title = self.codec_frame.title()
             if title:
-                self._lbl_title.setText(title)
-                self._lbl_title.setStyleSheet('')
+                self._lbl_value.setText(title)
+                self._lbl_value.setStyleSheet('')
             else:
                 # No codec selected.
-                self._lbl_title.setText('None')
-                self._lbl_title.setStyleSheet('QLabel { color: gray }')
+                self._lbl_value.setText('None')
+                self._lbl_value.setStyleSheet('QLabel { color: gray }')
 
     class ContentPreviewHeaderItem(AbstractCodecFrameHeaderItem):
 
@@ -142,7 +142,7 @@ class CodecFrameHeader(QFrame):
             else:
                 self._content_preview_text.setText('No Preview Available')
 
-    class LineCountInfoHeaderItem(ClickableCodecFrameHeaderItem):
+    class LineCountInfoHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
@@ -167,7 +167,7 @@ class CodecFrameHeader(QFrame):
             line_count = str((content and len(content.split('\n'))) or 0)
             self._txt_value.setText(line_count)
 
-    class ContentLengthInfoHeaderItem(ClickableCodecFrameHeaderItem):
+    class ContentLengthInfoHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)
@@ -192,7 +192,7 @@ class CodecFrameHeader(QFrame):
             length = str((content and len(content)) or 0)
             self._txt_value.setText(length)
 
-    class EntropyInfoHeaderItem(ClickableCodecFrameHeaderItem):
+    class EntropyInfoHeaderItem(AbstractCodecFrameHeaderItem):
 
         def __init__(self, codec_frame: 'ui.codec_frame.CodecFrame'):
             super(__class__, self).__init__(codec_frame)

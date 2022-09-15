@@ -241,19 +241,12 @@ class AbstractPlugin:
     def __hash__(self):
         return hash(self.__key())
 
-    def __deepcopy__(self, memo):
-        """ Makes a deep copy of the option while reusing callable's. """
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, v if callable(v) else copy.deepcopy(v, memo))
-        return result
-
     def clone(self, config: PluginConfig = None) -> 'AbstractPlugin':
-        plugin = copy.deepcopy(self)
+        plugin = self.__class__(context=self._context)
         if config:
             plugin._config = config
+        else:
+            plugin._config = self._config.clone()
         return plugin
 
     def toDict(self):

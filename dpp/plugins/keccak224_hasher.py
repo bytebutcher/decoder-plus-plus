@@ -34,7 +34,7 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('KECCAK 224', "Thomas Engel", ["cryptodome"], context)
+        super().__init__('KECCAK 224', "Thomas Engel", ["pycryptodome"], context)
 
     def run(self, input_text: str) -> str:
         from Crypto.Hash import keccak

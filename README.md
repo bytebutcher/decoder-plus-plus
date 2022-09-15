@@ -21,9 +21,9 @@ pip3 install decoder-plus-plus[qt5]
 ```
 
 Note, that this will install ```Decoder++``` and the most common plugins.
-In order to install and use all available plugins the package ```decoder-plus-plus-extras``` needs to be installed:
+In order to install and use all available plugins the package ```decoder-plus-plus[extras]``` needs to be installed:
 ```
-pip3 install decoder-plus-plus-extras
+pip3 install decoder-plus-plus[extras]
 ```
 
 Please refer to the [Installation Guide](docs/INSTALL.md) for more information regarding individual setups. 

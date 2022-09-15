@@ -34,22 +34,21 @@ class ComboBoxFrame(QFrame):
         super(ComboBoxFrame, self).__init__(parent)
         self._context = context
         self._plugins = context.plugins()
-        self._plugin_history = {}
+
+        # Cache for remembering configurations of selected plugins.
+        self._plugin_cache = {}
+
+        # Initialize combo boxes.
         layout = QVBoxLayout()
-        self._decoder_combo = self._init_combo_box("Decode as ...", PluginType.DECODER)
-        self._encoder_combo = self._init_combo_box("Encode as ...", PluginType.ENCODER)
-        self._hasher_combo = self._init_combo_box("Hash ...", PluginType.HASHER)
-        self._script_combo = self._init_combo_box("Script ...", PluginType.SCRIPT)
         self._combo_boxes = {
-            PluginType.DECODER: self._decoder_combo,
-            PluginType.ENCODER: self._encoder_combo,
-            PluginType.HASHER: self._hasher_combo,
-            PluginType.SCRIPT: self._script_combo
+            PluginType.DECODER: self._init_combo_box("Decode as ...", PluginType.DECODER),
+            PluginType.ENCODER: self._init_combo_box("Encode as ...", PluginType.ENCODER),
+            PluginType.HASHER: self._init_combo_box("Hash ...", PluginType.HASHER),
+            PluginType.SCRIPT: self._init_combo_box("Script ...", PluginType.SCRIPT)
         }
-        layout.addWidget(self._decoder_combo)
-        layout.addWidget(self._encoder_combo)
-        layout.addWidget(self._hasher_combo)
-        layout.addWidget(self._script_combo)
+        for codec_combo_box in self._combo_boxes.values():
+            layout.addWidget(codec_combo_box)
+
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self._combo_box_selection_history = []
@@ -122,11 +121,11 @@ class ComboBoxFrame(QFrame):
         try:
             combo_box = self._combo_boxes[combo_box_type]
             name = combo_box.itemText(index)
-            plugin = copy.deepcopy(self._plugins.plugin(name, combo_box_type))
-            if plugin in self._plugin_history:
-                plugin = self._plugin_history[plugin]
+            plugin = self._plugins.plugin(name, combo_box_type).clone()
+            if plugin in self._plugin_cache:
+                plugin = self._plugin_cache[plugin]
             else:
-                self._plugin_history[plugin] = plugin
+                self._plugin_cache[plugin] = plugin
             return plugin
         except Exception as e:
             self._context.logger.error("Unexpected error. {}".format(e))
@@ -177,7 +176,7 @@ class ComboBoxFrame(QFrame):
     def resetAll(self):
         """ Resets all combo-boxes to show the first element. """
         self._context.logger.debug("ComboBoxFrame:ResetAll")
-        self._reset(self._decoder_combo, self._encoder_combo, self._hasher_combo, self._script_combo)
+        self._reset(*self._combo_boxes.values())
 
     def setToolTip(self, tooltip: str, combo_box_type: str = None):
         """ Setup's the tooltip of the combo-box associated with the specified plugin-type.

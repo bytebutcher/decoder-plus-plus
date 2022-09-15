@@ -37,7 +37,7 @@ class PluginBuilder:
                 clazz = value.pop("clazz")
                 value["label"] = plugin.config.Label(value["label"]["key"], value["label"]["name"])
                 value.pop("is_initialized")
-                mod = __import__('dpp.core.plugins.config.options', fromlist=[clazz])
+                mod = __import__('dpp.core.plugin.config.options', fromlist=[clazz])
                 result[name] = getattr(mod, clazz)(**value)
             except:
                 raise Exception("Error while loading plugin configuration!")

@@ -26,8 +26,8 @@ console_logger = None
 
 def _get_log_format(level: int) -> str:
     """ Returns the log format for the specified log level. """
-    if level == logging.DEBUG:
-        return f'%(asctime)s: %(levelname)7s: %(msg)s'
+    if level == logging.DEBUG or level == logging.TRACE:
+        return f'%(asctime)s: %(levelname)7s: %(filename)s:%(lineno)s:%(funcName)s: %(msg)s'
     else:
         return f'%(asctime)s: %(levelname)7s: %(msg)s'
 

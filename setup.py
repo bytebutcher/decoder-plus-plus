@@ -54,7 +54,7 @@ setup(
     ],
     extras_require={
         'qt5': ['PyQt5<5.16'],
-        'qt6': ['PyQt6<6.2.0'],
+        'qt6': ['PyQt6<6.3.0'],
         'extras': [
             'base45>=0.4.0',
             'css-html-js-minify>=2.5.0',
@@ -66,6 +66,7 @@ setup(
             'jwt>=1.3.0',
             'passlib>=1.7.0',
             'pycryptodome>=3.15.0',
+            'validators>=0.20.0'
         ]
     },
     data_files=[
