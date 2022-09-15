@@ -45,7 +45,7 @@ class Icon:
     FRAME_PAUSE = 'awesome', 'fa.pause'
     FRAME_CONFIG = 'awesome', 'fa.cog'
     IDENTIFY_CODEC = 'awesome', 'ei.indent-left'
-    IDENTIFY_HASH = 'awesome', 'ei-align-justify'
+    IDENTIFY_HASH = 'awesome', 'ei.align-justify'
     STATUS_ERROR = 'awesome', 'fa.exclamation'
     STATUS_INFO = 'awesome', 'fa.info'
     STATUS_READY = 'awesome', 'fa.check'

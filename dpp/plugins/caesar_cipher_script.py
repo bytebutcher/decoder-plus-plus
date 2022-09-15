@@ -28,7 +28,7 @@ from dpp.core.plugin.config.ui.widgets import Button, Option
 
 
 class Plugin(plugin.ScriptPlugin):
-    """ Opens a dialog to transform text using caesar-cipher. """
+    """ Script to transform text using caesar-cipher. """
 
     class Option(object):
         Shift = plugin.config.Label("shift", "Shift:")

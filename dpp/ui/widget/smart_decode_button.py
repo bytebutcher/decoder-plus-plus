@@ -49,6 +49,7 @@ class SmartDecodeButton(QFrame):
     def _decode_input(self, decoder: DecoderPlugin, input_text: str) -> bool:
         """ Returns the decoded input. Raises an CodecException when decoding fails. """
         try:
+            self._logger.debug(f'Trying to decode input using {decoder.name} ...')
             # Check whether decoder thinks it can decode the input
             if not decoder.can_decode_input(input_text):
                 raise CodecException(f'Invalid input for {decoder.name}!')

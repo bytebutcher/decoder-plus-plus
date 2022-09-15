@@ -17,7 +17,7 @@
 from typing import List
 
 from qtpy.QtCore import Signal, QObject
-from qtpy.QtWidgets import QCheckBox, QLineEdit, QRadioButton
+from qtpy.QtWidgets import QCheckBox, QComboBox, QLineEdit, QRadioButton
 
 from dpp.ui.widget.slider_widget import SliderWidget
 
@@ -115,6 +115,16 @@ class GroupOptionWidget(OptionWidget):
     def __init__(self, config, option):
         widget = QRadioButton(option.name)
         super().__init__(widget, option, config, widget.setChecked, widget.isChecked, widget.clicked, show_label=False)
+
+
+class ComboBoxOptionWidget(OptionWidget):
+
+    def __init__(self, config, option):
+        widget = QComboBox()
+        for value in option.values:
+            widget.addItem(value)
+        super().__init__(widget, option, config, widget.setCurrentText, widget.currentText, widget.currentIndexChanged,
+                         show_label=True)
 
 
 class SliderOptionWidget(OptionWidget):

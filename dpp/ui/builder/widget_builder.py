@@ -22,13 +22,13 @@ from qtpy.QtWidgets import QPushButton, QToolButton, QGroupBox, QLabel, QFrame, 
 
 from dpp.core.assertions import assert_type, assert_instance
 from dpp.core.plugin import AbstractPlugin
-from dpp.core.plugin.config.options import Boolean, Slider, String, Integer, Group
+from dpp.core.plugin.config.options import Boolean, Slider, String, Integer, Group, ComboBox
 from dpp.core.plugin.config.ui import Widget, Layout
 from dpp.core.plugin.config.ui.widgets import ToolButton, Button, GroupBox, TextPreview, Frame, Option, Label
 from dpp.core.plugin.config.ui.layouts import FormLayout, VBoxLayout, HBoxLayout
 from dpp.ui.widget.codec_preview_widget import CodecPreviewWidget
 from dpp.ui.widget.option_widgets import SliderOptionWidget, StringOptionWidget, GroupOptionWidget, \
-    BooleanOptionWidget, OptionWidget
+    BooleanOptionWidget, OptionWidget, ComboBoxOptionWidget
 
 
 class BuilderBase:
@@ -87,6 +87,7 @@ class OptionWidgetBuilder(BuilderBase):
             Integer: StringOptionWidget,
             Group: GroupOptionWidget,
             Boolean: BooleanOptionWidget,
+            ComboBox: ComboBoxOptionWidget
         }
 
     def _build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Option):

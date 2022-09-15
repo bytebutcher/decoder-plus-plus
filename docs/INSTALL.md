@@ -12,7 +12,7 @@ apt-get install -y python3 python3-pip git \
   libgl1 libxcb-xinerama0
 git clone https://github.com/bytebutcher/decoder-plus-plus/
 cd decoder-plus-plus
-pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt6]
+pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt6] decoder-plus-plus-extras
 ```
 
 ### Qt5
@@ -21,7 +21,7 @@ apt-get update
 apt-get install -y python3 python3-pip git qt5-default libgl1 libxcb-xinerama0
 git clone https://github.com/bytebutcher/decoder-plus-plus/
 cd decoder-plus-plus
-pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt5]
+pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt5]  decoder-plus-plus-extras
 ```
 
 ## Git

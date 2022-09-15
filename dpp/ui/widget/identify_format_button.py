@@ -14,10 +14,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 from typing import List
 
 from qtpy.QtWidgets import QAction, QFrame, QHBoxLayout, QPushButton, QMenu
 
+from dpp.core.exceptions import CodecException
 from dpp.core.icons import Icon, icon
 from dpp.core.plugin import DecoderPlugin, IdentifyPlugin, AbstractPlugin
 
@@ -27,6 +29,7 @@ class IdentifyFormatButton(QFrame):
 
     def __init__(self, parent, plugins: List[AbstractPlugin], get_input_callback, select_plugin_callback):
         super(__class__, self).__init__(parent)
+        self._logger = logging.getLogger()
         self._plugins = plugins
         self._get_input = get_input_callback
         self._select_plugin = select_plugin_callback
@@ -47,12 +50,14 @@ class IdentifyFormatButton(QFrame):
         """ Returns whether the plugin can identify the specified input. """
         try:
             # Check whether it is a decoder plugin and it thinks it can decode the input
+            self._logger.debug(f'Trying to identify input using {plugin.name} ...')
             if isinstance(plugin, DecoderPlugin) and not plugin.can_decode_input(input_text):
-                return False
+                raise CodecException(f'Invalid input for {plugin.name}!')
             # Check whether decoder/identifier actually can process the input without any error
             plugin.run(input_text)
             return True
-        except:
+        except Exception as err:
+            self._logger.debug(err)
             return False
 
     def _get_matching_plugins(self, input_text) -> List[AbstractPlugin]:
@@ -75,11 +80,14 @@ class IdentifyFormatButton(QFrame):
         actions = []
         for plugin in plugins:
             if isinstance(plugin, DecoderPlugin):
+                self._logger.debug(f'Adding possible {plugin.name} decoder plugin ...')
                 action = QAction(icon(Icon.IDENTIFY_CODEC), plugin.name, self)
                 action.triggered.connect(lambda chk, item=plugin: self._select_plugin(item))
                 actions.append(action)
             elif isinstance(plugin, IdentifyPlugin):
+                self._logger.debug(f'Guessing input using {plugin.name} identify plugin ...')
                 for identifier in plugin.run(input_text).splitlines():
+                    self._logger.debug(f'Adding possible {identifier} ...')
                     action = QAction(icon(Icon.IDENTIFY_HASH), identifier, self)
                     actions.append(action)
 

@@ -17,7 +17,7 @@
 import pathlib
 import setuptools
 from setuptools import setup
-from dpp import __version__
+from dpp import __name__, __version__, __author__
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -28,13 +28,13 @@ README = (HERE / 'README.md').read_text()
 
 # This call to setup() does all the work
 setup(
-    name='decoder-plus-plus',
+    name=__name__,
     version=__version__,
     description='An extensible application for penetration testers and software developers to decode/encode data into various formats.',
     long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/bytebutcher/decoder-plus-plus',
-    author='bytebutcher',
+    author=__author__,
     author_email='thomas.engel.web@gmail.com',
     license='GPL-3.0',
     classifiers=[
@@ -46,17 +46,27 @@ setup(
         'qtpy>=2.0.0',
         'qtpynodeeditor>=0.2.0',
         'QtAwesome>=1.0.2',
-        'passlib>=1.7.4',
         'fuzzywuzzy>=0.18.0',
         'filemagic>=1.6',
         'hashid>=3.1.4',
         'urlextract>=1.6.0',
         'lxml>=4.9.1',
-        'pycryptodome>=3.15.0'
     ],
     extras_require={
         'qt5': ['PyQt5<5.16'],
-        'qt6': ['PyQt6<6.2.0']
+        'qt6': ['PyQt6<6.2.0'],
+        'extras': [
+            'base45>=0.4.0',
+            'css-html-js-minify>=2.5.0',
+            'pycryptodome>=3.15.0',
+            'jc>=1.21.0',
+            'jsbeautifier>=1.14.0',
+            'json2xml>=3.19.0',
+            'jsonpath_ng>=1.5.0',
+            'jwt>=1.3.0',
+            'passlib>=1.7.0',
+            'pycryptodome>=3.15.0',
+        ]
     },
     data_files=[
         ('share/icons/hicolor/scalable/apps', ['data/dpp.png']),

@@ -55,10 +55,9 @@ class Boolean(Option):
         """
         super(Boolean, self).__init__(label, value, description, is_required)
 
-    def _is_checked(self):
+    @property
+    def is_checked(self):
         return bool(self.value)
-
-    is_checked = property(_is_checked)
 
 
 class Group(Boolean):
@@ -70,3 +69,14 @@ class Group(Boolean):
         """
         super(Group, self).__init__(label, value, description, is_required)
         self.group_name = group_name
+
+
+class ComboBox(Option):
+
+    def __init__(self, label, value, values, description, is_required):
+        """
+        :param value: the selected value.
+        :param values: the available values to select.
+        """
+        super(ComboBox, self).__init__(label, value, description, is_required)
+        self.values = values
