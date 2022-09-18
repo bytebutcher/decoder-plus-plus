@@ -46,9 +46,7 @@ class CodecFrame(CollapsibleFrame):
     # frame_id
     closeButtonClicked = Signal(str)
     # frame_id, input_text, combo_box_type, combo_box_index, plugin
-    pluginSelected = Signal(str, str, str, int, 'PyQt_PyObject')
-    # frame_id, combo_box_type
-    pluginDeselected = Signal(str, str)
+    pluginSelected = Signal(str, str, 'PyQt_PyObject')
 
     def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: PluginManager, text):
         super().__init__(parent, context, uuid.uuid4().hex)
@@ -121,19 +119,12 @@ class CodecFrame(CollapsibleFrame):
         button_frame = QFrame(self)
         button_frame_layout = QVBoxLayout()
         self._combo_box_frame = ComboBoxFrame(self, self._context)
-        self._combo_box_frame.pluginSelected.connect(lambda combo_box_type, combo_box_index, plugin:
+        self._combo_box_frame.pluginSelected.connect(lambda plugin:
                                                      self.pluginSelected.emit(
                                                          self.id(),
                                                          self.getInputText(),
-                                                         combo_box_type,
-                                                         combo_box_index,
                                                          plugin
                                                      ))
-        self._combo_box_frame.pluginDeselected.connect(lambda combo_box_type:
-                                                       self.pluginDeselected.emit(
-                                                           self.id(),
-                                                           combo_box_type
-                                                       ))
         button_frame_layout.addWidget(self._combo_box_frame)
         self._smart_decode_button = SmartDecodeButton(self,
                                                       self._plugins.filter(type=PluginType.DECODER),
@@ -193,9 +184,7 @@ class CodecFrame(CollapsibleFrame):
         self._logger.trace(f'{self.getFrameId()}::selectComboBoxEntryByPlugin({plugin.name}, {str(block_signals)})')
         self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=True)
         if not block_signals:
-            combo_box_type = plugin.type
-            combo_box_index = self._combo_box_frame.index(combo_box_type)
-            self.pluginSelected.emit(self.id(), self.getInputText(), combo_box_type, combo_box_index, plugin)
+            self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
 
     def toggleSearchField(self):
         self._logger.trace(f'{self.getFrameId()}::toggleSearchField()')

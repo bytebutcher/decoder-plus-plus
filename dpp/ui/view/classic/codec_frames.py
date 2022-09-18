@@ -74,55 +74,51 @@ class CodecFrames(QFrame):
             if not plugin.is_runnable():
                 break
 
-            frame = self._execute_plugin_run(frame.id(), input_text, plugin)
+            frame = self._run_plugin(frame.id(), input_text, plugin, do_show_config=False)
 
-    def _on_plugin_selected(self, frame_id: str, input_text: str,
-                            combo_box_type: str, combo_box_index: int, plugin: AbstractPlugin):
-        frame = self.getFrameById(frame_id)
-        if self._show_plugin_config(frame_id, input_text, plugin) != QDialog.Accepted:
-            # User clicked the cancel-button within the plugin config dialog.
-            # BUG: Item gets selected although dialog was canceled.
-            # FIX: Reselect last item prior to current selection.
-            frame.getComboBoxes().reselectLastItem(block_signals=True)
+    def _on_plugin_selected(self, frame_id: str, input_text: str, plugin: AbstractPlugin):
+        if plugin:
+            self._run_plugin(frame_id, input_text, plugin, do_show_config=True)
         else:
-            # BUG: Item gets deselected when running dialogs.
-            # FIX: Reselect Item
-            frame.getComboBoxes().reselectItem(combo_box_index, combo_box_type)
+            self._deselect_plugin(frame_id)
 
-        # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
 
-    def _execute_plugin_run(self, frame_id, input_text, plugin) -> CodecFrame:
-        frame_index = self.getFrameIndex(frame_id) + 1
-        output_text = ""
-        status = StatusWidget.SUCCESS
-        error = None
-        try:
-            output_text = plugin.run(input_text)
-        except BaseException as e:
-            status = StatusWidget.ERROR
-            error = str(e)
-            self._context.logger.error('{} {}: {}'.format(plugin.name, plugin.type, error))
-
-        return self.newFrame(output_text, plugin.title, frame_index, status=status, msg=error)
-
-    def _show_plugin_config(self, frame_id, input_text, plugin) -> int:
+    def _run_plugin(self, frame_id: str, input_text: str, plugin: AbstractPlugin, do_show_config: bool) -> CodecFrame:
+        """
+        Runs the plugin using the input text on the frame.
+        @param frame_id: the frame where the plugin/codec was selected.
+        @param input_text: the input text for the plugin.
+        @param plugin: the plugin to run.
+        @param do_show_config: specifies whether the config should be shown (e.g. config-button clicked, plugin gets
+                               selected from combo box) or run without any further configuration (e.g. input text
+                               changes).
+        @return: the new CodecFrame or None if plugin configuration failed.
+        """
         new_frame_index = self.getFrameIndex(frame_id) + 1
         output = ""
         error = None
+        do_focus_input_text = do_show_config
         try:
-            if plugin.is_configurable():
-                result = PluginConfigDialog(self._context, plugin, input_text).exec_()
-                if result != QDialog.Accepted:
-                    return result
+            if do_show_config and plugin.is_configurable():
+                frame = self.getFrameById(frame_id)
+                if PluginConfigDialog(self._context, plugin, input_text).exec_() != QDialog.Accepted:
+                    # User clicked the cancel-button within the plugin config dialog.
+                    # BUG: Item gets selected although dialog was canceled.
+                    # FIX: Reselect last item prior to current selection.
+                    frame.getComboBoxes().reselectLastItem(block_signals=True)
+                    return
             output = plugin.run(input_text)
             status = StatusWidget.SUCCESS
         except BaseException as err:
             status = StatusWidget.ERROR
-            self._context.logger.error(f'{plugin.name} {plugin.type}: {str(err)}')
+            error = str(err)
+            self._context.logger.error(f'{plugin.name} {plugin.type}: {error}')
             self._context.logger.debug(str(err), exc_info=True)
-
-        self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error).focusInputText()
-        return QDialog.Accepted
+        codec_frame = self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error)
+        if do_focus_input_text:
+            codec_frame.focusInputText()
+        return codec_frame
 
     def _refill_frame(self, text, title, frame_index, status, msg=None):
         self._context.logger.trace(f'Refill frame at index {frame_index}')
@@ -148,7 +144,8 @@ class CodecFrames(QFrame):
 
         return frame
 
-    def _on_plugin_deselected(self, frame_id):
+    def _deselect_plugin(self, frame_id: str):
+        """ When the first combo box entry gets selected all further frames are going to be removed. """
         _frame_index = self.getFrameIndex(frame_id)
         self._context.logger.debug(f'Reset frames after index {_frame_index} up until {self.getFramesCount() - 1}')
         for frame_index in range(self.getFramesCount() - 1, _frame_index, -1):
@@ -211,17 +208,16 @@ class CodecFrames(QFrame):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def newFrame(self, text, title, frame_index, status, msg=None) -> CodecFrame:
+    def newFrame(self, input_text: str, title: str, frame_index: int, status, msg=None) -> CodecFrame:
         if frame_index < self.getFramesCount():
-            return self._refill_frame(text, title, frame_index, status, msg)
+            return self._refill_frame(input_text, title, frame_index, status, msg)
 
         self._context.logger.debug(f'Adding new codec frame {title} at {frame_index} ...')
         previous_frame = self.getFrameByIndex(frame_index - 1)
-        new_frame = CodecFrame(self, self._context, self._tab_id, self, self._plugins, text)
+        new_frame = CodecFrame(self, self._context, self._tab_id, self, self._plugins, input_text)
         self.layout().addWidget(new_frame)
 
         new_frame.pluginSelected.connect(self._on_plugin_selected)
-        new_frame.pluginDeselected.connect(self._on_plugin_deselected)
         new_frame.configButtonClicked.connect(self._on_frame_config_button_clicked)
         new_frame.refreshButtonClicked.connect(self._on_frame_refresh_button_clicked)
         new_frame.upButtonClicked.connect(self._on_frame_up_button_clicked)
@@ -264,7 +260,7 @@ class CodecFrames(QFrame):
             next_frame = self.getFrameByIndex(_frame_index + 1)
             self.layout().removeWidget(frame) # remove frame from layout to avoid side-effects with header refresh
             frame.deleteLater()
-            self._execute_plugin_run(previous_frame.id(), previous_frame.getInputText(), previous_frame.getPlugin())
+            self._run_plugin(previous_frame.id(), previous_frame.getInputText(), previous_frame.getPlugin(), do_show_config=False)
             # Update headings since some buttons may need to be en-/disabled.
             next_frame.header().refresh()
             previous_frame.header().refresh()
@@ -359,7 +355,7 @@ class CodecFrames(QFrame):
         if previous_frame:
             plugin = previous_frame.getPlugin()
             input_text = previous_frame.getInputText()
-            self._show_plugin_config(previous_frame.id(), input_text, plugin)
+            self._run_plugin(previous_frame.id(), input_text, plugin, do_show_config=True)
 
     # ------------------------------------------------------------------------------------------------------------------
 

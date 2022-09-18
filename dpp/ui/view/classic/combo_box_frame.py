@@ -27,8 +27,7 @@ from dpp.ui.widget.combo_box import ComboBox
 
 
 class ComboBoxFrame(QFrame):
-    pluginDeselected = Signal(str)  # combo_box_type
-    pluginSelected = Signal(str, int, 'PyQt_PyObject')  # combo_box_type, combo_box_index, plugin
+    pluginSelected = Signal('PyQt_PyObject')  # plugin
 
     def __init__(self, parent, context):
         super(ComboBoxFrame, self).__init__(parent)
@@ -92,12 +91,12 @@ class ComboBoxFrame(QFrame):
             # Remove frames below when title element was selected
             # Note: It does not matter which combo box is the source, since all combo boxes are going to reset
             # to index 0.
-            self.pluginDeselected.emit(combo_box_type)
+            self.pluginSelected.emit(None)
             return
 
         self._combo_box_selection_history.append([combo_box_type, combo_box_index])
         plugin = self.getPluginByTypeAndIndex(combo_box_type, combo_box_index)
-        self.pluginSelected.emit(combo_box_type, combo_box_index, plugin)
+        self.pluginSelected.emit(plugin)
 
     def reselectLastItem(self, block_signals=True):
         # Always reset everything first.

@@ -28,7 +28,7 @@ class NodeEditor(QFrame):
         self._tab_id = tab_id
         self._plugins = plugins
         self._layout = QVBoxLayout()
-        self._node_data_models_builder = NodeDataModelsBuilder(context, plugins)
+        self._node_data_models_builder = NodeDataModelsBuilder(context)
         node_editor_view = self._init_node_editor_view(input_text)
         self._layout.addWidget(node_editor_view)
         self.setLayout(self._layout)
