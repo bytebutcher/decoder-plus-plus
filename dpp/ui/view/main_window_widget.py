@@ -19,8 +19,9 @@ from typing import List, Union
 
 from qtpy.QtCore import QEvent
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QMainWindow, QAction, QVBoxLayout, QFileDialog, QMenu, QWidget
+from qtpy.QtWidgets import QMainWindow, QAction, QVBoxLayout, QMenu, QWidget
 
+from dpp.core.logger import logmethod
 from dpp.core.shortcuts import MenuRegistry
 from dpp.ui import IconLabel
 from dpp.ui.dock.hex_dock import HexDock
@@ -38,6 +39,7 @@ MenuItem = Context.Shortcut
 
 class MainWindowWidget(QWidget):
 
+    @logmethod()
     def __init__(self, parent: QMainWindow, context: 'core.context.Context', input_text: str):
         super().__init__(parent)
         self._context = context
@@ -66,6 +68,7 @@ class MainWindowWidget(QWidget):
     # Menu
     #############################################
 
+    @logmethod()
     def _init_menu_items(self):
         self._register_shortcuts('&File', [
             [Context.Shortcut.TAB_NEW, Context.Shortcut.TAB_CLOSE],
@@ -83,6 +86,7 @@ class MainWindowWidget(QWidget):
             ]
         ])
 
+    @logmethod()
     def _init_tabs_menu(self):
         tab_menu = self._register_shortcuts('&Tabs', [
             [
@@ -163,6 +167,7 @@ class MainWindowWidget(QWidget):
     # Helpers
     #############################################
 
+    @logmethod()
     def _register_shortcuts(self, menu_item: Union[str, QMenu], items: List[List]):
         def register_shortcut(id, text, shortcut_key, callback, menu_widget):
             """ This method is required in order to get the callback working. """
@@ -189,23 +194,28 @@ class MainWindowWidget(QWidget):
                 menu_widget.addSeparator()
         return menu_widget
 
+    @logmethod()
     def _register_shortcut(self, id, text, shortcut_key, callback, menu) -> QAction:
         action = self._context.registerShortcut(id, text, shortcut_key, callback, self)
         menu.addAction(action)
         return action
 
+    @logmethod()
     def _show_hidden_dialog(self, tab_select: str = None):
         """ Shows the hidden dialog. """
         ConfigDialog(self, self._context, tab_select).exec_()
 
+    @logmethod()
     def _tab_added_event(self, index, title, tab, input_text):
         if 0 <= index < len(self._tabs_select_action):
             self._tabs_select_action[index].setVisible(True)
 
+    @logmethod()
     def _tab_closed_event(self, index, title):
         for index in range(0, len(self._tabs_select_action)):
             self._tabs_select_action[index].setVisible(index < self.tabsWidget().tabCount())
 
+    @logmethod()
     def _init_hidden_dialog(self):
         """ Inits the icon which opens the hidden dialog on mouse press. """
         about_label = IconLabel(self, QIcon(os.path.join(self._context.getAppPath(), 'images', 'hidden.png')))
@@ -236,12 +246,14 @@ class MainWindowWidget(QWidget):
             self._docks_widget = DockTabsWidget(self._parent, self._context)
         return self._docks_widget
 
+    @logmethod()
     def closeEvent(self, e: QEvent):
         """ Closes the main window and saves window-size and -position. """
         self._context.config.setSize(self.size())
         self._context.config.setPosition(self.pos())
         e.accept()
 
+    @logmethod()
     def newTab(self, title: str = None, input_text: str = None, widget: QWidget = None) -> (int, QWidget):
         """
         Opens a new tab and writes input.

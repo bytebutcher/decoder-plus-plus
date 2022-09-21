@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 import os
 import signal
 import sys
@@ -258,7 +259,7 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Loads logger, config and plugins.
-    context = Context('net.bytebutcher.decoder_plus_plus', app_path, namespace=locals())
+    context = Context('net.bytebutcher.decoder_plus_plus', app_path)
 
     # Enable debug mode for current session.
     if '--debug' in sys.argv:

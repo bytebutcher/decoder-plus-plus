@@ -26,7 +26,7 @@ class CodecPreviewWidget(QFrame):
 
     def __init__(self, plugin, input_text):
         super().__init__()
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         view_frame_layout = QHBoxLayout()
         view_frame_layout.setContentsMargins(0, 5, 0, 5)
         self._txt_preview = QPlainTextEdit(self)

@@ -22,7 +22,7 @@ from qtpy.QtGui import QIcon
 
 from dpp import app_path
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Icon:

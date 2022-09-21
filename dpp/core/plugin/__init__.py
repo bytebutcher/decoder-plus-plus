@@ -60,7 +60,7 @@ class AbstractPlugin:
         self._config = PluginConfig(context)
         self._context = context
         self._icon = icon
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
 
     def setup(self, config: dict):
         """ Injects a given configuration into the plugin. """

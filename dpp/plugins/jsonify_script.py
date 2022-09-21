@@ -201,7 +201,7 @@ class JC:
     class ParserBase:
 
         def __init__(self, input_format: str, input_text: str):
-            self._logger = logging.getLogger()
+            self._logger = logging.getLogger(__name__)
             self._input_format = input_format
             self._input_text = input_text
             self._output_text = ""
@@ -332,7 +332,7 @@ class JC:
 
     def __init__(self):
         import validators
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         self._auto_detect_skip_list = [
             'airport-s',
             'asciitable',

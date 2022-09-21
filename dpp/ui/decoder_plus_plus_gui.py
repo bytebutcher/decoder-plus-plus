@@ -21,6 +21,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QFrame, QDialogButtonBox, QShortcut, QVBoxLayout
 
 from dpp.core import Context
+from dpp.core.logger import logmethod
 from dpp.core.shortcuts import KeySequence
 from dpp.ui.dock.hex_dock import HexDock
 from dpp.ui.dock.log_dock import LogDock
@@ -113,6 +114,7 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
         # Show dialog.
         self.show()
 
+    @logmethod()
     def _setup_shortcuts(self):
         """ Setup shortcuts to allow user to quickly hit the accept button. """
         ctrl_return_shortcut = QShortcut(KeySequence(Qt.CTRL, Qt.Key_Return), self)
@@ -122,6 +124,7 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
         alt_o_shortcut = QShortcut(KeySequence(Qt.ALT, Qt.Key_O), self)
         alt_o_shortcut.activated.connect(self.onAccept)
 
+    @logmethod()
     def _init_button_box(self):
         """ Initialize the central dialog buttons.  """
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -135,6 +138,7 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
             self._docks_widget = DockTabsWidget(self, self._context)
         return self._docks_widget
 
+    @logmethod()
     def onAccept(self):
         # Return the transformed input when user triggered the OK-button.
         codec_frames = self._codec_tab_widget.frames().getFrames()
@@ -142,6 +146,7 @@ class DecoderPlusPlusDialog(DecoderPlusPlusGui):
         self._application_was_canceled = False
         self.close()
 
+    @logmethod()
     def onReject(self):
         # Return the initial user input (here: no change) when user cancelled application.
         print(self._user_input, end='')

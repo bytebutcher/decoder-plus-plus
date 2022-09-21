@@ -21,6 +21,7 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QFrame, QVBoxLayout
 
 from dpp.core import Context
+from dpp.core.logger import logmethod
 from dpp.core.plugin import PluginType, AbstractPlugin, NullPlugin
 from dpp.core.plugin.manager import PluginManager
 from dpp.core.plugin.builder import PluginBuilder
@@ -45,9 +46,10 @@ class CodecFrame(CollapsibleFrame):
     configButtonClicked = Signal(str)
     # frame_id
     closeButtonClicked = Signal(str)
-    # frame_id, input_text, combo_box_type, combo_box_index, plugin
-    pluginSelected = Signal(str, str, 'PyQt_PyObject')
+    # frame_id, plugin
+    pluginSelected = Signal(str, 'PyQt_PyObject')
 
+    @logmethod()
     def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: PluginManager, text):
         super().__init__(parent, context, uuid.uuid4().hex)
 
@@ -66,6 +68,7 @@ class CodecFrame(CollapsibleFrame):
 
         self.show()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def _init_header(self):
 
         self._header_frame.addWidget(CodecFrameHeader.IndicatorHeaderItem(self))
@@ -106,6 +109,7 @@ class CodecFrame(CollapsibleFrame):
         close_button_header_item.clicked.connect(lambda evt: button_clicked_event(evt, self.closeButtonClicked))
         self._header_frame.addWidget(close_button_header_item)
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def _init_input_frame(self, text):
         input_frame = QFrame(self)
         frame_layout = QVBoxLayout()
@@ -115,6 +119,7 @@ class CodecFrame(CollapsibleFrame):
         input_frame.setLayout(frame_layout)
         return input_frame
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def _init_button_frame(self):
         button_frame = QFrame(self)
         button_frame_layout = QVBoxLayout()
@@ -122,7 +127,6 @@ class CodecFrame(CollapsibleFrame):
         self._combo_box_frame.pluginSelected.connect(lambda plugin:
                                                      self.pluginSelected.emit(
                                                          self.id(),
-                                                         self.getInputText(),
                                                          plugin
                                                      ))
         button_frame_layout.addWidget(self._combo_box_frame)
@@ -141,6 +145,7 @@ class CodecFrame(CollapsibleFrame):
         button_frame.setLayout(button_frame_layout)
         return button_frame
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def _shortcut_updated_event(self, shortcut):
         tooltip = self._get_tooltip_by_shortcut(shortcut)
         combo_box_type = self._get_combo_box_type_by_shortcut(shortcut)
@@ -175,23 +180,25 @@ class CodecFrame(CollapsibleFrame):
     def status(self):
         return self._status_widget.status()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def setStatus(self, type, message):
-        self._logger.trace(f'{self.getFrameId()}::statusChanged({type}, {message})')
         self._header_frame.setStatus(type, message)
         self._status_widget.setStatus(type, message)
 
-    def selectComboBoxEntryByPlugin(self, plugin, block_signals=False):
-        self._logger.trace(f'{self.getFrameId()}::selectComboBoxEntryByPlugin({plugin.name}, {str(block_signals)})')
-        self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=True)
-        if not block_signals:
-            self.pluginSelected.emit(self.id(), self.getInputText(), plugin)
+    def hasTextSelected(self) -> bool:
+        # TODO: Missing implementation
+        return False
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
+    def selectComboBoxEntryByPlugin(self, plugin, block_signals=False):
+        self._combo_box_frame.selectItem(plugin.type, plugin.name, block_signals=block_signals)
+
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def toggleSearchField(self):
-        self._logger.trace(f'{self.getFrameId()}::toggleSearchField()')
         self._plain_view_widget.toggleSearchField()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def setInputText(self, text):
-        self._logger.trace(f'{self.getFrameId()}::setInputText({text})')
         self._plain_view_widget.blockSignals(True)
         self._plain_view_widget.setPlainText(text)
         self._plain_view_widget.blockSignals(False)
@@ -203,28 +210,30 @@ class CodecFrame(CollapsibleFrame):
     def getComboBoxes(self):
         return self._combo_box_frame
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def cutSelectedInputText(self):
-        self._logger.trace(f'{self.getFrameId()}::cutSelectedInputText()')
         self._plain_view_widget.cutSelectedInputText()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def copySelectedInputText(self):
-        self._logger.trace(f'{self.getFrameId()}::copySelectedInputText()')
         self._plain_view_widget.copySelectedInputText()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def pasteSelectedInputText(self):
-        self._logger.trace(f'{self.getFrameId()}::pasteSelectedInputText()')
         self._plain_view_widget.pasteSelectedInputText()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def focusInputText(self):
-        self._logger.trace(f'{self.getFrameId()}::focusInputText()')
         self._plain_view_widget.setFocus()
 
     def hasFocus(self):
         return self._plain_view_widget.hasFocus()
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def focusComboBox(self, type):
         self._combo_box_frame.focusType(type)
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def setPlugin(self, plugin: AbstractPlugin, block_signals=True):
         if plugin:
             self.selectComboBoxEntryByPlugin(plugin, block_signals=block_signals)
@@ -290,6 +299,7 @@ class CodecFrame(CollapsibleFrame):
         """ Returns the next frame if any, otherwise an exception is thrown. """
         return self._codec_frames.getFrameByIndex(self.getFrameIndex() + 1)
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def fromDict(self, frame_config):
         self.setInputText(frame_config["text"])
         self.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
@@ -300,6 +310,7 @@ class CodecFrame(CollapsibleFrame):
         self.header().refresh()
         self.setCollapsed(frame_config["is_collapsed"])
 
+    @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
     def toDict(self):
         status_type, status_message = self._status_widget.status()
         return {

@@ -21,6 +21,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QScrollArea, QFrame, QVBoxLayout
 
 from dpp.core import Context
+from dpp.core.logger import logmethod
 from dpp.core.plugin.manager import PluginManager
 from dpp.ui.view.classic.codec_frames import CodecFrames
 from dpp.ui.widget.spacers import VSpacer
@@ -29,6 +30,7 @@ from dpp.ui.widget.status_widget import StatusWidget
 
 class CodecTab(QScrollArea):
 
+    @logmethod()
     def __init__(self, parent, context: Context, plugins: PluginManager):
         super(__class__, self).__init__(parent)
         self._context = context

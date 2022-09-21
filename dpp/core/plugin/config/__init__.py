@@ -22,6 +22,7 @@ import dpp
 from dpp.core.exceptions import ValidationError
 from dpp.core.listener import Signal
 from dpp.core import plugin
+from dpp.core.logger import logmethod
 
 
 class Label:
@@ -127,6 +128,7 @@ class PluginConfig:
         """ Returns the number of configuration options. """
         return len(self._config.keys())
 
+    @logmethod()
     def update(self, options):
         """
         Updates the value for each specified option.
@@ -140,7 +142,6 @@ class PluginConfig:
             update(config.clone())
         """
         from dpp.core.plugin.config.options import Group
-        self._context.logger.trace('Updating plugin configuration ...')
         if isinstance(options, PluginConfig):
             # Adding/Removing config entries should not be possible during runtime.
             assert options.keys() == self._config.keys(), 'Invalid plugin config! Expected identical keys!'

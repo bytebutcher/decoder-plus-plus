@@ -19,6 +19,7 @@ import json
 
 from qtpy.QtWidgets import QFileDialog, QWidget
 
+from dpp.core.logger import logmethod
 from dpp.core.plugin import PluginType
 from dpp.ui.view.classic import CodecTab
 from dpp.ui.view.classic.codec_frame import CodecFrame
@@ -175,6 +176,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
     # Public functions
     #############################################
 
+    @logmethod()
     def newTab(self, title: str = None, input_text: str = None, widget: QWidget = None) -> (int, QWidget):
         tab = CodecTab(self, self._context, self._plugins)
         tab.frames().getFocusedFrame().setInputText(input_text)
@@ -183,6 +185,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
         tab.frames().getFocusedFrame().focusInputText()
         return super().newTab(title, input_text, tab)
 
+    @logmethod()
     def duplicateTab(self, title, src_tab):
         tab_index, dst_tab = self.newTab(title=title)
         frame_index = 0
@@ -202,6 +205,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
             dst_tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
             frame_index = frame_index + 1
 
+    @logmethod()
     def toDict(self):
         return [{
             "name": self.tabsWidget().tabBar().tabText(tabIndex),

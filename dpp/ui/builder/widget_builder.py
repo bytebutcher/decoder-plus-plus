@@ -34,7 +34,7 @@ from dpp.ui.widget.option_widgets import SliderOptionWidget, StringOptionWidget,
 class BuilderBase:
 
     def __init__(self):
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
 
 
 class LayoutBuilder(BuilderBase):
