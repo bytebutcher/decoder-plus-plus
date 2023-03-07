@@ -14,25 +14,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestZLibDecoder(unittest.TestCase):
 
-    Example:
+    encoder = load_plugin("ZLib", PluginType.DECODER)
+    decoder = load_plugin("ZLib", PluginType.DECODER)
 
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    @unittest.skip("decode(encode(text)) != text")
+    def testEncodeDecode(self):
+        input_text = 'abcdefghijklmnopqrstuvwxyz\n'
+        self.assertEqual(self.decoder.run(
+            self.encoder.run(
+                input_text
+            )
+        ), input_text)

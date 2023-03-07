@@ -14,25 +14,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestSHA384Hasher(unittest.TestCase):
+    plugin = load_plugin("SHA384", PluginType.HASHER)
 
-    Example:
-
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testPlugin(self):
+        self.assertEqual(self.plugin.run(
+            'abcdefghijklmnopqrstuvwxyz\n'
+            '^°!"§$%&/()=?´`<>| ,.-;:_#+\'*~\n'
+            '0123456789'
+        ),
+            '4e6b190af95ffaae6b963ec8cf4138aabe0f33b088164afe'
+            'c358f47299ca53885a6e086b74ef7981695e9d55bb809abc'
+        )

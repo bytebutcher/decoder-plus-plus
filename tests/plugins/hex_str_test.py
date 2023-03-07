@@ -14,25 +14,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestHexStr(unittest.TestCase):
 
-    Example:
+    encoder = load_plugin("Hex (str)", PluginType.ENCODER)
+    decoder = load_plugin("Hex (str)", PluginType.DECODER)
 
-        Input:
-            123456789
+    def testEncoder(self):
+        self.assertEqual(self.encoder.run(
+            'abcdefghijklmnopqrstuvwxyz'
+        ), '6162636465666768696a6b6c6d6e6f707172737475767778797a')
 
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testDecoder(self):
+        self.assertEqual(self.decoder.run(
+            '6162636465666768696a6b6c6d6e6f707172737475767778797a'
+        ), 'abcdefghijklmnopqrstuvwxyz')

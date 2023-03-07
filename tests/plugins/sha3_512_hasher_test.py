@@ -14,25 +14,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestSHA3_512Hasher(unittest.TestCase):
 
-    Example:
+    plugin = load_plugin("SHA3 512", PluginType.HASHER)
 
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testPlugin(self):
+        self.assertEqual(self.plugin.run(
+            'abcdefghijklmnopqrstuvwxyz\n'
+            '^°!"§$%&/()=?´`<>| ,.-;:_#+\'*~\n'
+            '0123456789'
+        ),
+            '82ca87f576cadb05d4c911f36c98ed2735f45cad359d6ef5f6d544f5a3210e3e'
+            'cf080be15e539e23c15e2eb23054677d8a015ee56be2d9673c9f187d290906ed'
+        )

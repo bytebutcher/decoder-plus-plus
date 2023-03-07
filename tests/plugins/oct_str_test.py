@@ -14,25 +14,26 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestOctStrEncoder(unittest.TestCase):
 
-    Example:
+    plugin = load_plugin("Oct (str)", PluginType.ENCODER)
 
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testPlugin(self):
+        self.assertEqual(self.plugin.run(
+            'abcdefghijklmnopqrstuvwxyz\n'
+            '^°!"§$%&/()=?´`<>| ,.-;:_#+\'*~\n'
+            '0123456789'
+        ),
+            '1411421431441451461471501511521531'
+            '5415515615716016116216316416516616'
+            '7170171172012136260041042247044045'
+            '0460570500510750772641400740761740'
+            '4005405605507307213704305304705217'
+            '6012060061062063064065066067070071'
+        )

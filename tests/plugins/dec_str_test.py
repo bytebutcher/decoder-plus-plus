@@ -14,25 +14,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestDecStrDecoder(unittest.TestCase):
+    plugin = load_plugin("Dec (str)", PluginType.DECODER)
 
-    Example:
-
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testPlugin(self):
+        self.assertEqual(self.plugin.run(
+            '97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,'
+            '112,113,114,115,116,117,118,119,120,121,122,10,94,176,33,'
+            '34,167,36,37,38,47,40,41,61,63,180,96,60,62,124,32,44,46,'
+            '45,59,58,95,35,43,39,42,126,10,48,49,50,51,52,53,54,55,56,57'
+        ),
+            'abcdefghijklmnopqrstuvwxyz\n'
+            '^°!"§$%&/()=?´`<>| ,.-;:_#+\'*~\n'
+            '0123456789'
+        )

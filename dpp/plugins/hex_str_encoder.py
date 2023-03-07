@@ -36,7 +36,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('HEX (str)', "Thomas Engel", ["codecs"], context)
+        super().__init__('Hex (str)', "Thomas Engel", ["codecs"], context)
 
     def run(self, input_text: str) -> str:
         import codecs

@@ -38,7 +38,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('HEX (char)', "Thomas Engel", [], context)
+        super().__init__('Hex (char)', "Thomas Engel", [], context)
 
     def _run_line(self, line) -> str:
         return ' '.join([hex(ord(char)) for char in line])

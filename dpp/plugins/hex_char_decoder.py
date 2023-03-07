@@ -38,7 +38,7 @@ class Plugin(DecoderPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('HEX (ascii)', "Thomas Engel", [], context)
+        super().__init__('Hex (char)', "Thomas Engel", [], context)
 
     def run(self, input_text: str) -> str:
         if input_text:

@@ -14,25 +14,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import EncoderPlugin
+import unittest
+
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
 
-class Plugin(EncoderPlugin):
-    """
-    Encodes an integer to a hex string.
+class TestGZip(unittest.TestCase):
+    decoder = load_plugin("GZip", PluginType.DECODER)
+    encoder = load_plugin("GZip", PluginType.ENCODER)
 
-    Example:
-
-        Input:
-            123456789
-
-        Output:
-            0x75bcd15
-    """
-
-    def __init__(self, context: 'dpp.core.context.Context'):
-        # Name, Author, Dependencies
-        super().__init__('Hex (int)', "Thomas Engel", [], context)
-
-    def run(self, input_text: str) -> str:
-        return self._run_lines(input_text, lambda text_part: hex(int(text_part)))
+    def testPlugin(self):
+        input_text = output_text = 'abcdefghijklmnopqrstuvwxyz\n'
+        '^°!"§$%&/()=?´`<>| ,.-;:_#+\'*~\n'
+        '0123456789'
+        self.assertEqual(
+            self.decoder.run(
+                self.encoder.run(input_text)
+            ),
+            output_text
+        )
