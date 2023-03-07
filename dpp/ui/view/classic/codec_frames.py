@@ -35,26 +35,11 @@ class CodecFrames(QFrame):
         self._frames_layout = QVBoxLayout()
         self.setLayout(self._frames_layout)
         self._frames_layout.setContentsMargins(0, 0, 0, 0)
-        self._init_listener(context)
         self._focused_frame = None
 
     # ------------------------------------------------------------------------------------------------------------------
     # Private helper functions
     # ------------------------------------------------------------------------------------------------------------------
-
-    @logmethod()
-    def _init_listener(self, context):
-        self._listener = context.listener()
-
-        def selected_frame_changed(tab_id, frame_id, input_text):
-            # Always remember the currently focused frame (e.g. used for finding the currently selected frame when
-            # using keyboard-shortcuts)
-            if self._tab_id == tab_id:
-                self._focused_frame = self.getFrameById(frame_id)
-
-        self._listener.selectedFrameChanged.connect(selected_frame_changed)
-        self._listener.textChanged.connect(lambda tab_id, frame_id, text, interactive:
-            self._tab_id == tab_id and self._set_input_text(frame_id, text, interactive))
 
     @logmethod()
     def _configure_plugin(self, frame_id, input_text, plugin) -> bool:
@@ -122,15 +107,13 @@ class CodecFrames(QFrame):
 
     @logmethod()
     def _new_frame(self, frame_id: str, input_text: str, plugin: AbstractPlugin):
-        if not self._configure_plugin(frame_id, input_text, plugin):
-            return
         output, status, error = self._run_plugin(frame_id, input_text, plugin)
         new_frame_index = self.getFrameIndex(frame_id) + 1
         codec_frame = self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error)
         codec_frame.focusInputText()
 
     @logmethod()
-    def _set_input_text(self, frame_id, input_text, is_user_action=True, do_preserve_state=False):
+    def _set_input_text(self, frame_id, is_user_action=True, do_preserve_state=False):
         frame_index = self.getFrameIndex(frame_id)
         frame = self.getFrameById(frame_id)
         if is_user_action:
@@ -149,8 +132,7 @@ class CodecFrames(QFrame):
             if not plugin.is_runnable():
                 break
 
-            frame = self._update_frame(frame.id(), input_text, plugin)
-
+            frame = self._update_frame(frame.id(), frame.getInputText(), plugin)
 
     @logmethod()
     def _replace_input_text(self, input_text: str, replacements: Dict[str, Tuple[str, str, str]]) -> str:
@@ -195,24 +177,13 @@ class CodecFrames(QFrame):
     def _on_plugin_selected(self, frame_id: str, plugin: AbstractPlugin):
         if plugin:
             frame = self.getFrameById(frame_id)
-            input_text = frame.getInputText()
-            if frame.hasTextSelected():
-                replacements = {}
-                selected_text_index_start, selected_text_index_end = frame.getTextSelection()
-                for text_index_start, text_index_end, plugin in frame.getTextSelections():
-                    text_selection = input_text[selected_text_index_start:selected_text_index_end]
-                    if text_index_start == selected_text_index_start and text_index_end == selected_text_index_end:
-                        self._configure_plugin(frame_id, text_selection, plugin)
-                        output, status, error = self._run_plugin(frame_id, text_selection, plugin)
-                    else:
-                        output, status, error = self._run_plugin(frame_id, text_selection, plugin)
-                    replacements[text_index_start] = (text_index_start, text_index_end, output)
-
-                replacement_text = self._replace_input_text(input_text, replacements)
-
-                self._new_frame(frame_id, replacement_text, plugin)
-            else:
-                self._new_frame(frame_id, input_text, plugin)
+            if not self._configure_plugin(frame_id, frame.getInputText(), plugin):
+                # Abort if user cancels configuration.
+                return
+            # TODO: #53 Allow multiple codecs on input
+            #       Computation should be done within in the frame.
+            #       (Old) frames store information how input is processed.
+            self._new_frame(frame_id, frame.getInputText(), plugin)
         else:
             self._deselect_plugin(frame_id)
 
@@ -227,7 +198,7 @@ class CodecFrames(QFrame):
 
         if not self.hasNextFrame(_frame_index):
             # If this is the last frame the combo-boxes of the previous frame needs to reset.
-            self.layout().removeWidget(frame) # remove frame from layout to avoid side-effects with header refresh
+            self.layout().removeWidget(frame)  # remove frame from layout to avoid side-effects with header refresh
             frame.deleteLater()
             previous_frame.getComboBoxes().resetAll()
             # Usability: Always show the content of the last frame.
@@ -237,7 +208,7 @@ class CodecFrames(QFrame):
         else:
             # Otherwise the selected plugin of the previous frame needs to be executed.
             next_frame = self.getFrameByIndex(_frame_index + 1)
-            self.layout().removeWidget(frame) # remove frame from layout to avoid side-effects with header refresh
+            self.layout().removeWidget(frame)  # remove frame from layout to avoid side-effects with header refresh
             frame.deleteLater()
             self._update_frame(previous_frame.id(), previous_frame.getInputText(), previous_frame.getPlugin())
 
@@ -252,7 +223,7 @@ class CodecFrames(QFrame):
         assert self.hasPreviousFrame(_frame_index), 'Illegal operation! No previous frame!'
         previous_frame = self.getFrameByIndex(_frame_index - 1)
         self._context.listener().textChanged.emit(
-            self._tab_id, previous_frame.getFrameId(), previous_frame.getInputText(), False)
+            self._tab_id, previous_frame.getFrameId(), previous_frame.getInputText())
 
     @logmethod()
     def _on_frame_up_button_clicked(self, frame_id: str):
@@ -283,10 +254,10 @@ class CodecFrames(QFrame):
         #
         frame_index = self.getFrameIndex(frame_id)
         codec_frame = self.getFrameByIndex(frame_index)
-        assert not codec_frame or frame_index < 2, f'Illegal operation! moveFrameUp({frame_index}:{frame_id})'
+        assert codec_frame and frame_index > 1, f'Illegal operation! moveFrameUp({frame_index}:{frame_id})'
         self._switch_frames(frame_index - 2, frame_index - 1)
         codec_frame = self.getFrameByIndex(frame_index - 2)
-        self._set_input_text(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)
+        self._set_input_text(codec_frame.id(), is_user_action=False, do_preserve_state=True)
 
     @logmethod()
     def _on_frame_down_button_clicked(self, frame_id: str):
@@ -317,11 +288,11 @@ class CodecFrames(QFrame):
         #
         frame_index = self.getFrameIndex(frame_id)
         codec_frame = self.getFrameByIndex(frame_index)
-        assert not codec_frame or frame_index == 0 or frame_index == self.getFramesCount() - 1, \
-            f'Illegal operation! moveFrameDown({frame_index}:{frame_id})'
+        assert codec_frame and frame_index > 0 or frame_index < self.getFramesCount() - 1, \
+            f'Illegal operation! moveFrameDown({frame_index}:{frame_id}) with {self.getFramesCount()} frames'
         self._switch_frames(frame_index - 1, frame_index)
         codec_frame = self.getFrameByIndex(frame_index - 1)
-        self._set_input_text(codec_frame.id(), codec_frame.getInputText(), is_user_action=False, do_preserve_state=True)
+        self._set_input_text(codec_frame.id(), is_user_action=False, do_preserve_state=True)
 
     @logmethod()
     def _on_frame_config_button_clicked(self, frame_id: str):
@@ -329,17 +300,20 @@ class CodecFrames(QFrame):
         frame_index = self.getFrameIndex(frame_id)
         previous_frame = self.getFrameByIndex(frame_index - 1)
         if previous_frame:
+            if not self._configure_plugin(frame_id, previous_frame.getInputText(), previous_frame.getPlugin()):
+                # Abort if the user cancels the configuration
+                return
             self._new_frame(previous_frame.id(), previous_frame.getInputText(), previous_frame.getPlugin())
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Public functiosn
+    # Public functions
     # ------------------------------------------------------------------------------------------------------------------
 
     def getFrameIndex(self, frame_id) -> int:
         frame = None
         index = 0
         for current_frame in self.getFrames():
-            if current_frame.id() == frame_id:
+            if current_frame.getFrameId() == frame_id:
                 frame = current_frame
                 break
             index = index + 1
@@ -390,6 +364,7 @@ class CodecFrames(QFrame):
     @logmethod()
     def newFrame(self, input_text: str, title: str, frame_index: int, status, msg=None) -> CodecFrame:
         if frame_index < self.getFramesCount():
+            # if frame already exists, refill frame.
             return self._refill_frame(input_text, title, frame_index, status, msg)
 
         self._context.logger.debug(f'Adding new codec frame {title} at {frame_index} ...')
@@ -404,9 +379,27 @@ class CodecFrames(QFrame):
         new_frame.downButtonClicked.connect(self._on_frame_down_button_clicked)
         new_frame.closeButtonClicked.connect(self._on_frame_close_button_clicked)
 
+        def selected_frame_changed(frame_id):
+            # Always remember the currently focused frame (e.g. used for finding the currently selected frame when
+            # using keyboard-shortcuts)
+            self._focused_frame = self.getFrameById(frame_id)
+
+        new_frame.frameChanged.connect(selected_frame_changed)
+
+        def textChanged(tab_id, frame_id, text):
+            if self._tab_id == tab_id:
+                self._set_input_text(frame_id)
+
+        new_frame.textChanged.connect(textChanged)
         if frame_index > 0:
             # Every new frame (except the first frame) should signal success/error.
             new_frame.setStatus(status, msg)
+
+        def on_text_submitted(tab_id: str, frame_id: str, text: str):
+            if tab_id == self._tab_id and frame_id == new_frame.id():
+                new_frame.setInputText(text)
+
+        self._context.listener().textSubmitted.connect(on_text_submitted)
 
         if previous_frame and frame_index > 1:
             # Auto-collapse frame where plugin was selected (except first frame and when this frame had focus).
@@ -417,6 +410,12 @@ class CodecFrames(QFrame):
         new_frame.header().refresh()
         if previous_frame: previous_frame.header().refresh()
         return new_frame
+
+    def frame(self, index: int) -> CodecFrame:
+        return self.layout().itemAt(index).widget()
+
+    def count(self) -> int:
+        return self.layout().count()
 
     @logmethod()
     def toDict(self) -> List[dict]:

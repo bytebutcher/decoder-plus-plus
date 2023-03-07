@@ -165,6 +165,9 @@ class CollapsibleFrame(QFrame):
                 self.clearLayout()
                 self.layout().addWidget(widget)
 
+            def centralWidget(self) -> QWidget:
+                return self.layout().itemAt(0).widget()
+
             def setStatus(self, status: str, message: str):
                 """ Sets a status.
                 :param status: The status to set. Either "DEFAULT", "SUCCESS", or "ERROR".

@@ -27,6 +27,7 @@ from dpp.ui.dock.hex_dock import HexDock
 from dpp.ui.dock.log_dock import LogDock
 from dpp.ui.view.classic.classic_main_window_widget import ClassicMainWindowWidget
 from dpp.ui.view.classic import CodecTab
+from dpp.ui.view.modern.modern_main_window_widget import ModernMainWindowWidget
 from dpp.ui.widget.dock_tabs_widget import DockTabsWidget
 
 
@@ -60,14 +61,14 @@ class DecoderPlusPlusWindow(DecoderPlusPlusGui):
         self.setCentralWidget(ClassicMainWindowWidget(self, self._context, input_text))
         self.show()
 
-    def newTab(self, input_text: str):
+    def newTab(self, input_text: str) -> (int, CodecTab):
         """
         Opens a new tab with the specified input as content for the first codec frame.
         This function is used when user runs Decoder++ when it is already running and the --new-instance switch
         was not used.
         """
         self._context.logger.info("Opening input in new tab...")
-        self.centralWidget().tabsWidget().onTabAddButtonClick.emit(None, input_text)
+        return self.centralWidget().newTab(input_text=input_text)
 
 
 class DecoderPlusPlusDialog(DecoderPlusPlusGui):

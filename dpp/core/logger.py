@@ -110,7 +110,10 @@ def getLogger(name: str, level: int) -> logging.Logger:
     """ Initializes a logging.Logger with the specified level. """
     logger = logging.getLogger(name)
     logger.setLevel(level)
-    addLoggingLevel('TRACE', level_trace)
+    try:
+        addLoggingLevel('TRACE', level_trace)
+    except AttributeError as err:
+        logger.debug(f'Failed to add TRACE logging level: {err}')
     console_logger = logging.StreamHandler(sys.stderr)
     console_logger.setFormatter(logging.Formatter(_get_log_format(level)))
     logger.addHandler(console_logger)

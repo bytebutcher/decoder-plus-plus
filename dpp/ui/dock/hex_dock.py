@@ -247,7 +247,7 @@ class HexView(QTableView):
     def _on_selection_change(self, tab_id: str, frame_id: str, input_text: str):
         self._update_view(tab_id, frame_id, input_text)
 
-    def _on_text_change(self, tab_id: str, frame_id: str, input_text: str, user_interaction: bool):
+    def _on_text_change(self, tab_id: str, frame_id: str, input_text: str):
         self._update_view(tab_id, frame_id, input_text)
 
     def _on_selected_frame_change(self, tab_id: str, frame_id: str, input_text: str):

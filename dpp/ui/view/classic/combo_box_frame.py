@@ -78,8 +78,9 @@ class ComboBoxFrame(QFrame):
         combo_box.focusOutEvent = lambda e: QTimer.singleShot(100, lambda: combo_box.lineEdit().deselect())
         combo_box.setModel(model)
         combo_box.setModelColumn(0)
-        combo_box.activated.connect(
-            lambda i: self._combo_box_item_selected_event(combo_box_type, combo_box.currentIndex()))
+        combo_box.currentIndexChanged.connect(
+            lambda i: self._combo_box_item_selected_event(combo_box_type, combo_box.currentIndex())
+        )
         return combo_box
 
     @logmethod()
@@ -113,7 +114,7 @@ class ComboBoxFrame(QFrame):
             self.reselectItem(index, type, block_signals)
 
     def index(self, combo_box_type: str) -> int:
-        """ Returns the """
+        """ Returns the index of the currently selected item in the given combo box. """
         return self._combo_boxes[combo_box_type].currentIndex()
 
     @logmethod()
@@ -167,7 +168,7 @@ class ComboBoxFrame(QFrame):
 
     @logmethod()
     def focusType(self, combo_box_type: str):
-        """ Focues the combo-box associated with the specified type (e.g. PluginType.DECODER, ...). """
+        """ Focuses the combo-box associated with the specified type (e.g. PluginType.DECODER, ...). """
         self._combo_boxes[combo_box_type].setFocus()
 
     @logmethod()
