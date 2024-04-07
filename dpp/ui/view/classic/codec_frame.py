@@ -212,9 +212,35 @@ class CodecFrame(CollapsibleFrame):
     # ------------------------------------------------------------------------------------------------------------------
 
     def hasTextSelected(self) -> bool:
+        """ Returns whether there is a current text selection. """
         return self._plain_view_widget.hasTextSelected()
 
+    def selectText(self, start: int, end: int):
+        """
+        Selects text within the QPlainTextEdit widget, given the start and end positions.
+
+        Args:
+            start (int): The position to start the selection.
+            end (int): The position to end the selection.
+
+        Raises:
+            ValueError: If 'start' or 'end' positions are out of the text range.
+        """
+        self._plain_view_widget.selectText(start, end)
+
     def getSelectedText(self) -> Tuple[str, str, str]:
+        """
+        Retrieves the text selected by the user in the QPlainTextEdit widget.
+        If no text is selected, it raises an Exception.
+
+        Returns:
+            Tuple[str, str, str]: A tuple containing three strings:
+                                   - The text before the selection,
+                                   - The selected text,
+                                   - The text after the selection.
+        Raises:
+            Exception: If no text is selected.
+        """
         return self._plain_view_widget.getSelectedText()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -236,7 +262,13 @@ class CodecFrame(CollapsibleFrame):
         return self._plain_view_widget.toPlainText()
 
     def getOutputText(self) -> str:
-        return self.getPlugin().run(self.getInputText())
+        if self.hasTextSelected():
+            start_text, input_text, end_text = self.getSelectedText()
+            output = start_text + self.getPlugin().run(input_text) + end_text
+        else:
+            input_text = self.getInputText()
+            output = self.getPlugin().run(input_text)
+        return output
 
     def getComboBoxes(self):
         return self._combo_box_frame

@@ -348,7 +348,7 @@ class PlainView(QFrame):
         self._apply_selections_highlighting(tmp_selections)
 
     def hasTextSelected(self) -> bool:
-        """ Returns whether there are current and stored text selections. """
+        """ Returns whether there is a current text selection. """
         cursor = self._plain_text.textCursor()
         selected_text = cursor.selectedText()
         return selected_text or self._selections
@@ -376,6 +376,26 @@ class PlainView(QFrame):
         end = text[cursor.selectionEnd():]
 
         return start, selection, end
+
+    def selectText(self, start: int, end: int):
+        """
+        Selects text within the QPlainTextEdit widget, given the start and end positions.
+
+        Args:
+            start (int): The position to start the selection.
+            end (int): The position to end the selection.
+
+        Raises:
+            ValueError: If 'start' or 'end' positions are out of the text range.
+        """
+        text_length = len(self._plain_text.toPlainText())
+        if start < 0 or end > text_length or start > end:
+            raise ValueError('Invalid start or end position for text selection.')
+
+        cursor = self._plain_text.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        self._plain_text.setTextCursor(cursor)
 
     # ------------------------------------------------------------------------------------------------------------------
 

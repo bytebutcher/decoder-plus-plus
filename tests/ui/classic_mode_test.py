@@ -108,6 +108,15 @@ class TestClassicMode(unittest.TestCase):
         self.assertFrame(codec_frames.frame(1), "%69 VDK2EV4404ESVDX0", "VV4:97Y+AZM9KY8:Q6A46HY8Y+AV6B", ("SUCCESS", None), True)
         self.assertFrame(codec_frames.frame(2), "VV4:97Y+AZM9KY8:Q6A46HY8Y+AV6B", "", ("SUCCESS", None), False)
 
+    def testTransformSelectedText(self):
+        # Selective Text Transformation #66
+        idx, codec_tab = self.dpp.newTab("Hello, world!")
+        codec_frames = codec_tab.frames()
+        codec_frames.frame(0).selectText(0, 5)
+        plugin = load_plugin("Base64", PluginType.ENCODER)
+        codec_frames.frame(0).setPlugin(plugin, block_signals=False)
+        self.assertFrame(codec_frames.frame(0), "Hello, world!", "SGVsbG8=, world!", ("DEFAULT", None), False)
+
     def testMoveCodecUp(self):
         """
         # Example:
