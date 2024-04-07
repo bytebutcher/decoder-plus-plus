@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
+from typing import Tuple
 
 from qtpy import QtCore
 from qtpy.QtCore import QRegularExpression, QPoint, QEvent, Signal
@@ -346,11 +347,35 @@ class PlainView(QFrame):
         tmp_selections.append((cur_sel_start, cur_sel_end, self.color_codes[0]))
         self._apply_selections_highlighting(tmp_selections)
 
-    def hastTextSelected(self) -> bool:
+    def hasTextSelected(self) -> bool:
         """ Returns whether there are current and stored text selections. """
         cursor = self._plain_text.textCursor()
         selected_text = cursor.selectedText()
         return selected_text or self._selections
+
+    def getSelectedText(self) -> Tuple[str, str, str]:
+        """
+        Retrieves the text selected by the user in the QPlainTextEdit widget.
+        If no text is selected, it raises an Exception.
+
+        Returns:
+            Tuple[str, str, str]: A tuple containing three strings:
+                                   - The text before the selection,
+                                   - The selected text,
+                                   - The text after the selection.
+        Raises:
+            Exception: If no text is selected.
+        """
+        if not self.hasTextSelected():
+            raise Exception('No text selected!')
+        cursor = self._plain_text.textCursor()
+        text = self._plain_text.toPlainText()
+
+        start = text[:cursor.selectionStart()]
+        selection = text[cursor.selectionStart():cursor.selectionEnd()]
+        end = text[cursor.selectionEnd():]
+
+        return start, selection, end
 
     # ------------------------------------------------------------------------------------------------------------------
 

@@ -53,17 +53,22 @@ class CodecFrames(QFrame):
         return True
 
     @logmethod()
-    def _run_plugin(self, input_text: str, plugin: AbstractPlugin) -> Tuple[str, str, str]:
+    def _run_plugin(self, frame: CodecFrame) -> Tuple[str, str, str]:
         """
         Runs the plugin using the input text on the frame.
-        @param input_text: the input text for the plugin.
-        @param plugin: the plugin to run.
+        @param frame: the frame to run.
         @return: the new CodecFrame or None if plugin configuration failed.
         """
         output = ""
         error = None
+        plugin = frame.getPlugin()
         try:
-            output = plugin.run(input_text)
+            if frame.hasTextSelected():
+                start_text, input_text, end_text = frame.getSelectedText()
+                output = start_text + plugin.run(input_text) + end_text
+            else:
+                input_text = frame.getInputText()
+                output = plugin.run(input_text)
             status = StatusWidget.SUCCESS
         except BaseException as err:
             status = StatusWidget.ERROR
@@ -106,7 +111,7 @@ class CodecFrames(QFrame):
     @logmethod()
     def _new_frame(self, frame: CodecFrame) -> CodecFrame:
         plugin = frame.getPlugin()
-        output, status, error = self._run_plugin(frame.getInputText(), plugin)
+        output, status, error = self._run_plugin(frame)
         new_frame_index = frame.getFrameIndex() + 1
         return self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error)
 
@@ -172,7 +177,7 @@ class CodecFrames(QFrame):
     @logmethod()
     def _update_frame(self, frame: CodecFrame) -> CodecFrame:
         plugin = frame.getPlugin()
-        output, status, error = self._run_plugin(frame.getInputText(), plugin)
+        output, status, error = self._run_plugin(frame)
         new_frame_index = frame.getFrameIndex() + 1
         return self.newFrame(output, plugin.title, new_frame_index, status=status, msg=error)
 
@@ -239,10 +244,7 @@ class CodecFrames(QFrame):
     def _on_frame_refresh_button_clicked(self, frame_id: str):
         _frame_index = self.getFrameIndex(frame_id)
         self._context.logger.debug(f'Refreshing frame {_frame_index}:{frame_id}')
-        assert self.hasPreviousFrame(_frame_index), 'Illegal operation! No previous frame!'
-        previous_frame = self.getFrameByIndex(_frame_index - 1)
-        self._context.listener().textChanged.emit(
-            self._tab_id, previous_frame.getFrameId(), previous_frame.getInputText())
+        self._update_frames(frame_id, is_user_action=False)
 
     @logmethod()
     def _on_frame_up_button_clicked(self, frame_id: str):

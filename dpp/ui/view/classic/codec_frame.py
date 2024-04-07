@@ -14,9 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import dataclasses
 import uuid
-from typing import List
+from typing import Tuple
 
 from qtpy import QtCore
 from qtpy.QtCore import Signal
@@ -59,13 +58,6 @@ class CodecFrame(CollapsibleFrame):
 
     # Signals that the selected plugin changed
     pluginSelected = Signal(str, 'PyQt_PyObject')  # frame_id, plugin
-
-    @dataclasses.dataclass
-    class TextSelection:
-        start: int
-        end: int
-        color: str
-        plugin: AbstractPlugin
 
     @logmethod()
     def __init__(self, parent, context: Context, tab_id: str, codec_frames, plugins: PluginManager, text):
@@ -222,13 +214,8 @@ class CodecFrame(CollapsibleFrame):
     def hasTextSelected(self) -> bool:
         return self._plain_view_widget.hasTextSelected()
 
-    def getTextSelections(self) -> List[TextSelection]:
-        # TODO:
-        ...
-
-    def getSelectedText(self) -> TextSelection:
-        # TODO:
-        ...
+    def getSelectedText(self) -> Tuple[str, str, str]:
+        return self._plain_view_widget.getSelectedText()
 
     # ------------------------------------------------------------------------------------------------------------------
 
