@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __name__ = 'decoder-plus-plus'
-__version__ = '1.6.0'
+__version__ = '1.7.0'
 __author__ = 'bytebutcher'
 
 import os
