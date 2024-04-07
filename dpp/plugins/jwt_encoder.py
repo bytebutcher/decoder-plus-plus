@@ -14,19 +14,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dpp.core.plugin import DecoderPlugin
+from dpp.core.plugin import EncoderPlugin
 from dpp.core.plugin.config import Label
 from dpp.core.plugin.config.options import String
 
 
-class Plugin(DecoderPlugin):
+class Plugin(EncoderPlugin):
     """
-    Decodes JSON Web Tokens.
+    Encodes JSON Web Tokens.
 
     Example:
 
         Input:
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzb21lIjoicGF5bG9hZCJ9.4twFt5NiznN84AWoo1d7KO1T_yoc0Z6XOpOVswacPZg
+            {"some": "payload"}
 
         Options:
 
@@ -34,7 +34,7 @@ class Plugin(DecoderPlugin):
             algorithm: HS256
 
         Output:
-            {'some': 'payload'}
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzb21lIjoicGF5bG9hZCJ9.4twFt5NiznN84AWoo1d7KO1T_yoc0Z6XOpOVswacPZg
     """
 
     class Option(object):
@@ -59,18 +59,12 @@ class Plugin(DecoderPlugin):
 
     def run(self, input_text: str) -> str:
         import jwt
+        import json
+        payload = json.loads(input_text.encode('utf-8', errors='surrogateescape'))
         parameters = {}
         if self.config.value(Plugin.Option.Key):
             parameters['key'] = self.config.value(Plugin.Option.Key)
         if self.config.value(Plugin.Option.Algorithm):
-            parameters['algorithms'] = [self.config.value(Plugin.Option.Algorithm)]
-        return str(jwt.decode(input_text.encode('utf-8', errors='surrogateescape'), verify=False, **parameters))
+            parameters['algorithm'] = self.config.value(Plugin.Option.Algorithm)
+        return str(jwt.encode(payload, **parameters))
 
-    def can_decode_input(self, input_text: str) -> bool:
-        if input_text and input_text.startswith("ey"):
-            try:
-                self.run(input_text)
-                return True
-            except:
-                return False
-        return False
