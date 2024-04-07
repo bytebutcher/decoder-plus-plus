@@ -23,12 +23,13 @@ import sys
 from typing import List
 
 from dpp.core.assertions import assert_type
+from dpp.core.listener import Signal
 from dpp.core.plugin import config
 from dpp.core.plugin.config import ui, PluginConfig
 from dpp.core.plugin.config import options
-from dpp.core.plugin.config.ui import Layout
-from dpp.core.plugin.config.ui.layouts import FormLayout
-from dpp.core.plugin.config.ui.widgets import Option
+from dpp.core.plugin.config.ui import Layout, Widget
+from dpp.core.plugin.config.ui.layouts import FormLayout, VBoxLayout
+from dpp.core.plugin.config.ui.widgets import Option, GroupBox, TextPreview
 
 
 class PluginType(object):
@@ -41,6 +42,10 @@ class PluginType(object):
 
 class AbstractPlugin:
     """ Base-class to all plugins. Should not be used directly. Instead, use one of its abstract implementations. """
+
+    # Signals used to communicate error or success to the plugin configuration dialog.
+    onError = Signal('PyQt_PyObject')
+    onSuccess = Signal('PyQt_PyObject')
 
     def __init__(self, name: str, type: str, author: str, dependencies: List[str],
                  context: 'dpp.core.context.Context', icon: tuple = None):
@@ -60,9 +65,9 @@ class AbstractPlugin:
         self._config = PluginConfig(context)
         self._context = context
         self._icon = icon
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
 
-    def setup(self, config: dict):
+    def setup(self, config: dict, safe_mode: bool = False):
         """ Injects a given configuration into the plugin. """
         for name, value in config.items():
             self.config.add(value)
@@ -178,6 +183,11 @@ class AbstractPlugin:
         """ :returns all dependencies in a list. """
         return self._dependencies
 
+    def validate_options(self, input_text, option_keys=None):
+        if option_keys:
+            for option_key in option_keys:
+                self.config.validate(self.config.option(option_key), input_text)
+
     def run(self, text: str) -> str:
         """ The main method of the plugin which must be implemented by the plugin. """
         raise NotImplementedError('Method must be implemented by the upper class')
@@ -193,9 +203,26 @@ class AbstractPlugin:
             lines.append(' '.join(result))
         return os.linesep.join(lines)
 
+    def _create_options_group_box(self, input_text) -> Widget:
+        return GroupBox(label='Options', layout=self._create_options_layout(input_text))
+
+    def _create_options_layout(self, input_text) -> Layout:
+        return FormLayout(widgets=[Option(option) for option in self._config.values()])
+
+    def _create_preview_group_box(self, input_text) -> Widget:
+        return GroupBox(label='Preview', layout=self._create_preview_layout(input_text))
+
+    def _create_preview_layout(self, input_text) -> Layout:
+        return VBoxLayout(widgets=[TextPreview(self, input_text)])
+
     def layout(self, input_text: str) -> Layout:
         """ Returns a layout containing all configuration entries. """
-        return FormLayout(widgets=[Option(option) for option in self._config.values()])
+        return VBoxLayout(
+            widgets=[
+                self._create_options_group_box(input_text),
+                self._create_preview_group_box(input_text)
+            ]
+        )
 
     def _join_options_as_human_readable_string(self, options: List[str]):
         """ Returns the list of options as human-readable string.

@@ -6,27 +6,27 @@
 
 # Decoder++
 
-An extensible application for penetration testers and software developers to decode/encode data into various formats.
+Decoder++ is an extensible application designed for penetration testers, software developers, 
+and anyone in between looking to effortlessly decode and encode data across various formats. 
+It includes a wide range of preinstalled scripts and codecs, smart decoding and format identification, 
+and supports both graphical user interface (GUI) and command-line interface (CLI) operations.
 
-## Setup
+## Quick Start
 
-To install ```Decoder++``` simply use ```pip```:
+Get up and running with Decoder++ in just a few steps:
 
 ```bash
 # Install using pip (latest:qt6)
 pip3 install decoder-plus-plus[qt6]
 
-# Install using pip (backport:qt5)
+# Or, for a qt5 backport:
 pip3 install decoder-plus-plus[qt5]
-```
 
-Note, that this will install ```Decoder++``` and the most common plugins.
-In order to install and use all available plugins the package ```decoder-plus-plus[extras]``` needs to be installed:
-```
+# To leverage all features and plugins:
 pip3 install decoder-plus-plus[extras]
 ```
 
-Please refer to the [Installation Guide](docs/INSTALL.md) for more information regarding individual setups. 
+For a detailed installation guide, including platform-specific instructions, see the [Installation Guide](docs/INSTALL.md).
 
 ## Overview
 
@@ -55,26 +55,32 @@ $ dpp -e base64 -h sha1 "Hello, world!"
 e52d74c6d046c390345ae4343406b99587f2af0d
 ```
 
-### Features
+### Codecs and Scripts
 
-* User Interfaces:
-    * Graphical User Interface
-    * Command Line Interface
-* Preinstalled Scripts and Codecs:
-    * **Encode/Decode:** Base16, Base32, Base45, Base64, Base64 (URL-safe), Binary, Gzip, Hex, Html, JWT, HTTP64, Octal, Url, Url+, Zlib
-    * **Hashing:** Adler-32, Apache-Md5, CRC32, FreeBSD-NT, Keccak224, Keccak256, Keccak384, Keccak512, LM, Md2, Md4,
-        Md5, NT, PHPass, RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512, Sha224, Sha256, Sha348, Sha512,
-        Sun Md5
-    * **Scripts:** CSS-Minify, Caesar, Extract URLs, Filter-Lines, Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ, JSONify, JSONPath, HTML-Beautifier, Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces, Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
-* Format-Identification
-* Smart-Decode
-* Plugin System
-* Load & Save Current Session
-* Supported Platforms:
-    * Windows
-    * Linux
-    * MAC
+```Decoder++``` allows you to choose from a variety of codecs and scripts:
 
+* **Encode/Decode:**
+  - Base16, Base32, Base45, Base64, Base64 (URL-safe)
+  - Binary, Gzip, Hex, Html, JWT, HTTP64
+  - Octal, Url, Url+, Zlib
+* **Hashing:** 
+  - Adler-32, Apache-Md5, CRC32, FreeBSD-NT
+  - Keccak224, Keccak256, Keccak384, Keccak512
+  - LM, Md2, Md4, Md5, NT, PHPass
+  - RipeMd160, Sha1, Sha3 224, Sha3 256, Sha3 384, Sha3 512
+  - Sha224, Sha256, Sha348, Sha512, Sun Md5
+* **Scripts:**
+  - Caesar, CSS-Minify, Custom Code, Extract URLs, Filter-Lines
+  - Identify File Format, Identify Hash Format, JS-Beautifier, JS-to-XML, JQ
+  - JSONify, JSONPath, HTML-Beautifier
+  - Little/Big-Endian Transform, Reformat Text, Remove Newlines, Remove Whitespaces
+  - Search and Replace, Split and Rejoin, Unescape/Escape String, XPath
+
+
+In cases where you require a bit more flexibility ```Decoder++``` allows you to process your data with 
+custom scripts by using the ```Custom Code``` script:
+
+![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-custom-code-script.png)
 
 ## Advanced Usage
 

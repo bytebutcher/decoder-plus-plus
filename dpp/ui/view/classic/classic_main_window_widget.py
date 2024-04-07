@@ -19,6 +19,7 @@ import json
 
 from qtpy.QtWidgets import QFileDialog, QWidget
 
+from dpp.core.logger import logmethod
 from dpp.core.plugin import PluginType
 from dpp.ui.view.classic import CodecTab
 from dpp.ui.view.classic.codec_frame import CodecFrame
@@ -87,12 +88,16 @@ class ClassicMainWindowWidget(MainWindowWidget):
 
     @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_NEXT, text="Select &Next Text Field", shortcut_key="Alt+Down")
     def _focus_next_input_text_action(self):
-        self._focus_input_text(lambda frame: frame.getNextFrame())
+        focused_frame = self._get_focused_frame()
+        if focused_frame and focused_frame.hasNextFrame():
+            self._focus_input_text(focused_frame.getNextFrame())
 
     @menu.register_menu_item(id=MenuItem.FOCUS_INPUT_TEXT_PREVIOUS, text="Select &Previous Text Field",
                              shortcut_key="Alt+Up")
     def _focus_previous_input_text_action(self):
-        self._focus_input_text(lambda frame: frame.getPreviousFrame())
+        focused_frame = self._get_focused_frame()
+        if focused_frame and focused_frame.hasPreviousFrame():
+            self._focus_input_text(focused_frame.getPreviousFrame())
 
     #############################################
     # Helper functions
@@ -106,24 +111,17 @@ class ClassicMainWindowWidget(MainWindowWidget):
     def _get_focused_frame(self) -> CodecFrame:
         return self.tabsWidget().currentWidget().frames().getFocusedFrame()
 
-    def _focus_input_text(self, callback):
-        frame = self._get_focused_frame()
-        if frame:
-            future_frame = callback(frame) or frame
-            future_frame.focusInputText()
-            # Collapse/Uncollapse frames automatically.
-            if self.tabsWidget().currentWidget().frames().getFramesCount() > 2:
-                if frame != future_frame:
-                    if future_frame.isCollapsed():
-                        if future_frame.hasPreviousFrame():
-                            # Toggle frame, except the first frame which does not have a header
-                            future_frame.toggleCollapsed()
-                    if not frame.wasCollapseStateChangedByUser():
-                        if frame.hasPreviousFrame():
-                            # Collapse frame, except the first frame which does not have a header
-                            frame.toggleCollapsed()
+    def _focus_input_text(self, future_frame: CodecFrame):
+        focused_frame = self._get_focused_frame()
+        # Only collapse if frame was not manually collapsed by user and is not first or last frame
+        if not focused_frame.wasCollapseStateChangedByUser():
+            is_first_or_last_frame = not focused_frame.hasPreviousFrame() or not focused_frame.hasNextFrame()
+            if not is_first_or_last_frame:
+                focused_frame.setCollapsed(True)
 
-            self.tabsWidget().currentWidget().ensureWidgetVisible(future_frame)
+        future_frame.focusInputText()
+        future_frame.setCollapsed(False)
+        self.tabsWidget().currentWidget().ensureWidgetVisible(future_frame)
 
     #############################################
     # Connector functions
@@ -153,7 +151,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
                                                           frame_index,
                                                           frame_config["status"]["type"],
                                                           frame_config["status"]["message"])
-                        frame.fromDict(frame_config)
+                        frame.fromDict(frame_config, safe_mode=True)
                         frame_index = frame_index + 1
             self._context.logger.info("Successfully loaded {}!".format(filename))
         except Exception as e:
@@ -166,7 +164,9 @@ class ClassicMainWindowWidget(MainWindowWidget):
             return
 
         try:
-            self._context.saveAsFile(filename, str(json.dumps(self.toDict(), default=lambda x: x.__dict__)))
+            content = str(json.dumps(self.toDict(), default=lambda x: x.__dict__))
+            with open(filename, "w") as f:
+                f.write(content)
             self._context.logger.info("Successfully saved session in {}!".format(filename))
         except Exception as e:
             self._context.logger.error("Unexpected error saving file. {}".format(e))
@@ -175,6 +175,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
     # Public functions
     #############################################
 
+    @logmethod()
     def newTab(self, title: str = None, input_text: str = None, widget: QWidget = None) -> (int, QWidget):
         tab = CodecTab(self, self._context, self._plugins)
         tab.frames().getFocusedFrame().setInputText(input_text)
@@ -183,6 +184,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
         tab.frames().getFocusedFrame().focusInputText()
         return super().newTab(title, input_text, tab)
 
+    @logmethod()
     def duplicateTab(self, title, src_tab):
         tab_index, dst_tab = self.newTab(title=title)
         frame_index = 0
@@ -202,6 +204,7 @@ class ClassicMainWindowWidget(MainWindowWidget):
             dst_tab.frames().getFrameByIndex(frame_index).fromDict(src_frame.toDict())
             frame_index = frame_index + 1
 
+    @logmethod()
     def toDict(self):
         return [{
             "name": self.tabsWidget().tabBar().tabText(tabIndex),

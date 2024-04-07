@@ -67,7 +67,7 @@ class Listener:
     selectedFrameChanged = Signal(str, str, str)  # tab_id, frame_id, input_text
 
     # Signals that the text inside the codec frame changed (e.g. to update the hex view)
-    textChanged = Signal(str, str, str, bool)  # tab_id, frame_id, input_text, interactive
+    textChanged = Signal(str, str, str)  # tab_id, frame_id, input_text
 
     # Signals that the text selection inside the codec frame changed (e.g. to update the hex view)
     textSelectionChanged = Signal(str, str, str)  # tab_id, frame_id, input_text
@@ -83,8 +83,8 @@ class Listener:
         self.selectedFrameChanged.connect(lambda tab_id, frame_id, input_text:
                                           context.logger.trace(
                                               "selectedFrameChanged({}, {}, {})".format(tab_id, frame_id, input_text)))
-        self.textChanged.connect(lambda tab_id, frame_id, input_text, interactive:
-            context.logger.trace("textChanged({}, {}, {}, {})".format(tab_id, frame_id, input_text, interactive)))
+        self.textChanged.connect(lambda tab_id, frame_id, input_text:
+            context.logger.trace("textChanged({}, {}, {})".format(tab_id, frame_id, input_text)))
         self.textSelectionChanged.connect(lambda tab_id, frame_id, input_text:
             context.logger.trace("textSelectionChanged({}, {}, {})".format(tab_id, frame_id, input_text)))
         self.textSubmitted.connect(lambda tab_id, frame_id, input_text:

@@ -34,7 +34,7 @@ class ConfigDialog(QDialog):
 
     def __init__(self, parent, context: 'core.context.Context', select_tab_name: str = None):
         """
-        Initializes the hidden dialog.
+        Initializes the config dialog.
         :param parent: the widget which is calling the dialog.
         :param context: the context of the application.
         :param select_tab_name: the tab name which should be selcted.
@@ -59,7 +59,7 @@ class ConfigDialog(QDialog):
 
         self.setLayout(layout)
         self.setMinimumWidth(640)
-        self.setWindowTitle(" ")
+        self.setWindowTitle("Configuration")
 
     def _init_tab_selection(self, tabs: QTabWidget, tab_name: str):
         """ Selects the tab with the specified name. """
@@ -73,9 +73,9 @@ class ConfigDialog(QDialog):
         base_layout = QHBoxLayout()
         base_layout.setAlignment(QtCore.Qt.AlignVCenter)
         if datetime.now().month == 12:
-            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp_xmas.png')
+            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp_xmas_stylized.png')
         else:
-            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp.png')
+            logo = os.path.join(self._context.getAppPath(), 'images', 'dpp_stylized.png')
         icon_frame = QFrame()
         icon_layout = QHBoxLayout()
         icon_label = IconLabel(self, QIcon(logo))

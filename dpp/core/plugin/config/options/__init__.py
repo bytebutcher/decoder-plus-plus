@@ -19,11 +19,22 @@ from dpp.core.plugin.config import Option
 
 class String(Option):
 
-    def __init__(self, label, value, description, is_required):
+    def __init__(self, label, value, description, is_required=True):
         """
         :param value: the string (e.g. "ab cd ef gh ij kl mn op qr st uv wx yz").
         """
         super(String, self).__init__(label, value, description, is_required)
+
+
+class Text(String):
+
+    def __init__(self, label, value, description, is_required=True, read_only=False, wrap_lines=False):
+        """
+        :param value: the text (e.g. "ab\ncd\nef\ngh\nij\nkl\nmn\nop\nqr\nst\nuv\nwx\nyz").
+        """
+        super(Text, self).__init__(label, value, description, is_required)
+        self.read_only = read_only
+        self.wrap_lines = wrap_lines
 
 
 class Integer(Option):
@@ -80,3 +91,12 @@ class ComboBox(Option):
         """
         super(ComboBox, self).__init__(label, value, description, is_required)
         self.values = values
+
+
+class CodeEditor(Option):
+
+    def __init__(self, label, value, description, is_required):
+        """
+        :param value: the source code (e.g. "def run(input_text):\n\treturn input_text").
+        """
+        super(CodeEditor, self).__init__(label, value, description, is_required)

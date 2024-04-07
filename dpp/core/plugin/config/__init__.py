@@ -22,6 +22,7 @@ import dpp
 from dpp.core.exceptions import ValidationError
 from dpp.core.listener import Signal
 from dpp.core import plugin
+from dpp.core.logger import logmethod
 
 
 class Label:
@@ -127,6 +128,7 @@ class PluginConfig:
         """ Returns the number of configuration options. """
         return len(self._config.keys())
 
+    @logmethod()
     def update(self, options):
         """
         Updates the value for each specified option.
@@ -140,7 +142,6 @@ class PluginConfig:
             update(config.clone())
         """
         from dpp.core.plugin.config.options import Group
-        self._context.logger.trace('Updating plugin configuration ...')
         if isinstance(options, PluginConfig):
             # Adding/Removing config entries should not be possible during runtime.
             assert options.keys() == self._config.keys(), 'Invalid plugin config! Expected identical keys!'
@@ -167,7 +168,7 @@ class PluginConfig:
 
             updated_keys = []
             for key in options.keys():
-                if options[key] == self._config[key]:
+                if options[key] == self._config[key].value:
                     # Option did not change. Continue with next entry.
                     continue
 
@@ -193,11 +194,11 @@ class PluginConfig:
         plugin_config._validators = self._validators
         return plugin_config
 
-    def validate(self, option: Option, plugin: 'AbstractPlugin', input_text: str) -> str:
+    def validate(self, option: Option, input_text: str) -> str:
         """ Returns None if validation succeeded, else error message. """
         if option.key in self._validators and self._validators[option.key] is not None:
             try:
-                return self._validators[option.key](plugin, input_text)
+                return self._validators[option.key](input_text)
             except ValidationError as err:
                 return str(err)
             except Exception as err:

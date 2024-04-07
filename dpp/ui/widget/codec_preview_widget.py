@@ -26,7 +26,7 @@ class CodecPreviewWidget(QFrame):
 
     def __init__(self, plugin, input_text):
         super().__init__()
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         view_frame_layout = QHBoxLayout()
         view_frame_layout.setContentsMargins(0, 5, 0, 5)
         self._txt_preview = QPlainTextEdit(self)
@@ -47,8 +47,10 @@ class CodecPreviewWidget(QFrame):
             self._txt_preview.setStyleSheet('')
             result = self._plugin.run(self._input_text)
             self._txt_preview.setPlainText(result)
+            self._plugin.onSuccess.emit("")
         except BaseException as err:
             self._txt_preview.setStyleSheet('border: 1px solid red;')
+            self._plugin.onError.emit(str(err))
             self._logger.debug(err, exc_info=False)
 
     def _show_preview_frame_context_menu(self, point: QPoint = None):

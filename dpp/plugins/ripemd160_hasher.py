@@ -14,6 +14,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+#   2018-07-09 - Initial implementation by Tim Menapace using the hashlib library.
+#   2024-04-06 - Replaced hashlib library with pycryptodome since the availability of RIPEMD160 in hashlib
+#                is not guaranteed and depends on the SSL library used on the platform.
+#
 from dpp.core.plugin import HasherPlugin
 
 
@@ -34,8 +40,8 @@ class Plugin(HasherPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('RIPEMD160', "Tim Menapace", ["hashlib"], context)
+        super().__init__('RIPEMD160', "Tim Menapace", ["pycryptodome"], context)
 
     def run(self, input_text: str) -> str:
-        import hashlib
-        return hashlib.new('ripemd160', input_text.encode('utf-8', errors='surrogateescape')).hexdigest()
+        from Crypto.Hash import RIPEMD160
+        return RIPEMD160.new(input_text.encode('utf-8', errors='surrogateescape')).hexdigest()

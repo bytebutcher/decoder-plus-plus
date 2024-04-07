@@ -67,7 +67,7 @@ class Context(QObject):
         TAB_CLOSE = "tab_close"
         TAB_SELECT_ = "tab_select_{}"
         TAB_SELECT_1 = "tab_select_1"
-        TAB_SELECT_2= "tab_select_2"
+        TAB_SELECT_2 = "tab_select_2"
         TAB_SELECT_3 = "tab_select_3"
         TAB_SELECT_4 = "tab_select_4"
         TAB_SELECT_5 = "tab_select_5"
@@ -92,14 +92,13 @@ class Context(QObject):
         SHOW_KEYBOARD_SHORTCUTS = "show_keyboard_shortcuts"
         SHOW_ABOUT = "show_about"
 
-    def __init__(self, app_id, app_path, namespace):
+    def __init__(self, app_id, app_path):
         super(__class__, self).__init__()
         self._app_id = app_id
         self._app_path = app_path
-        self._namespace = namespace
         self._trace_mode = False
         self._debug_mode = self.config.isDebugModeEnabled()
-        self._logger = logger.init_logger(self.getLogLevel())
+        self._logger = logger.getLogger(name='dpp', level=self.getLogLevel())
         self._listener = Listener(self)
         self._plugins = None
         self._shortcuts = {}
@@ -117,7 +116,7 @@ class Context(QObject):
     @property
     def logger(self) -> logging.Logger:
         """ Returns the standard logger for this application. """
-        return logging.getLogger()
+        return self._logger
 
     def getAppName(self) -> str:
         """ Returns the name of the application. """
@@ -157,7 +156,7 @@ class Context(QObject):
             self.config.setDebugMode(status)
         self._debug_mode = status
         self._trace_mode = False
-        logger.set_level(logging.DEBUG if status else logging.INFO)
+        self._logger.setLevel(logging.DEBUG if status else logging.INFO)
         status_string = "enabled" if status else "disabled"
         self._logger.info("Debug Mode: {} {}".format(status_string, " (temporary) " if temporary else ""))
 
@@ -165,7 +164,7 @@ class Context(QObject):
         """ Enables/Disables debug mode. """
         self._trace_mode = status
         self._debug_mode = False
-        logger.set_level(logging.TRACE if status else logging.INFO)
+        self._logger.setLevel(logging.TRACE if status else logging.INFO)
         status_string = 'enabled' if status else 'disabled'
         self._logger.info(f'Trace Mode: {status_string}')
 
@@ -260,10 +259,6 @@ class Context(QObject):
 
     def getPluginByName(self, name: str, type: str) -> AbstractPlugin:
         return self.plugins().plugin(name, type)
-
-    def saveAsFile(self, filename: str, content: str):
-        with open(filename, "w") as f:
-            f.write(content)
 
     def __deepcopy__(self, memo):
         """ There shall be only one. """

@@ -24,7 +24,7 @@ from dpp.ui.view.modern.node_editor_tab import NodeEditorTab
 class ModernMainWindowWidget(MainWindowWidget):
 
     def __init__(self, parent, context: 'dpp.core.context.Context', input_text: str):
-        super().__init__(parent, context)
+        super().__init__(parent, context, input_text)
 
     #############################################
     # Menu items

@@ -16,14 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import json
 import logging
-import math
 import os.path
-import string
 from abc import abstractmethod
 from typing import Callable
 
 from lxml import etree
-from ruamel import yaml
 
 from dpp.core.exceptions import CodecException
 from dpp.core import plugin
@@ -173,7 +170,7 @@ class Plugin(plugin.ScriptPlugin):
         ))
         self._codec = JC()
 
-    def layout(self, input_text: str) -> Layout:
+    def _create_options_layout(self, input_text: str) -> Layout:
         return HBoxLayout(widgets=[
             Option(Plugin.Option.Format),
             Button(
@@ -201,7 +198,7 @@ class JC:
     class ParserBase:
 
         def __init__(self, input_format: str, input_text: str):
-            self._logger = logging.getLogger()
+            self._logger = logging.getLogger(__name__)
             self._input_format = input_format
             self._input_text = input_text
             self._output_text = ""
@@ -327,12 +324,13 @@ class JC:
     class YamlParser(ParserBase):
 
         def pre_check(self) -> bool:
+            from ruamel import yaml
             return self._check_true(lambda: yaml.safe_dump(self._input_text) != None)
 
 
     def __init__(self):
         import validators
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         self._auto_detect_skip_list = [
             'airport-s',
             'asciitable',

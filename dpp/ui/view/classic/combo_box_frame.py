@@ -21,15 +21,16 @@ from qtpy.QtGui import QStandardItemModel, QStandardItem
 from qtpy.QtWidgets import QFrame, QComboBox, QVBoxLayout
 
 import dpp
+from dpp.core.logger import logmethod
 from dpp.core.plugin import NullPlugin
 from dpp.core.plugin import PluginType
 from dpp.ui.widget.combo_box import ComboBox
 
 
 class ComboBoxFrame(QFrame):
-    pluginDeselected = Signal(str)  # combo_box_type
-    pluginSelected = Signal(str, int, 'PyQt_PyObject')  # combo_box_type, combo_box_index, plugin
+    pluginSelected = Signal('PyQt_PyObject')  # plugin
 
+    @logmethod()
     def __init__(self, parent, context):
         super(ComboBoxFrame, self).__init__(parent)
         self._context = context
@@ -53,6 +54,7 @@ class ComboBoxFrame(QFrame):
         self.setLayout(layout)
         self._combo_box_selection_history = []
 
+    @logmethod()
     def _init_combo_box(self, combo_box_title: str, combo_box_type: str):
         combo_box = ComboBox()
         combo_box.setEditable(True)
@@ -76,29 +78,33 @@ class ComboBoxFrame(QFrame):
         combo_box.focusOutEvent = lambda e: QTimer.singleShot(100, lambda: combo_box.lineEdit().deselect())
         combo_box.setModel(model)
         combo_box.setModelColumn(0)
-        combo_box.activated.connect(
-            lambda i: self._combo_box_item_selected_event(combo_box_type, combo_box.currentIndex()))
+        combo_box.currentIndexChanged.connect(
+            lambda i: self._combo_box_item_selected_event(combo_box_type, combo_box.currentIndex())
+        )
         return combo_box
 
+    @logmethod()
     def _combo_box_enter_pressed_event(self, combo_box_type: str):
         combo_box = self._combo_boxes[combo_box_type]
         current_text = combo_box.currentText()
         self._combo_box_selection_history.append([combo_box_type, combo_box.index()])
         self.selectItem(combo_box_type, current_text, block_signals=False)
 
+    @logmethod()
     def _combo_box_item_selected_event(self, combo_box_type: str, combo_box_index: int):
         self.resetExceptType(combo_box_type)
         if combo_box_index == 0:
             # Remove frames below when title element was selected
             # Note: It does not matter which combo box is the source, since all combo boxes are going to reset
             # to index 0.
-            self.pluginDeselected.emit(combo_box_type)
+            self.pluginSelected.emit(None)
             return
 
         self._combo_box_selection_history.append([combo_box_type, combo_box_index])
         plugin = self.getPluginByTypeAndIndex(combo_box_type, combo_box_index)
-        self.pluginSelected.emit(combo_box_type, combo_box_index, plugin)
+        self.pluginSelected.emit(plugin)
 
+    @logmethod()
     def reselectLastItem(self, block_signals=True):
         # Always reset everything first.
         self.resetAll()
@@ -108,9 +114,10 @@ class ComboBoxFrame(QFrame):
             self.reselectItem(index, type, block_signals)
 
     def index(self, combo_box_type: str) -> int:
-        """ Returns the """
+        """ Returns the index of the currently selected item in the given combo box. """
         return self._combo_boxes[combo_box_type].currentIndex()
 
+    @logmethod()
     def reselectItem(self, index: int, combo_box_type: str, block_signals=True):
         combo_box = self._combo_boxes[combo_box_type]
         combo_box.blockSignals(block_signals)
@@ -142,11 +149,14 @@ class ComboBoxFrame(QFrame):
         else:
             return NullPlugin(self._context)
 
+    @logmethod()
     def selectItem(self, combo_box_type: str, plugin_name: str, block_signals=False):
         if not combo_box_type and not plugin_name:
+            # Signals are blocked during this call.
             self.resetAll()
             return
 
+        # Signals are blocked during this call.
         self.resetExceptType(combo_box_type)
         combo_box = self._combo_boxes[combo_box_type]
         for i in range(combo_box.count()):
@@ -156,10 +166,12 @@ class ComboBoxFrame(QFrame):
                 combo_box.blockSignals(False)
                 break
 
+    @logmethod()
     def focusType(self, combo_box_type: str):
-        """ Focues the combo-box associated with the specified type (e.g. PluginType.DECODER, ...). """
+        """ Focuses the combo-box associated with the specified type (e.g. PluginType.DECODER, ...). """
         self._combo_boxes[combo_box_type].setFocus()
 
+    @logmethod()
     def _reset(self, *combo_boxes, **kwargs):
         """ Resets a list of combo-boxes. """
         for combo_box in combo_boxes:
@@ -167,17 +179,20 @@ class ComboBoxFrame(QFrame):
             combo_box.setCurrentIndex(0)
             combo_box.blockSignals(False)
 
+    @logmethod()
     def resetExceptType(self, combo_box_type: str):
         """ Resets all combo-boxes except the specified type (e.g. PluginType.DECODER, ...). """
         for _combo_box_type in self._combo_boxes.keys():
             if _combo_box_type != combo_box_type:
                 self._reset(self._combo_boxes[_combo_box_type])
 
+    @logmethod()
     def resetAll(self):
         """ Resets all combo-boxes to show the first element. """
         self._context.logger.debug("ComboBoxFrame:ResetAll")
         self._reset(*self._combo_boxes.values())
 
+    @logmethod()
     def setToolTip(self, tooltip: str, combo_box_type: str = None):
         """ Setup's the tooltip of the combo-box associated with the specified plugin-type.
         :param tooltip: the tooltip to show.

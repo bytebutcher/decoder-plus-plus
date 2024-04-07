@@ -44,11 +44,11 @@ class PluginBuilder:
 
         return result
 
-    def build(self, config) -> AbstractPlugin:
+    def build(self, config, safe_mode: bool = False) -> AbstractPlugin:
         """ Returns a plugin as specified within configuration item. Returns a NullPlugin on error. """
         try:
             plugin = self._context.getPluginByName(config["name"], config["type"])
-            plugin.setup(self._build_config(config['config']))
+            plugin.setup(self._build_config(config['config']), safe_mode)
             return plugin
         except Exception as err:
             self._context.logger.debug("Error building plugin:")

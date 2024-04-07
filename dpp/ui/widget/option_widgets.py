@@ -19,7 +19,9 @@ from typing import List
 from qtpy.QtCore import Signal, QObject
 from qtpy.QtWidgets import QCheckBox, QComboBox, QLineEdit, QRadioButton
 
+from dpp.ui.widget.code_editor_widget import CodeEditorWidget
 from dpp.ui.widget.slider_widget import SliderWidget
+from dpp.ui.widget.text_widget import TextWidget
 
 
 class OptionWidget(QObject):
@@ -47,8 +49,9 @@ class OptionWidget(QObject):
         self._get_value_callback = get_value_callback
         self.setValue(option.value)
         self._config.onChange.connect(self._on_config_change)
-        on_change_signal.connect(lambda event: self.onChange.emit(self))
         self.show_label = show_label
+        widget.setToolTip(option.description)
+        on_change_signal.connect(lambda event: self.onChange.emit(self))
 
     def getKey(self):
         """ Returns the configuration key/id. """
@@ -80,12 +83,12 @@ class OptionWidget(QObject):
 
     def _on_config_change(self, keys: List[str]):
         """ Checks whether this widget is affected by the configuration change and updates the value accordingly. """
-        if self.getKey() in keys:
+        if self.getKey() in keys and self.getValue() != self._config.value(self.getKey()):
             self.setValue(self._config.value(self.getKey()))
 
-    def validate(self, plugin, input_text) -> str:
+    def validate(self, input_text) -> str:
         """ Validates the configuration entry in association with the input text. """
-        return self._config.validate(self._option, plugin, input_text)
+        return self._config.validate(self._option, input_text)
 
 
 class StringOptionWidget(OptionWidget):
@@ -95,12 +98,20 @@ class StringOptionWidget(OptionWidget):
         super().__init__(widget, option, config, lambda text: widget.setText(str(text)), widget.text,
                          widget.textChanged, show_label=True)
 
-    def validate(self, plugin, input_text) -> str:
+    def validate(self, input_text) -> str:
         """ Validates the configuration entry in association with the input text. """
-        if super().validate(plugin, input_text):
+        if super().validate(input_text):
             self._widget.setStyleSheet('QLineEdit { color: red }')
         else:
             self._widget.setStyleSheet('')
+
+
+class TextOptionWidget(OptionWidget):
+
+    def __init__(self, config, option):
+        widget = TextWidget(option.value, read_only=option.read_only, wrap_lines=option.wrap_lines)
+        super().__init__(widget, option, config, widget.setText, widget.text,
+                         widget.textChanged, show_label=False)
 
 
 class BooleanOptionWidget(OptionWidget):
@@ -132,3 +143,10 @@ class SliderOptionWidget(OptionWidget):
     def __init__(self, config, option):
         widget = SliderWidget(option.value, option.range)
         super().__init__(widget, option, config, widget.setValue, widget.value, widget.valueChanged, show_label=True)
+
+
+class CodeEditorOptionWidget(OptionWidget):
+
+    def __init__(self, config, option):
+        widget = CodeEditorWidget(option.value)
+        super().__init__(widget, option, config, widget.setText, widget.text, widget.textChanged, show_label=False)

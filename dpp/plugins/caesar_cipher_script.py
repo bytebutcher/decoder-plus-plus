@@ -45,7 +45,7 @@ class Plugin(plugin.ScriptPlugin):
         ))
         self._codec = CaesarCipher()
 
-    def layout(self, input_text: str) -> Layout:
+    def _create_options_layout(self, input_text: str) -> Layout:
         return HBoxLayout(widgets=[
             Option(Plugin.Option.Shift),
             Button(
@@ -72,7 +72,7 @@ class CaesarCipher:
     """
 
     def __init__(self):
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         # Frequency of letters used in English, taken from Wikipedia.
         # http://en.wikipedia.org/wiki/Letter_frequency
         self.frequency = {

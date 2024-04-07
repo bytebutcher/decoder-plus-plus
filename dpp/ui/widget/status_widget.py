@@ -20,8 +20,13 @@ from qtpy.QtWidgets import QWidget, QHBoxLayout
 
 class StatusWidget(QWidget):
 
+    # Indicates that the input text was manually edited by the user.
     DEFAULT = "DEFAULT"
+
+    # Indicates that the plugin has been successfully executed.
     SUCCESS = "SUCCESS"
+
+    # Indicates that the plugin has been executed but an error occurred.
     ERROR = "ERROR"
 
     def __init__(self, parent=None, status="DEFAULT", width=15, height=None):

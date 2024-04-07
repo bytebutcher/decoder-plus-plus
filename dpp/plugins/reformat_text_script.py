@@ -62,24 +62,24 @@ class Plugin(ScriptPlugin):
         # Name, Author, Dependencies, Icon
         super().__init__('Reformat Text', "Thomas Engel", [], context, Icon.EDIT)
 
-        def _validate_split_chars(plugin: 'AbstractPlugin', input_text: str):
+        def _validate_split_chars(input_text: str):
 
             def _validate_regex():
                 try:
-                    re.compile(plugin.config.value(Plugin.Option.SplitChars))
+                    re.compile(self.config.value(Plugin.Option.SplitChars))
                     return True
                 except:
                     return False
 
-            if not plugin.config.value(Plugin.Option.SplitChars):
+            if not self.config.value(Plugin.Option.SplitChars):
                 raise ValidationError("Split by should not be empty!")
 
-            if plugin.config.value(Plugin.Option.IsRegex) and not _validate_regex():
+            if self.config.value(Plugin.Option.IsRegex) and not _validate_regex():
                 raise ValidationError("Invalid regular expression!")
 
-        def _validate_format(plugin: 'AbstractPlugin', input_text: str):
+        def _validate_format(input_text: str):
             try:
-                plugin.run(input_text)
+                self.run(input_text)
             except:
                 raise ValidationError("Invalid format string!")
 
@@ -109,7 +109,7 @@ class Plugin(ScriptPlugin):
         ))
         self._codec = ReformatCodec()
 
-    def layout(self, input_text: str) -> Layout:
+    def _create_options_layout(self, input_text: str) -> Layout:
         return FormLayout(
             widgets=[
                 Frame(

@@ -22,15 +22,16 @@ from dpp.ui.widget.hover_label import HoverLabel
 class IconLabel(HoverLabel):
     """ A widget for showing an icon. """
 
-    def __init__(self, parent, icon):
+    def __init__(self, parent, icon: QIcon = None):
         super(IconLabel, self).__init__(parent)
         self._icon = None
         self._do_repaint = None
         self._last_height = None
-        self.setIcon(icon)
+        if icon:
+            self.setIcon(icon)
         self.setHoverEffect(False)
 
-    def setIcon(self, icon):
+    def setIcon(self, icon: QIcon):
         """ Sets the icon. """
         assert isinstance(icon, QIcon), f'Illegal type! Expected QIcon, got {type(icon)}!'
         self._do_repaint = True

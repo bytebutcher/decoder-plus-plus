@@ -29,7 +29,7 @@ class IdentifyFormatButton(QFrame):
 
     def __init__(self, parent, plugins: List[AbstractPlugin], get_input_callback, select_plugin_callback):
         super(__class__, self).__init__(parent)
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__name__)
         self._plugins = plugins
         self._get_input = get_input_callback
         self._select_plugin = select_plugin_callback

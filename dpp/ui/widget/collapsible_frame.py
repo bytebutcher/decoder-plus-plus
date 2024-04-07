@@ -30,8 +30,6 @@ class CollapsibleFrame(QFrame):
     Frame with ability to un-/collapse content via clickable arrow-handles.
     """
 
-    frameChanged = Signal(str)
-
     arrowClicked = Signal()
     upButtonClicked = Signal()
     downButtonClicked = Signal()
@@ -96,7 +94,9 @@ class CollapsibleFrame(QFrame):
 
     def _arrow_clicked_event(self):
         self.toggleCollapsed()
-        self._was_collapse_state_changed_by_user = True
+        # Remember, when user uncollapses the frame manually. This is used to determine whether the
+        # frame should be collapsed automatically under certain conditions.
+        self._was_collapse_state_changed_by_user = not self.isCollapsed()
 
     def addWidget(self, widget):
         """
@@ -104,10 +104,6 @@ class CollapsibleFrame(QFrame):
         :param widget: the widget to be added.
         """
         self._content.layout().addWidget(widget)
-
-    def setContentDirection(self, direction: int):
-        """ Sets the direction of the content (e.g. LeftToRight, RightToLeft, TopToBottom, BottomToTop). """
-        self._content.layout().setDirection(direction)
 
     def toggleCollapsed(self):
         """ Toggles collapsing of the frame. """
@@ -130,10 +126,6 @@ class CollapsibleFrame(QFrame):
 
     def header(self) -> 'dpp.ui.collapsible_frame.CollapsibleFrame.HeaderFrame':
         return self._header_frame
-
-    def indicateError(self, status: bool):
-        """ Indicates that there was an error during encoding/decoding/hashing/scripting. """
-        self._header_frame.indicateError(status)
 
     def getContentHeight(self) -> int:
         """ Returns the height of the content when uncollapsed. """
@@ -164,6 +156,9 @@ class CollapsibleFrame(QFrame):
             def setCentralWidget(self, widget: QWidget):
                 self.clearLayout()
                 self.layout().addWidget(widget)
+
+            def centralWidget(self) -> QWidget:
+                return self.layout().itemAt(0).widget()
 
             def setStatus(self, status: str, message: str):
                 """ Sets a status.

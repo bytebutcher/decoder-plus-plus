@@ -67,6 +67,9 @@ setup(
             'passlib>=1.7.0',
             'pycryptodome>=3.15.0',
             'validators>=0.20.0'
+        ],
+        'test': [
+            'pytest-qt>=4.2.0',
         ]
     },
     data_files=[

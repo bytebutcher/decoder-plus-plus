@@ -32,7 +32,7 @@ class Plugin(EncoderPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('HEX (int)', "Thomas Engel", [], context)
+        super().__init__('Hex (int)', "Thomas Engel", [], context)
 
     def run(self, input_text: str) -> str:
         return self._run_lines(input_text, lambda text_part: hex(int(text_part)))

@@ -58,8 +58,8 @@ class Plugin(ScriptPlugin):
         self._init_config()
 
     def _init_config(self):
-        def _validate_search_term(plugin: 'AbstractPlugin', input_text: str):
-            if not plugin.config.value(Plugin.Option.SearchTerm):
+        def _validate_search_term(input_text: str):
+            if not self.config.value(Plugin.Option.SearchTerm):
                 raise ValidationError("Search term should not be empty.")
 
         self.config.add(String(
