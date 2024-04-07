@@ -115,7 +115,9 @@ class CodecFrames(QFrame):
         """
         Updates all frames starting from the given frame_id.
         @param frame_id: the frame id to start updating from.
-        @param is_user_action: defines whether the update is triggered by a user action or not.
+        @param is_user_action: defines whether the update was triggered by a user action.
+                               If True, the method marks the starting frame with a "DEFAULT" status to denote
+                               that the user has modified the input. Defaults to True.
         @param do_preserve_state: defines whether the state of the frame should be preserved or not.
         """
         frame_index = self.getFrameIndex(frame_id)
@@ -186,19 +188,21 @@ class CodecFrames(QFrame):
                 # Abort if user cancels configuration.
                 return
 
-            if frame.getFrameIndex() > 0 and not frame.hasNextFrame():
-                # Auto-collapse when current frame is last frame (except if current frame is the first frame).
+            # Do only auto-collapse, when we are creating a new frame. But never auto-collapse the first frame.
+            if frame.getFrameIndex() == self.getFramesCount() - 1 and frame.getFrameIndex() > 0:
                 frame.setCollapsed(True)
 
-            # TODO: #53 Allow multiple codecs on input
-            #       Computation should be done within in the frame.
-            #       (Old) frames store information how input is processed.
-            frame = self._new_frame(frame)
+            # Iteratively execute codecs starting with the current frame and continuing to the last frame,
+            # stopping if any codec encounters a failure.
+            self._update_frames(frame.id(), is_user_action=False)
 
-            # Focus the input text of the newly created frame.
-            # If frame already existed make sure it is not collapsed.
-            frame.setCollapsed(False)
-            frame.focusInputText()
+            # Focus input text of next frame which is not collapsed.
+            next_frame = frame
+            while next_frame.hasNextFrame():
+                next_frame: CodecFrame = next_frame.getNextFrame()
+                if not next_frame.isCollapsed():
+                    next_frame.focusInputText()
+                    break
         else:
             self._deselect_plugin(frame_id)
 
@@ -403,8 +407,9 @@ class CodecFrames(QFrame):
         def selected_frame_changed(tab_id, frame_id, input_text):
             # Always remember the currently focused frame (e.g. used for finding the currently selected frame when
             # using keyboard-shortcuts)
-            self._focused_frame = self.getFrameById(frame_id)
-            self._context.listener().selectedFrameChanged.emit(tab_id, frame_id, input_text)
+            if self._tab_id == tab_id:
+                self._focused_frame = self.getFrameById(frame_id)
+                self._context.listener().selectedFrameChanged.emit(tab_id, frame_id, input_text)
 
         new_frame.selectedFrameChanged.connect(selected_frame_changed)
 

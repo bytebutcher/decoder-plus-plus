@@ -20,9 +20,9 @@ from dpp.core.plugin import PluginType
 from tests.utils import load_plugin
 
 
-class TestIdentifyFileTypeScript(unittest.TestCase):
+class TestIdentifyFileTypeMagikaScript(unittest.TestCase):
 
-    plugin = load_plugin("Identify File Type", PluginType.IDENTIFY)
+    plugin = load_plugin("Identify File Type (magika)", PluginType.IDENTIFY)
 
     @unittest.skip("Missing configuration")
     def testPlugin(self):
