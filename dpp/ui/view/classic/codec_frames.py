@@ -63,12 +63,7 @@ class CodecFrames(QFrame):
         error = None
         plugin = frame.getPlugin()
         try:
-            if frame.hasTextSelected():
-                start_text, input_text, end_text = frame.getSelectedText()
-                output = start_text + plugin.run(input_text) + end_text
-            else:
-                input_text = frame.getInputText()
-                output = plugin.run(input_text)
+            output = frame.getOutputText()
             status = StatusWidget.SUCCESS
         except BaseException as err:
             status = StatusWidget.ERROR
