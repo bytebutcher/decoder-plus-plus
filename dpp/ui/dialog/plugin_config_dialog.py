@@ -107,7 +107,6 @@ class PluginConfigDialog(QDialog):
 
     def _hide_message_box(self):
         """ Hide message box and enable OK button. """
-        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(True)
         self._message_box.setHidden(True)
 
     def _show_error_message(self, message):
@@ -115,7 +114,6 @@ class PluginConfigDialog(QDialog):
         if not message:
             self._hide_message_box()
             return
-        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
         self._message_box.setFrameStyle("background-color: black;")
         self._message_box.setTextStyle("QLabel { color: white }")
         self._message_box.setIcon(Icon.MSG_ERROR, color='red')
@@ -128,7 +126,6 @@ class PluginConfigDialog(QDialog):
         if not message:
             self._hide_message_box()
             return
-        self._btn_box.button(QDialogButtonBox.Ok).setEnabled(True)
         self._message_box.setFrameStyle("background-color: white;")
         self._message_box.setTextStyle("QLabel { color: black }")
         self._message_box.setIcon(Icon.MSG_INFO, color='blue')
