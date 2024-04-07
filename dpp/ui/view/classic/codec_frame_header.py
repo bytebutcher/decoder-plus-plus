@@ -232,7 +232,7 @@ class CodecFrameHeader(QFrame):
             return self._lbl_icon_up
 
         def refresh(self):
-            status = self.codec_frame.hasStatus(StatusWidget.DEFAULT) and self.codec_frame.hasPreviousFrame()
+            status = self.codec_frame.getPlugin().is_runnable()
             self._lbl_icon_up.setEnabled(status)
 
     class UpButtonHeaderItem(ClickableCodecFrameHeaderItem):
