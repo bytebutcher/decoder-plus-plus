@@ -14,10 +14,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import unittest
 
-__name__ = 'decoder-plus-plus'
-__version__ = '1.7.1'
-__author__ = 'bytebutcher'
+from dpp.core.plugin import PluginType
+from tests.utils import load_plugin
 
-import os
-app_path = os.path.dirname(os.path.abspath(__file__))
+
+class TestIdentifyFileTypeScript(unittest.TestCase):
+
+    plugin = load_plugin("Identify File Type (filemagic)", PluginType.IDENTIFY)
+
+    @unittest.skip("Missing configuration")
+    def testPlugin(self):
+        ...
