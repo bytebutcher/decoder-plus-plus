@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from dpp.core.icons import Icon
 from dpp.core.plugin import IdentifyPlugin
 
 
@@ -24,7 +25,7 @@ class Plugin(IdentifyPlugin):
 
     def __init__(self, context: 'dpp.core.context.Context'):
         # Name, Author, Dependencies
-        super().__init__('Identify File Type', "Thomas Engel", ["filemagic"], context)
+        super().__init__('Identify File Type (filemagic)', "Thomas Engel", ["filemagic"], context, icon=Icon.IDENTIFY_FORMAT)
 
     def _detect_magic_bytes(self, input_text: str) -> str:
         import magic

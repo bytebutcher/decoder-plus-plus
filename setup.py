@@ -64,6 +64,7 @@ setup(
             'json2xml>=3.19.0',
             'jsonpath_ng>=1.5.0',
             'jwt>=1.3.0',
+            'magika>=0.5.0',
             'passlib>=1.7.0',
             'pycryptodome>=3.15.0',
             'validators>=0.20.0'

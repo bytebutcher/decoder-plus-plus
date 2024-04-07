@@ -46,49 +46,34 @@ class IdentifyFormatButton(QFrame):
         button.setMenu(menu)
         return button
 
-    def _can_plugin_identify_input(self, plugin: AbstractPlugin, input_text: str) -> bool:
-        """ Returns whether the plugin can identify the specified input. """
-        try:
-            # Check whether it is a decoder plugin and it thinks it can decode the input
-            self._logger.debug(f'Trying to identify input using {plugin.name} ...')
-            if isinstance(plugin, DecoderPlugin) and not plugin.can_decode_input(input_text):
-                raise CodecException(f'Invalid input for {plugin.name}!')
-            # Check whether decoder/identifier actually can process the input without any error
-            plugin.run(input_text)
-            return True
-        except Exception as err:
-            self._logger.debug(err)
-            return False
-
-    def _get_matching_plugins(self, input_text) -> List[AbstractPlugin]:
-        """ Returns a list of matching plugins for the specified input. """
-        if not input_text:
-            return []
-
-        return [plugin for plugin in self._plugins if self._can_plugin_identify_input(plugin, input_text)]
-
     def _populate_button_menu(self, input_text):
         """ Populates the button menu with a list of matching plugins for the specified input. """
         menu = self._button.menu()
         menu.clear()
-        plugins = self._get_matching_plugins(input_text)
-        if not plugins:
+
+        if input_text:
+            for plugin in self._plugins:
+                actions = self._identify_format(input_text, plugin)
+                if actions:
+                    # Add plugin name as title to menu
+                    action = menu.addAction(plugin.name)
+                    action.setDisabled(True)
+                    # Add the formats the plugin was able to identify
+                    menu.addActions(sorted(actions, key=lambda action: action.text()))
+
+        if not menu.actions():
             action = menu.addAction("No matching format found ...")
             action.setEnabled(False)
-            return
 
+    def _identify_format(self, input_text, plugin):
         actions = []
-        for plugin in plugins:
-            if isinstance(plugin, DecoderPlugin):
-                self._logger.debug(f'Adding possible {plugin.name} decoder plugin ...')
-                action = QAction(icon(Icon.IDENTIFY_CODEC), plugin.name, self)
-                action.triggered.connect(lambda chk, item=plugin: self._select_plugin(item))
+        if isinstance(plugin, IdentifyPlugin):
+            self._logger.debug(f'Guessing input using {plugin.name} identify plugin ...')
+            for identifier in plugin.run(input_text).splitlines():
+                self._logger.debug(f'Adding possible {identifier} ...')
+                if plugin.icon:
+                    action = QAction(icon(plugin.icon), identifier, self)
+                else:
+                    action = QAction(identifier, self)
                 actions.append(action)
-            elif isinstance(plugin, IdentifyPlugin):
-                self._logger.debug(f'Guessing input using {plugin.name} identify plugin ...')
-                for identifier in plugin.run(input_text).splitlines():
-                    self._logger.debug(f'Adding possible {identifier} ...')
-                    action = QAction(icon(Icon.IDENTIFY_HASH), identifier, self)
-                    actions.append(action)
-
-        menu.addActions(sorted(actions, key=lambda action: action.text()))
+        return actions
