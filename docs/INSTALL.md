@@ -2,7 +2,26 @@
 
 The following sections provide information about how Decoder++ can be installed on various Systems.
 
-## Ubuntu
+## via pip (Ubuntu)
+
+### Qt6
+```bash
+apt-get update
+apt-get install -y python3 python3-pip \
+  libqt6core6 libqt6network6 libqt6openglwidgets6 libqt6widgets6 qt6-qpa-plugins \
+  libgl1 libxcb-xinerama0
+pip3 install decoder-plus-plus[qt6]
+```
+
+### Qt5
+
+```bash
+apt-get update
+apt-get install -y python3 python3-pip qt5-default libgl1 libxcb-xinerama0
+pip3 install decoder-plus-plus[qt5]
+```
+
+## via git (Ubuntu)
 
 ### Qt6
 ```bash
@@ -11,8 +30,7 @@ apt-get install -y python3 python3-pip git \
   libqt6core6 libqt6network6 libqt6openglwidgets6 libqt6widgets6 qt6-qpa-plugins \
   libgl1 libxcb-xinerama0
 git clone https://github.com/bytebutcher/decoder-plus-plus/
-cd decoder-plus-plus
-pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt6] decoder-plus-plus[extras]
+pip3 install --upgrade pip && pip3 install ./decoder-plus-plus[qt6] ./decoder-plus-plus[extras]
 ```
 
 ### Qt5
@@ -20,25 +38,10 @@ pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt6] decoder-plus-p
 apt-get update
 apt-get install -y python3 python3-pip git qt5-default libgl1 libxcb-xinerama0
 git clone https://github.com/bytebutcher/decoder-plus-plus/
-cd decoder-plus-plus
-pip3 install --upgrade pip && pip3 install decoder-plus-plus[qt5]  decoder-plus-plus[extras]
+pip3 install --upgrade pip && pip3 install ./decoder-plus-plus[qt5] ./decoder-plus-plus[extras]
 ```
 
-## Git
-
-### Qt6
-```bash
-git clone https://github.com/bytebutcher/decoder-plus-plus
-pip3 install decoder-plus-plus/.[qt6] decoder-plus-plus/.[extras]
-```
-
-### Qt5
-```bash
-git clone https://github.com/bytebutcher/decoder-plus-plus
-pip3 install decoder-plus-plus/.[qt5] decoder-plus-plus/.[extras]
-```
-
-## Docker container
+## via Docker
 
 ### Qt6
 ```bash

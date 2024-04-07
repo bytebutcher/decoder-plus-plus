@@ -45,7 +45,7 @@ class Plugin(plugin.ScriptPlugin):
         ))
         self._codec = CaesarCipher()
 
-    def layout(self, input_text: str) -> Layout:
+    def _create_options_layout(self, input_text: str) -> Layout:
         return HBoxLayout(widgets=[
             Option(Plugin.Option.Shift),
             Button(

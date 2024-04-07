@@ -51,12 +51,21 @@ class GroupBox(Widget):
 
 class Button(Widget):
 
-    def __init__(self, label, on_click, show_label=False):
+    def __init__(self, label, on_click, description="", show_label=False, icon=None):
         super().__init__(label=label, show_label=show_label)
         self.on_click = on_click
+        self.description = description
+        self.icon = icon
 
 
 class ToolButton(Button):
+    ...
+
+
+class HSpace(Widget):
+    ...
+
+class VSpace(Widget):
     ...
 
 

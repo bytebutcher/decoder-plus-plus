@@ -21,14 +21,18 @@ from qtpy.QtWidgets import QPushButton, QToolButton, QGroupBox, QLabel, QFrame, 
     QHBoxLayout, QVBoxLayout
 
 from dpp.core.assertions import assert_type, assert_instance
+from dpp.core.icons import icon
 from dpp.core.plugin import AbstractPlugin
-from dpp.core.plugin.config.options import Boolean, Slider, String, Integer, Group, ComboBox
+from dpp.core.plugin.config.options import Boolean, Slider, String, Integer, Group, ComboBox, CodeEditor, Text
 from dpp.core.plugin.config.ui import Widget, Layout
-from dpp.core.plugin.config.ui.widgets import ToolButton, Button, GroupBox, TextPreview, Frame, Option, Label
+from dpp.core.plugin.config.ui.widgets import ToolButton, Button, GroupBox, TextPreview, Frame, Option, Label, HSpace, \
+    VSpace
 from dpp.core.plugin.config.ui.layouts import FormLayout, VBoxLayout, HBoxLayout
+from dpp.ui import VSpacer, HSpacer
 from dpp.ui.widget.codec_preview_widget import CodecPreviewWidget
+from dpp.ui.widget.code_editor_widget import CodeEditorWidget
 from dpp.ui.widget.option_widgets import SliderOptionWidget, StringOptionWidget, GroupOptionWidget, \
-    BooleanOptionWidget, OptionWidget, ComboBoxOptionWidget
+    BooleanOptionWidget, OptionWidget, ComboBoxOptionWidget, CodeEditorOptionWidget, TextOptionWidget
 
 
 class BuilderBase:
@@ -82,12 +86,14 @@ class OptionWidgetBuilder(BuilderBase):
     def __init__(self):
         super().__init__()
         self._widgets = {
+            Boolean: BooleanOptionWidget,
+            CodeEditor: CodeEditorOptionWidget,
+            ComboBox: ComboBoxOptionWidget,
+            Group: GroupOptionWidget,
+            Integer: StringOptionWidget,
             Slider: SliderOptionWidget,
             String: StringOptionWidget,
-            Integer: StringOptionWidget,
-            Group: GroupOptionWidget,
-            Boolean: BooleanOptionWidget,
-            ComboBox: ComboBoxOptionWidget
+            Text: TextOptionWidget,
         }
 
     def _build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Option):
@@ -107,12 +113,9 @@ class OptionWidgetBuilder(BuilderBase):
 
         widget = self._widgets[type(widget_spec)](plugin.config, widget_spec)
 
-        # Update config, when option widget value changes.
+        # Update config, when option widget value is changes by user.
         widget.onChange.connect(
             lambda option_widget: plugin.config.update({option_widget.getKey(): option_widget.getValue()}))
-
-        # TODO: This should be part of the widget.
-        widget.onChange.connect(lambda option_widget: widget.validate(plugin, input_text))
 
         return widget
 
@@ -126,7 +129,10 @@ class ToolButtonWidgetBuilder(BuilderBase):
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: ToolButton) -> QWidget:
         widget = QToolButton()
         widget.setText(widget_spec.label)
+        widget.setToolTip(widget_spec.description)
         widget.clicked.connect(widget_spec.on_click)
+        if widget_spec.icon:
+            widget.setIcon(icon(widget_spec.icon))
         return widget
 
 
@@ -135,7 +141,10 @@ class ButtonWidgetBuilder(BuilderBase):
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Button) -> QWidget:
         widget = QPushButton(widget_spec.label)
         widget.setText(widget_spec.label)
+        widget.setToolTip(widget_spec.description)
         widget.clicked.connect(widget_spec.on_click)
+        if widget_spec.icon:
+            widget.setIcon(icon(widget_spec.icon))
         return widget
 
 
@@ -144,6 +153,20 @@ class LabelWidgetBuilder(BuilderBase):
 
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Label) -> QWidget:
         return QLabel(widget_spec.label)
+
+
+class HSpaceWidgetBuilder(BuilderBase):
+    """ Builds a horizontal spacer from a widget specification. """
+
+    def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Label) -> QWidget:
+        return HSpacer()
+
+
+class VSpaceWidgetBuilder(BuilderBase):
+    """ Builds a vertical spacer from a widget specification. """
+
+    def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Label) -> QWidget:
+        return VSpacer()
 
 
 class GroupBoxWidgetBuilder(BuilderBase):
@@ -183,6 +206,12 @@ class TextPreviewWidgetBuilder(BuilderBase):
         return CodecPreviewWidget(plugin, input_text)
 
 
+class CodeEditorWidgetBuilder(BuilderBase):
+
+    def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: CodeEditor) -> QWidget:
+        return CodeEditorWidget(plugin, input_text)
+
+
 class LabelBuilder(BuilderBase):
 
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec: Widget) -> QWidget:
@@ -201,13 +230,15 @@ class WidgetBuilder(BuilderBase):
         self._label_builder = LabelBuilder() if not label_builder else label_builder
         self._layout_builder = LayoutBuilder(widget_builder=self) if not layout_builder else layout_builder
         self._widget_builders = {
-            ToolButton: ToolButtonWidgetBuilder(),
             Button: ButtonWidgetBuilder(),
-            Label: LabelWidgetBuilder(),
-            GroupBox: GroupBoxWidgetBuilder(),
             Frame: FrameWidgetBuilder(),
+            GroupBox: GroupBoxWidgetBuilder(),
+            HSpace: HSpaceWidgetBuilder(),
+            Label: LabelWidgetBuilder(),
+            Option: OptionWidgetBuilder(),
             TextPreview: TextPreviewWidgetBuilder(),
-            Option: OptionWidgetBuilder()
+            ToolButton: ToolButtonWidgetBuilder(),
+            VSpace: VSpaceWidgetBuilder(),
         }
 
     def build(self, plugin: AbstractPlugin, input_text: str, widget_spec) -> Union[str, QWidget]:

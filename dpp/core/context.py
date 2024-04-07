@@ -260,10 +260,6 @@ class Context(QObject):
     def getPluginByName(self, name: str, type: str) -> AbstractPlugin:
         return self.plugins().plugin(name, type)
 
-    def saveAsFile(self, filename: str, content: str):
-        with open(filename, "w") as f:
-            f.write(content)
-
     def __deepcopy__(self, memo):
         """ There shall be only one. """
         return self

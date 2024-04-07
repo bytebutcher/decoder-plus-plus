@@ -72,12 +72,12 @@ class Plugin(ScriptPlugin):
         self._codec = Plugin.SplitAndRejoinCodec()
 
     def _init_config(self):
-        def _validate_split_text(plugin: 'AbstractPlugin', input_text: str):
-            if not plugin.config.value(Plugin.Option.SplitText):
+        def _validate_split_text(input_text: str):
+            if not self.config.value(Plugin.Option.SplitText):
                 raise ValidationError("Split by should not be empty.")
-            if plugin.config.value(Plugin.Option.SplitByLength):
+            if self.config.value(Plugin.Option.SplitByLength):
                 try:
-                    length = int(plugin.config.value(Plugin.Option.SplitText))
+                    length = int(self.config.value(Plugin.Option.SplitText))
                     if length <= 0:
                         raise ValidationError("Split by should be greater than 0.")
                 except:

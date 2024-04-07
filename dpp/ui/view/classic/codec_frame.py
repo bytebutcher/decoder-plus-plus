@@ -39,6 +39,9 @@ from dpp.ui.widget.status_widget import StatusWidget
 
 class CodecFrame(CollapsibleFrame):
 
+    # Signals that the frame was focused
+    selectedFrameChanged = Signal(str, str, str)  # tab_id, frame_id, input_text
+
     # Signals that the text inside the codec frame changed
     textChanged = Signal(str, str, str)  # tab_id, frame_id, input_text
 
@@ -139,6 +142,7 @@ class CodecFrame(CollapsibleFrame):
         input_frame = QFrame(self)
         frame_layout = QVBoxLayout()
         self._plain_view_widget = PlainView(self._tab_id, self._frame_id, text, self._context, self)
+        self._plain_view_widget.selectedFrameChanged.connect(self.selectedFrameChanged.emit)
         self._plain_view_widget.textSelectionChanged.connect(self.textSelectionChanged.emit)
         self._plain_view_widget.textChanged.connect(self.textChanged.emit)
 
@@ -279,7 +283,7 @@ class CodecFrame(CollapsibleFrame):
             assert isinstance(plugin, AbstractPlugin), "Plugin must be of type AbstractPlugin"
             self.selectComboBoxEntryByPlugin(plugin, block_signals=block_signals)
             self.getPlugin().setup(plugin.config.toDict())
-            self.frameChanged.emit(self.id())
+            self.selectedFrameChanged.emit(self._tab_id, self.id(), self.getInputText())
 
     def title(self) -> str:
         """ Returns the title of the current frame which is either the title of the previous plugin or None. """
@@ -339,12 +343,17 @@ class CodecFrame(CollapsibleFrame):
     # ------------------------------------------------------------------------------------------------------------------
 
     @logmethod(prefix_callback=lambda self: f'{self.getFrameId()}::')
-    def fromDict(self, frame_config):
+    def fromDict(self, frame_config, safe_mode: bool = False):
+        """ Setups a tab from a given configuration.
+        @param frame_config: configuration of a frame. See toDict method for more information.
+        @param safe_mode: dictates how potentially dangerous plugins are handled.
+        """
         self.setInputText(frame_config["text"])
         self.setStatus(frame_config["status"]["type"], frame_config["status"]["message"])
-        if frame_config["plugin"]["name"] and frame_config["plugin"]["type"]:
+        plugin = frame_config["plugin"]
+        if plugin["name"] and plugin["type"]:
             # Configure plugin if any. Last frame does not have a plugin configured, yet.
-            self.selectComboBoxEntryByPlugin(PluginBuilder(self._context).build(frame_config["plugin"]),
+            self.selectComboBoxEntryByPlugin(PluginBuilder(self._context).build(plugin, safe_mode),
                                              block_signals=True)
         self.header().refresh()
         self.setCollapsed(frame_config["is_collapsed"])

@@ -136,9 +136,6 @@ class PlainView(QFrame):
         self._search_field.closeEvent.connect(self._do_close_search_field)
         self._search_field.setVisible(False)
 
-        # Propagate that a new frame was loaded
-        self.selectedFrameChanged.emit(self._tab_id, self._frame_id, self.toPlainText())
-
         layout = QVBoxLayout()
         layout.addWidget(self._plain_text)
         layout.addWidget(self._search_field)
@@ -229,7 +226,10 @@ class PlainView(QFrame):
     def _on_plain_text_selection_changed_event(self):
         cursor = self._plain_text.textCursor()
         selected_text = cursor.selectedText()
-        if selected_text and selected_text != self._last_selected_plain_text:
+        if selected_text != self._last_selected_plain_text:
+            if not selected_text:
+                # If no text is selected, everything is selected.
+                selected_text = self.toPlainText()
             self._last_selected_plain_text = selected_text
             self.textSelectionChanged.emit(self._tab_id, self._frame_id, selected_text)
 
@@ -386,3 +386,4 @@ class PlainView(QFrame):
     def setFocus(self, Qt_FocusReason=None):
         """ Sets the focus to the plain text area. """
         self._plain_text.setFocus()
+        self.selectedFrameChanged.emit(self._tab_id, self._frame_id, self._plain_text.toPlainText())

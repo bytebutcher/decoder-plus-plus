@@ -27,7 +27,6 @@ class PluginConfigWidgetBuilder:
         self._parent = parent
         self._plugin = plugin
         self._input_text = input_text
-        self._layout_callback = lambda layout_spec: layout_spec
 
     def layout(self, callback: Callable) -> 'PluginConfigWidgetBuilder':
         self._layout_callback = callback
@@ -36,7 +35,7 @@ class PluginConfigWidgetBuilder:
     def build(self) -> QFrame:
         """ Builds the widget based on the layout specification. """
         frame = QFrame(self._parent)
-        layout_spec = self._layout_callback(self._plugin.layout(self._input_text))
+        layout_spec = self._plugin.layout(self._input_text)
         assert layout_spec, 'Illegal layout specification! Expected object, got None!'
         layout = LayoutBuilder().build(self._plugin, self._input_text, layout_spec)
         assert layout, 'Illegal layout! Expected object, got None!'
