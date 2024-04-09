@@ -132,9 +132,10 @@ class ComboBoxOptionWidget(OptionWidget):
 
     def __init__(self, config, option):
         widget = QComboBox()
+        widget.setEditable(option.is_editable)
         for value in option.values:
             widget.addItem(value)
-        super().__init__(widget, option, config, widget.setCurrentText, widget.currentText, widget.currentIndexChanged,
+        super().__init__(widget, option, config, widget.setCurrentText, widget.currentText, widget.currentTextChanged,
                          show_label=True)
 
 

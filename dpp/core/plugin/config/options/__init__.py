@@ -84,13 +84,14 @@ class Group(Boolean):
 
 class ComboBox(Option):
 
-    def __init__(self, label, value, values, description, is_required):
+    def __init__(self, label, value, values, description, is_required, is_editable=False):
         """
         :param value: the selected value.
         :param values: the available values to select.
         """
         super(ComboBox, self).__init__(label, value, description, is_required)
         self.values = values
+        self.is_editable = is_editable
 
 
 class CodeEditor(Option):

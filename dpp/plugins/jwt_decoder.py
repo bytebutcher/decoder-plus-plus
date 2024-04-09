@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from dpp.core.plugin import DecoderPlugin
 from dpp.core.plugin.config import Label
-from dpp.core.plugin.config.options import String
+from dpp.core.plugin.config.options import String, ComboBox
 
 
 class Plugin(DecoderPlugin):
@@ -50,11 +50,26 @@ class Plugin(DecoderPlugin):
             description="the key suitable for the allowed algorithm",
             is_required=False
         ))
-        self.config.add(String(
+        self.config.add(ComboBox(
             label=Plugin.Option.Algorithm,
-            value="",
+            value="HS256",
+            values=[
+                "HS256",
+                "HS384",
+                "HS512",
+                "RS256",
+                "RS384",
+                "RS512",
+                "ES256",
+                "ES384",
+                "ES512",
+                "PS256",
+                "PS384",
+                "PS512",
+            ],
             description="allowed algorithm",
-            is_required=False
+            is_required=False,
+            is_editable=True
         ))
 
     def run(self, input_text: str) -> str:
