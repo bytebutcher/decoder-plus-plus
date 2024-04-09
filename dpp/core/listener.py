@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import Callable
+from typing import Callable, Dict, List
 
 
 class Signal:
@@ -24,7 +24,7 @@ class Signal:
 
     class FooBar:
 
-        onChange = Singal('str')
+        onChange = Signal('str')
 
         def __init__(self):
             self._foo = 'bar'
@@ -46,15 +46,33 @@ class Signal:
 
     def __init__(self, *args):
         self._args = args
-        self._callbacks = []
+        self._callbacks: Dict[int, List[Callable]] = {}
 
-    def connect(self, callback: Callable):
-        self._callbacks.append(callback)
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.SignalInstanceProxy(self, instance)
 
-    def emit(self, *args):
-        assert len(args) == len(self._args), f'Invalid number of arguments! Expected {len(self._args)}, got {len(args)}!'
-        for callback in self._callbacks:
-            callback(*args)
+    class SignalInstanceProxy:
+        def __init__(self, signal, instance):
+            self._signal = signal
+            self._instance = instance
+
+        def connect(self, callback: Callable):
+            """Connect a callback to the signal for this instance."""
+            instance_id = id(self._instance)
+            if instance_id not in self._signal._callbacks:
+                self._signal._callbacks[instance_id] = []
+            self._signal._callbacks[instance_id].append(callback)
+
+        def emit(self, *args):
+            """Emit the signal for this instance, calling all connected callbacks."""
+            instance_id = id(self._instance)
+            if instance_id in self._signal._callbacks:
+                callbacks = self._signal._callbacks[instance_id]
+                for callback in callbacks:
+                    callback(*args)
+
 
 
 class Listener:
