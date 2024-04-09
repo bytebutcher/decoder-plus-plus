@@ -47,6 +47,12 @@ by providing a graphical user interface for flexible transformation of any input
 
 ![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-preview-dialog.png)
 
+While ```Decoder++``` processes the entire input text by default, it allows for selective data transformation as well. 
+To transform only a specific portion of your text, simply highlight the necessary text segment in the input field 
+and then apply the desired codec.
+
+![Decoder++ Screenshot](https://raw.githubusercontent.com/bytebutcher/decoder-plus-plus/master/images/dpp-selective-input.png)
+
 ### Command Line
 
 In addition to the graphical user interface Decoder++ also provides a command line interface:
